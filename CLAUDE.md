@@ -13,17 +13,13 @@ Plugin ATAK sustituto de TAKICU/OpenICU, integrado en el propio menú nativo de 
 
 Igualar el conjunto de funcionalidad de OpenTAK_ICU (protocolos, codecs, auth+cifrado simultáneos) pero como plugin ATAK real, integrado en el menú nativo — sin cambiar de app ni reconfigurar servidor a mano cada vez.
 
-## Arquitectura propuesta (servidor de recepción)
+## Qué recibe el vídeo (fuera de alcance de este subproyecto)
 
-- **Servidor**: [raytheonbbn/tak-video-restreamer](https://github.com/raytheonbbn/tak-video-restreamer) — Flask + MediaMTX + FFmpeg, dockerizado. Recibe RTSP/RTSPS/SRT/RTMP y redistribuye a ATAK/WinTAK/CloudTAK/navegador/VLC, con grabación y API de gestión de streams.
-- **División de trabajo**: el plugin solo captura y *publica* (RootEncoder → RTSP/RTSPS/SRT hacia el servidor); toda la redistribución/transcodificación la hace el servidor, no el plugin.
-- **Despliegue**: instancia propia en Gontra, **separada** de la instalación de MediaMTX que ya usa SPATAK (profesional) — mismo criterio de compartimento estanco que en el resto del vault.
-- **Seguridad**: cambiar las credenciales por defecto (`admin:changeme`) antes de exponerlo, aunque sea solo en el tailnet.
+El plugin solo captura y *publica* (RootEncoder → RTSP/RTSPS/SRT). No es responsabilidad de este subproyecto desplegar ni gestionar el servidor receptor — eso es aparte. Como referencia de qué tipo de servidor puede recibirlo: [raytheonbbn/tak-video-restreamer](https://github.com/raytheonbbn/tak-video-restreamer) (Flask + MediaMTX + FFmpeg) es un ejemplo de receptor compatible con RTSP/RTSPS/SRT/RTMP que redistribuye a ATAK/WinTAK/CloudTAK — sirve para saber contra qué protocolo/formato desarrollar el publicador, nada más.
 
 ## Pendiente de definir
 
 - Qué funcionalidad concreta se replica primero (probablemente: RTSP/RTSPS básico con audio, antes que SRT/multicast).
 - Punto de integración exacto en el menú nativo de ATAK (extension point) — ver la skill `atak-plugin` para referencia de extension points.
-- Desplegar `tak-video-restreamer` en Gontra (Docker Compose) y decidir el nombre del path/stream por dispositivo.
 
 Ver `../CLAUDE.md` para el entorno de build y las convenciones generales del monorepo.
