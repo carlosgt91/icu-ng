@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">ICU NG</string>
+    <!-- description -->
+    <string name="app_desc">Sustituto de TAK ICU: streaming de cámara con audio, anunciado en el mapa vía CoT.</string>
+
+
+
+
+</resources>
