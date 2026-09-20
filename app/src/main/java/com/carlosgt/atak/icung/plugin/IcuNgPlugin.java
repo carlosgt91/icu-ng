@@ -478,31 +478,34 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
     @Override
     public void onConnectionStarted(String url) {
-        // Sin uso hasta la Fase 2 (streaming RTSP)
+        setStatus(pluginContext.getString(R.string.status_connecting));
     }
 
     @Override
     public void onConnectionSuccess() {
-        // Sin uso hasta la Fase 2 (streaming RTSP)
+        setStatus(pluginContext.getString(R.string.status_streaming));
     }
 
     @Override
     public void onConnectionFailed(String reason) {
-        // Sin uso hasta la Fase 2 (streaming RTSP)
+        setStatus(pluginContext.getString(R.string.status_error_format, reason));
+        stopStreamOnly();
     }
 
     @Override
     public void onDisconnect() {
-        // Sin uso hasta la Fase 2 (streaming RTSP)
+        setStatus(pluginContext.getString(R.string.status_disconnected));
+        stopStreamOnly();
     }
 
     @Override
     public void onAuthError() {
-        // Sin uso hasta la Fase 2 (streaming RTSP)
+        setStatus(pluginContext.getString(R.string.status_error_format, "autenticacion fallida"));
+        stopStreamOnly();
     }
 
     @Override
     public void onAuthSuccess() {
-        // Sin uso hasta la Fase 2 (streaming RTSP)
+        setStatus(pluginContext.getString(R.string.status_streaming));
     }
 }
