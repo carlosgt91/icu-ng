@@ -43,7 +43,6 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     SelfVideoDetailHandler videoDetailHandler;
     ConnectionEntry connectionEntry;
     SelfSensorFovController sensorFovController;
-    boolean surfaceReady;
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -124,19 +123,45 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
     private void stopCameraAndStream() {
         if (camera != null && camera.isStreaming()) {
-            camera.stopStream();
-            if (connectionEntry != null) {
-                videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
-                connectionEntry = null;
-            }
-            if (sensorFovController != null) {
-                sensorFovController.refresh(false);
-            }
+            stopStreamOnly();
         }
 
         if (camera != null && camera.isOnPreview()) {
             camera.stopPreview();
         }
+    }
+
+    // Everything that undoes toggleStream()'s "start" branch - shared by the
+    // direct "Detener" click and any indirect stop (hiding/closing the panel),
+    // so the button text and CoT/video bookkeeping never fall out of sync
+    // with the actual RtspCamera2 state.
+    private void stopStreamOnly() {
+        camera.stopStream();
+        if (connectionEntry != null) {
+            videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
+            connectionEntry = null;
+        }
+        if (sensorFovController != null) {
+            sensorFovController.refresh(false);
+        }
+        if (streamToggleButton != null) {
+            streamToggleButton.setText(R.string.start_stream);
+        }
+    }
+
+    // Called whenever the panel stops being visible for any reason (hidden
+    // or closed) - resets to null rather than trying to resume the same
+    // RtspCamera2/Pane/OpenGlView later, so every reopen goes through the
+    // one construction path (below) that's actually proven to work: a fresh
+    // SurfaceView whose surfaceCreated() reliably fires before anything
+    // touches it. Whether ATAK/Android would have reused the same Surface
+    // instead of recreating it on a plain re-show isn't something this
+    // project could verify from outside a running device, so this sidesteps
+    // the question entirely instead of gambling on it.
+    private void tearDownPane() {
+        stopCameraAndStream();
+        templatePane = null;
+        camera = null;
     }
 
     private void showPane() {
@@ -165,13 +190,12 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             // on a later layout pass, not synchronously when the view is
             // inflated. Wait for surfaceCreated(), same pattern RootEncoder's
             // own demo app uses for TextureView's onSurfaceTextureAvailable.
-            // onPaneVisible(true) (below) fires on this very first show too,
-            // before the surface exists - surfaceReady is what keeps it from
-            // racing this same callback.
+            // This is the *only* place startPreview() is ever called - see
+            // tearDownPane() for why nothing tries to resume an existing
+            // camera/pane instead of rebuilding through here.
             previewView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
-                    surfaceReady = true;
                     if (!camera.isOnPreview()) {
                         camera.startPreview(CameraHelper.Facing.BACK);
                     }
@@ -204,22 +228,14 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             uiService.showPane(templatePane, new IHostUIService.IPaneLifecycleListener() {
                 @Override
                 public void onPaneVisible(boolean visible) {
-                    if (visible) {
-                        // Only a restart for a pane shown before - the very
-                        // first show is surfaceCreated()'s job (above), since
-                        // onPaneVisible(true) also fires then, before the
-                        // Surface exists.
-                        if (surfaceReady && camera != null && !camera.isOnPreview()) {
-                            camera.startPreview(CameraHelper.Facing.BACK);
-                        }
-                    } else {
-                        stopCameraAndStream();
+                    if (!visible) {
+                        tearDownPane();
                     }
                 }
 
                 @Override
                 public void onPaneClose() {
-                    stopCameraAndStream();
+                    tearDownPane();
                 }
             });
         }
@@ -227,13 +243,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
     private void toggleStream() {
         if (camera.isStreaming()) {
-            camera.stopStream();
-            streamToggleButton.setText(R.string.start_stream);
-            if (connectionEntry != null) {
-                videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
-                connectionEntry = null;
-            }
-            sensorFovController.refresh(false);
+            stopStreamOnly();
         } else {
             String url = rtspUrlInput.getText().toString();
             camera.startStream(url);
