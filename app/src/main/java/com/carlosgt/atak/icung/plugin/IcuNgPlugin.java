@@ -2,9 +2,14 @@
 package com.carlosgt.atak.icung.plugin;
 
 import android.content.Context;
+import android.view.View;
 
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
+import com.pedro.common.ConnectChecker;
+import com.pedro.encoder.input.video.CameraHelper;
+import com.pedro.library.rtsp.RtspCamera2;
+import com.pedro.library.view.OpenGlView;
 
 import gov.tak.api.plugin.IPlugin;
 import gov.tak.api.plugin.IServiceController;
@@ -15,13 +20,14 @@ import gov.tak.api.ui.ToolbarItem;
 import gov.tak.api.ui.ToolbarItemAdapter;
 import gov.tak.platform.marshal.MarshalManager;
 
-public class IcuNgPlugin implements IPlugin {
+public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
     IServiceController serviceController;
     Context pluginContext;
     IHostUIService uiService;
     ToolbarItem toolbarItem;
     Pane templatePane;
+    RtspCamera2 camera;
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -71,6 +77,10 @@ public class IcuNgPlugin implements IPlugin {
             return;
 
         uiService.removeToolbarItem(toolbarItem);
+
+        if (camera != null && camera.isOnPreview()) {
+            camera.stopPreview();
+        }
     }
 
     private void showPane() {
@@ -80,8 +90,13 @@ public class IcuNgPlugin implements IPlugin {
             // In this case, using it is not necessary - but I am putting it here to remind
             // developers to look at this Inflator
 
-            templatePane = new PaneBuilder(PluginLayoutInflater.inflate(pluginContext,
-                    R.layout.main_layout, null))
+            View paneView = PluginLayoutInflater.inflate(pluginContext,
+                    R.layout.main_layout, null);
+
+            OpenGlView previewView = paneView.findViewById(R.id.preview_view);
+            camera = new RtspCamera2(previewView, this);
+
+            templatePane = new PaneBuilder(paneView)
                     // relative location is set to default; pane will switch location dependent on
                     // current orientation of device screen
                     .setMetaValue(Pane.RELATIVE_LOCATION, Pane.Location.Default)
@@ -96,5 +111,39 @@ public class IcuNgPlugin implements IPlugin {
         if(!uiService.isPaneVisible(templatePane)) {
             uiService.showPane(templatePane, null);
         }
+
+        if (camera != null && !camera.isOnPreview()) {
+            camera.startPreview(CameraHelper.Facing.BACK);
+        }
+    }
+
+    @Override
+    public void onConnectionStarted(String url) {
+        // Sin uso hasta la Fase 2 (streaming RTSP)
+    }
+
+    @Override
+    public void onConnectionSuccess() {
+        // Sin uso hasta la Fase 2 (streaming RTSP)
+    }
+
+    @Override
+    public void onConnectionFailed(String reason) {
+        // Sin uso hasta la Fase 2 (streaming RTSP)
+    }
+
+    @Override
+    public void onDisconnect() {
+        // Sin uso hasta la Fase 2 (streaming RTSP)
+    }
+
+    @Override
+    public void onAuthError() {
+        // Sin uso hasta la Fase 2 (streaming RTSP)
+    }
+
+    @Override
+    public void onAuthSuccess() {
+        // Sin uso hasta la Fase 2 (streaming RTSP)
     }
 }
