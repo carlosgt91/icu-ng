@@ -42,6 +42,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     IVideoConnectionManager videoConnectionManager;
     SelfVideoDetailHandler videoDetailHandler;
     ConnectionEntry connectionEntry;
+    SelfSensorFovController sensorFovController;
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -91,6 +92,9 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
                 this::isStreamingWithFix,
                 () -> connectionEntry);
         CotDetailManager.getInstance().registerHandler(videoDetailHandler);
+
+        sensorFovController = new SelfSensorFovController();
+        sensorFovController.start();
     }
 
     private boolean isStreamingWithFix() {
@@ -111,6 +115,10 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         if (videoDetailHandler != null) {
             CotDetailManager.getInstance().unregisterHandler(videoDetailHandler);
         }
+
+        if (sensorFovController != null) {
+            sensorFovController.stop();
+        }
     }
 
     private void stopCameraAndStream() {
@@ -119,6 +127,9 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             if (connectionEntry != null) {
                 videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
                 connectionEntry = null;
+            }
+            if (sensorFovController != null) {
+                sensorFovController.refresh(false);
             }
         }
 
@@ -213,6 +224,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
                 videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
                 connectionEntry = null;
             }
+            sensorFovController.refresh(false);
         } else {
             String url = rtspUrlInput.getText().toString();
             camera.startStream(url);
@@ -220,6 +232,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
             connectionEntry = buildConnectionEntry(url);
             videoConnectionManager.addConnectionEntry(connectionEntry);
+            sensorFovController.refresh(true);
         }
     }
 
