@@ -8,4 +8,31 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:orientation="horizontal"
+        android:background="#80000000"
+        android:padding="4dp">
+
+        <EditText
+            android:id="@+id/rtsp_url_input"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:inputType="textUri"
+            android:hint="rtsp://host:puerto/stream"
+            android:text="rtsp://10.0.2.2:8554/icung"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#AAAAAA" />
+
+        <Button
+            android:id="@+id/stream_toggle_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/start_stream" />
+
+    </LinearLayout>
+
 </FrameLayout>

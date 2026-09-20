@@ -5,6 +5,9 @@
     <!-- description -->
     <string name="app_desc">Sustituto de TAK ICU: streaming de cámara con audio, anunciado en el mapa vía CoT.</string>
 
+    <string name="start_stream">Emitir</string>
+    <string name="stop_stream">Detener</string>
+
 
 
 
