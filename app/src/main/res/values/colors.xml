@@ -5,4 +5,9 @@
     <color name="darker_gray">#121212</color>
     <color name="heading_yellow">#dfb228</color>
 
+    <color name="status_neutral">@color/white</color>
+    <color name="status_connecting">#FFC107</color>
+    <color name="status_streaming">#4CAF50</color>
+    <color name="status_error">#FF5252</color>
+
 </resources>

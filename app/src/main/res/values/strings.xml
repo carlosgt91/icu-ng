@@ -14,6 +14,10 @@
     <string name="status_connecting">Conectando…</string>
     <string name="status_streaming">Emitiendo</string>
     <string name="status_disconnected">Desconectado</string>
-    <string name="status_error_format">Error: %1$s</string>
+    <string name="status_error_connection">Error de conexión</string>
+    <string name="status_error_auth">Error de autenticación</string>
+    <string name="status_error_scheme_format">Error: la URL debe empezar por %1$s://</string>
+    <string name="status_error_srt_passphrase_length">Error: el passphrase SRT debe tener entre 10 y 79 caracteres</string>
+    <string name="status_error_change_protocol_while_streaming">Error: detén la emisión antes de cambiar a/desde SRT</string>
 
 </resources>

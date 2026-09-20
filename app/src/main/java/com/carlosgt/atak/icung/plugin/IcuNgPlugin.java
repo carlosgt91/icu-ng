@@ -2,6 +2,7 @@
 package com.carlosgt.atak.icung.plugin;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.View;
 import android.widget.AdapterView;
@@ -11,6 +12,8 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
+
+import androidx.core.content.ContextCompat;
 
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
@@ -204,10 +207,32 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         }
     }
 
-    private void setStatus(String text) {
-        if (statusText != null) {
-            statusText.setText(text);
-        }
+    private static final String TAG = "IcuNgPlugin";
+
+    private void setStatus(String text, int colorRes) {
+        if (statusText == null) return;
+        statusText.setText(text);
+        statusText.setTextColor(ContextCompat.getColor(pluginContext, colorRes));
+    }
+
+    private void setStatusIdle() {
+        setStatus(pluginContext.getString(R.string.status_idle), R.color.status_neutral);
+    }
+
+    private void setStatusConnecting() {
+        setStatus(pluginContext.getString(R.string.status_connecting), R.color.status_connecting);
+    }
+
+    private void setStatusStreaming() {
+        setStatus(pluginContext.getString(R.string.status_streaming), R.color.status_streaming);
+    }
+
+    private void setStatusDisconnected() {
+        setStatus(pluginContext.getString(R.string.status_disconnected), R.color.status_neutral);
+    }
+
+    private void setStatusError(String message) {
+        setStatus(message, R.color.status_error);
     }
 
     private void onProtocolSelected(int position) {
@@ -225,8 +250,8 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             // la Surface de previewView ya existe y sigue siendo válida.
             if (camera.isStreaming()) {
                 revertProtocolSelection();
-                setStatus(pluginContext.getString(R.string.status_error_format,
-                        "detén la emisión antes de cambiar a/desde SRT"));
+                setStatusError(pluginContext.getString(
+                        R.string.status_error_change_protocol_while_streaming));
                 return;
             }
             camera.stopPreview();
@@ -341,7 +366,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             if (resumingBackgroundCamera) {
                 rtspUrlInput.setText(activeStreamUrl);
                 streamToggleButton.setText(R.string.stop_stream);
-                setStatus(pluginContext.getString(R.string.status_streaming));
+                setStatusStreaming();
 
                 suppressProtocolListener = true;
                 protocolSpinner.setSelection(activeProtocol);
@@ -354,7 +379,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
                 srtEncryptionSpinner.setSelection(indexOfEncryptionType(activeSrtEncryptionType));
             } else {
                 lastValidProtocolPosition = protocolSpinner.getSelectedItemPosition();
-                setStatus(pluginContext.getString(R.string.status_idle));
+                setStatusIdle();
                 camera = protocolSpinner.getSelectedItemPosition() == 2
                         ? new SrtCamera2(previewView, this)
                         : new RtspCamera2(previewView, this);
@@ -432,16 +457,16 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
             String expectedScheme = protocol == 1 ? "rtsps" : protocol == 2 ? "srt" : "rtsp";
             if (!expectedScheme.equals(parseUrlScheme(url))) {
-                setStatus(pluginContext.getString(R.string.status_error_format,
-                        "la URL debe empezar por " + expectedScheme + "://"));
+                setStatusError(pluginContext.getString(
+                        R.string.status_error_scheme_format, expectedScheme));
                 return;
             }
 
             String passphrase = srtPassphraseInput.getText().toString();
             if (protocol == 2 && !passphrase.isEmpty()
                     && (passphrase.length() < 10 || passphrase.length() > 79)) {
-                setStatus(pluginContext.getString(R.string.status_error_format,
-                        "el passphrase SRT debe tener entre 10 y 79 caracteres"));
+                setStatusError(pluginContext.getString(
+                        R.string.status_error_srt_passphrase_length));
                 return;
             }
 
@@ -512,34 +537,36 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
     @Override
     public void onConnectionStarted(String url) {
-        setStatus(pluginContext.getString(R.string.status_connecting));
+        setStatusConnecting();
     }
 
     @Override
     public void onConnectionSuccess() {
-        setStatus(pluginContext.getString(R.string.status_streaming));
+        setStatusStreaming();
     }
 
     @Override
     public void onConnectionFailed(String reason) {
-        setStatus(pluginContext.getString(R.string.status_error_format, reason));
+        Log.w(TAG, "Conexion fallida (detalle interno de RootEncoder): " + reason);
+        setStatusError(pluginContext.getString(R.string.status_error_connection));
         stopStreamOnly();
     }
 
     @Override
     public void onDisconnect() {
-        setStatus(pluginContext.getString(R.string.status_disconnected));
+        setStatusDisconnected();
         stopStreamOnly();
     }
 
     @Override
     public void onAuthError() {
-        setStatus(pluginContext.getString(R.string.status_error_format, "autenticacion fallida"));
+        Log.w(TAG, "Fallo de autenticacion reportado por RootEncoder");
+        setStatusError(pluginContext.getString(R.string.status_error_auth));
         stopStreamOnly();
     }
 
     @Override
     public void onAuthSuccess() {
-        setStatus(pluginContext.getString(R.string.status_streaming));
+        setStatusStreaming();
     }
 }
