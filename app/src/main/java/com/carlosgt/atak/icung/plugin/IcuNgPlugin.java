@@ -16,8 +16,13 @@ import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
 import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.video.CameraHelper;
+import com.pedro.library.base.Camera2Base;
 import com.pedro.library.rtsp.RtspCamera2;
+import com.pedro.library.srt.SrtCamera2;
+import com.pedro.library.util.streamclient.RtspStreamClient;
+import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.view.OpenGlView;
+import com.pedro.srt.srt.packets.control.handshake.EncryptionType;
 
 import gov.tak.api.plugin.IPlugin;
 import gov.tak.api.plugin.IServiceController;
@@ -41,7 +46,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     IHostUIService uiService;
     ToolbarItem toolbarItem;
     Pane templatePane;
-    RtspCamera2 camera;
+    Camera2Base camera;
     EditText rtspUrlInput;
     Button streamToggleButton;
     Spinner protocolSpinner;
@@ -56,6 +61,22 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     ConnectionEntry connectionEntry;
     SelfSensorFovController sensorFovController;
     String activeStreamUrl;
+    int activeProtocol; // 0=RTSP, 1=RTSPS, 2=SRT - mismo orden que R.array.protocol_entries
+    boolean activeTrustAllCerts;
+    String activeSrtPassphrase = "";
+    EncryptionType activeSrtEncryptionType = EncryptionType.AES128;
+    int lastValidProtocolPosition;
+
+    private static final EncryptionType[] SRT_ENCRYPTION_TYPES = {
+            EncryptionType.AES128, EncryptionType.AES192, EncryptionType.AES256
+    };
+
+    private static int indexOfEncryptionType(EncryptionType type) {
+        for (int i = 0; i < SRT_ENCRYPTION_TYPES.length; i++) {
+            if (SRT_ENCRYPTION_TYPES[i] == type) return i;
+        }
+        return 0;
+    }
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -169,9 +190,24 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     }
 
     private void onProtocolSelected(int position) {
+        boolean crossingSrtBoundary = camera != null
+                && (position == 2) != (camera instanceof SrtCamera2);
+        if (crossingSrtBoundary) {
+            revertProtocolSelection();
+            setStatus(pluginContext.getString(R.string.status_error_format,
+                    "cierra el panel para cambiar a/desde SRT mientras hay una camara activa"));
+            return;
+        }
+        lastValidProtocolPosition = position;
         trustAllCertsCheckbox.setVisibility(position == 1 ? View.VISIBLE : View.GONE);
         srtEncryptionRow.setVisibility(position == 2 ? View.VISIBLE : View.GONE);
         rtspUrlInput.setText(rewriteUrlScheme(rtspUrlInput.getText().toString(), position));
+    }
+
+    private void revertProtocolSelection() {
+        suppressProtocolListener = true;
+        protocolSpinner.setSelection(lastValidProtocolPosition);
+        suppressProtocolListener = false;
     }
 
     // position: 0=RTSP, 1=RTSPS, 2=SRT (mismo orden que R.array.protocol_entries)
@@ -253,19 +289,31 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
                 }
             });
 
-            setStatus(pluginContext.getString(R.string.status_idle));
-
             // Fase 4: if camera already exists, it's one tearDownPane() left
             // alive in the background - reattach it instead of building a
-            // new one, and restore the UI to reflect that it's still
-            // streaming.
+            // new one, and restore the UI (URL, boton, protocolo, cifrado)
+            // to reflect that it's still streaming.
             final boolean resumingBackgroundCamera = camera != null;
             if (resumingBackgroundCamera) {
                 rtspUrlInput.setText(activeStreamUrl);
                 streamToggleButton.setText(R.string.stop_stream);
                 setStatus(pluginContext.getString(R.string.status_streaming));
+
+                suppressProtocolListener = true;
+                protocolSpinner.setSelection(activeProtocol);
+                suppressProtocolListener = false;
+                lastValidProtocolPosition = activeProtocol;
+                trustAllCertsCheckbox.setVisibility(activeProtocol == 1 ? View.VISIBLE : View.GONE);
+                trustAllCertsCheckbox.setChecked(activeTrustAllCerts);
+                srtEncryptionRow.setVisibility(activeProtocol == 2 ? View.VISIBLE : View.GONE);
+                srtPassphraseInput.setText(activeSrtPassphrase);
+                srtEncryptionSpinner.setSelection(indexOfEncryptionType(activeSrtEncryptionType));
             } else {
-                camera = new RtspCamera2(previewView, this);
+                lastValidProtocolPosition = protocolSpinner.getSelectedItemPosition();
+                setStatus(pluginContext.getString(R.string.status_idle));
+                camera = protocolSpinner.getSelectedItemPosition() == 2
+                        ? new SrtCamera2(previewView, this)
+                        : new RtspCamera2(previewView, this);
                 camera.prepareVideo();
                 camera.prepareAudio();
             }
