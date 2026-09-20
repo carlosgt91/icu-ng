@@ -21,7 +21,13 @@ import gov.tak.api.ui.Pane;
 import gov.tak.api.ui.PaneBuilder;
 import gov.tak.api.ui.ToolbarItem;
 import gov.tak.api.ui.ToolbarItemAdapter;
+import gov.tak.api.video.ConnectionEntry;
+import gov.tak.api.video.IVideoConnectionManager;
 import gov.tak.platform.marshal.MarshalManager;
+
+import com.atakmap.android.cot.detail.CotDetailManager;
+import com.atakmap.android.maps.MapView;
+import com.atakmap.android.video.manager.VideoManager;
 
 public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
@@ -33,6 +39,9 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     RtspCamera2 camera;
     EditText rtspUrlInput;
     Button streamToggleButton;
+    IVideoConnectionManager videoConnectionManager;
+    SelfVideoDetailHandler videoDetailHandler;
+    ConnectionEntry connectionEntry;
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -73,6 +82,20 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             return;
 
         uiService.addToolbarItem(toolbarItem);
+
+        videoConnectionManager = VideoManager.getInstance();
+
+        String selfUid = MapView.getMapView().getSelfMarker().getUID();
+        videoDetailHandler = new SelfVideoDetailHandler(
+                selfUid,
+                this::isStreamingWithFix,
+                () -> connectionEntry);
+        CotDetailManager.getInstance().registerHandler(videoDetailHandler);
+    }
+
+    private boolean isStreamingWithFix() {
+        return camera != null && camera.isStreaming()
+                && MapView.getMapView().getSelfMarker().getPoint().isValid();
     }
 
     @Override
@@ -84,11 +107,19 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         uiService.removeToolbarItem(toolbarItem);
 
         stopCameraAndStream();
+
+        if (videoDetailHandler != null) {
+            CotDetailManager.getInstance().unregisterHandler(videoDetailHandler);
+        }
     }
 
     private void stopCameraAndStream() {
         if (camera != null && camera.isStreaming()) {
             camera.stopStream();
+            if (connectionEntry != null) {
+                videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
+                connectionEntry = null;
+            }
         }
 
         if (camera != null && camera.isOnPreview()) {
@@ -178,11 +209,31 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         if (camera.isStreaming()) {
             camera.stopStream();
             streamToggleButton.setText(R.string.start_stream);
+            if (connectionEntry != null) {
+                videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
+                connectionEntry = null;
+            }
         } else {
             String url = rtspUrlInput.getText().toString();
             camera.startStream(url);
             streamToggleButton.setText(R.string.stop_stream);
+
+            connectionEntry = buildConnectionEntry(url);
+            videoConnectionManager.addConnectionEntry(connectionEntry);
         }
+    }
+
+    private ConnectionEntry buildConnectionEntry(String url) {
+        android.net.Uri parsed = android.net.Uri.parse(url);
+        return new ConnectionEntry.Builder()
+                .setUID(pluginContext.getPackageName() + "." + System.currentTimeMillis())
+                .setAlias("ICU NG")
+                .setAddress(parsed.getHost())
+                .setPort(parsed.getPort() > 0 ? parsed.getPort() : ConnectionEntry.Protocol.RTSP.getDefaultPort())
+                .setPath(parsed.getPath())
+                .setProtocol(ConnectionEntry.Protocol.RTSP)
+                .setSource(ConnectionEntry.Source.EXTERNAL)
+                .build();
     }
 
     @Override
