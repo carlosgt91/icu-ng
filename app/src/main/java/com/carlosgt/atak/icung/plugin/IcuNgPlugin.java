@@ -215,8 +215,33 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     // logcat: el aviso rojo de error se mostraba y acto seguido se
     // sobreescribia con "Desconectado" neutro). Este flag evita que ese
     // onDisconnect() de limpieza tape el mensaje de error que el usuario
-    // todavia no ha tenido tiempo de leer - se resetea en cuanto pasa
-    // cualquier otra cosa (conectando, emitiendo, detenido).
+    // todavia no ha tenido tiempo de leer.
+    //
+    // Puntos donde se resetea a false (revisado explicitamente para
+    // descartar que se quede pegado en true bloqueando un estado neutro
+    // futuro): setStatusIdle() (panel reabierto desde cero),
+    // setStatusConnecting() (onConnectionStarted() de CUALQUIER intento
+    // nuevo de "Emitir", incluido un segundo intento tras un primer fallo -
+    // RtspClient/SrtClient siempre lo disparan como primer paso de
+    // connect(), verificado en la Fase 5) y setStatusStreaming(). Un
+    // "Detener" manual no pasa por aqui en absoluto - toggleStream() pinta
+    // el estado el mismo directamente (ver mas abajo), sin depender de que
+    // llegue ningun callback async.
+    //
+    // Limitacion aceptada y no resuelta aqui (de alcance mayor que este
+    // fix - necesitaria una marca de "generacion" por intento de conexion,
+    // no solo un booleano): si un callback tardio de un intento YA
+    // superado (p.ej. el onDisconnect() de limpieza de un fallo anterior)
+    // llega despues de que un intento NUEVO ya este en curso (statusIsError
+    // ya vuelto a false por ese intento nuevo), ese callback tardio podria
+    // pisar el estado del intento nuevo e incluso volver a llamar a
+    // stopStreamOnly() sobre el. No reproducido en las pruebas de esta
+    // sesion (la ventana real observada entre onConnectionFailed() y su
+    // onDisconnect() de limpieza es de bastante menos de un segundo, muy
+    // por debajo del tiempo de reaccion humano para reintentar), pero
+    // tampoco esta descartado por completo - queda anotado para no perder
+    // el hilo si algun dia aparece un reintento manual muy rapido o una red
+    // especialmente lenta en confirmar la desconexion.
     private boolean statusIsError;
 
     private void setStatus(String text, int colorRes) {
@@ -465,7 +490,14 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
     private void toggleStream() {
         if (camera.isStreaming()) {
+            // No confiar solo en que el onDisconnect() asincrono de RootEncoder
+            // llegue a tiempo (o llegue en absoluto) para reflejar un "Detener"
+            // que el propio usuario acaba de pedir - eso es exactamente lo que
+            // se rompia con onConnectionFailed()/onDisconnect() (ver el flag
+            // statusIsError mas abajo). Para una parada manual no hace falta
+            // esperar a la red: lo sabemos ya, aqui mismo.
             stopStreamOnly();
+            setStatusDisconnected();
         } else {
             String url = rtspUrlInput.getText().toString();
             int protocol = protocolSpinner.getSelectedItemPosition();
