@@ -209,6 +209,16 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
     private static final String TAG = "IcuNgPlugin";
 
+    // onConnectionFailed()/onAuthError() ya llaman a stopStreamOnly(), que a
+    // su vez dispara camera.stopStream() - y eso provoca, un instante
+    // despues, un onDisconnect() asincrono de RootEncoder (verificado en
+    // logcat: el aviso rojo de error se mostraba y acto seguido se
+    // sobreescribia con "Desconectado" neutro). Este flag evita que ese
+    // onDisconnect() de limpieza tape el mensaje de error que el usuario
+    // todavia no ha tenido tiempo de leer - se resetea en cuanto pasa
+    // cualquier otra cosa (conectando, emitiendo, detenido).
+    private boolean statusIsError;
+
     private void setStatus(String text, int colorRes) {
         if (statusText == null) return;
         statusText.setText(text);
@@ -216,22 +226,27 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     }
 
     private void setStatusIdle() {
+        statusIsError = false;
         setStatus(pluginContext.getString(R.string.status_idle), R.color.status_neutral);
     }
 
     private void setStatusConnecting() {
+        statusIsError = false;
         setStatus(pluginContext.getString(R.string.status_connecting), R.color.status_connecting);
     }
 
     private void setStatusStreaming() {
+        statusIsError = false;
         setStatus(pluginContext.getString(R.string.status_streaming), R.color.status_streaming);
     }
 
     private void setStatusDisconnected() {
+        if (statusIsError) return;
         setStatus(pluginContext.getString(R.string.status_disconnected), R.color.status_neutral);
     }
 
     private void setStatusError(String message) {
+        statusIsError = true;
         setStatus(message, R.color.status_error);
     }
 
