@@ -186,28 +186,42 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
                     R.layout.main_layout, null);
 
             OpenGlView previewView = paneView.findViewById(R.id.preview_view);
-            camera = new RtspCamera2(previewView, this);
-            camera.prepareVideo();
-            camera.prepareAudio();
 
             rtspUrlInput = paneView.findViewById(R.id.rtsp_url_input);
             streamToggleButton = paneView.findViewById(R.id.stream_toggle_button);
             streamToggleButton.setOnClickListener(v -> toggleStream());
 
+            // Fase 4: if camera already exists, it's one tearDownPane() left
+            // alive in the background - reattach it instead of building a
+            // new one, and restore the UI to reflect that it's still
+            // streaming.
+            final boolean resumingBackgroundCamera = camera != null;
+            if (resumingBackgroundCamera) {
+                rtspUrlInput.setText(activeStreamUrl);
+                streamToggleButton.setText(R.string.stop_stream);
+            } else {
+                camera = new RtspCamera2(previewView, this);
+                camera.prepareVideo();
+                camera.prepareAudio();
+            }
+
             // RootEncoder needs the SurfaceView's real Surface to exist before
-            // startPreview() can touch it - calling it right after inflate()
-            // crashes with NullPointerException: getSurfaceTexture(...) must
-            // not be null, because Android creates the Surface asynchronously
-            // on a later layout pass, not synchronously when the view is
-            // inflated. Wait for surfaceCreated(), same pattern RootEncoder's
-            // own demo app uses for TextureView's onSurfaceTextureAvailable.
-            // This is the *only* place startPreview() is ever called - see
-            // tearDownPane() for why nothing tries to resume an existing
-            // camera/pane instead of rebuilding through here.
+            // startPreview()/replaceView() can touch it - calling it right
+            // after inflate() crashes with NullPointerException:
+            // getSurfaceTexture(...) must not be null, because Android
+            // creates the Surface asynchronously on a later layout pass, not
+            // synchronously when the view is inflated. Wait for
+            // surfaceCreated(), same pattern RootEncoder's own demo app uses
+            // for TextureView's onSurfaceTextureAvailable. This is the only
+            // place startPreview()/replaceView() are ever called - see
+            // tearDownPane() for why nothing tries to resume across a full
+            // rebuild of paneView/previewView themselves, only camera.
             previewView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
-                    if (!camera.isOnPreview()) {
+                    if (resumingBackgroundCamera) {
+                        camera.replaceView(previewView);
+                    } else if (!camera.isOnPreview()) {
                         camera.startPreview(CameraHelper.Facing.BACK);
                     }
                 }
