@@ -52,6 +52,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     ToolbarItem toolbarItem;
     Pane templatePane;
     Camera2Base camera;
+    OpenGlView previewView;
     EditText rtspUrlInput;
     Button streamToggleButton;
     Spinner protocolSpinner;
@@ -213,10 +214,28 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         boolean crossingSrtBoundary = camera != null
                 && (position == 2) != (camera instanceof SrtCamera2);
         if (crossingSrtBoundary) {
-            revertProtocolSelection();
-            setStatus(pluginContext.getString(R.string.status_error_format,
-                    "cierra el panel para cambiar a/desde SRT mientras hay una camara activa"));
-            return;
+            // La cámara ya existe siempre en cuanto se abre el panel (el
+            // preview arranca solo, antes de que el usuario toque nada), así
+            // que "esperar a que camera sea null" nunca ocurre en la práctica
+            // - dejaba SRT inalcanzable desde la UI. Mientras no se esté
+            // emitiendo, reconstruir aquí es seguro: es exactamente el mismo
+            // patrón (stopPreview() -> nueva instancia -> prepareVideo/Audio
+            // -> startPreview) que showPane() ya hace al abrir el panel desde
+            // cero, solo que sin esperar a un nuevo surfaceCreated() porque
+            // la Surface de previewView ya existe y sigue siendo válida.
+            if (camera.isStreaming()) {
+                revertProtocolSelection();
+                setStatus(pluginContext.getString(R.string.status_error_format,
+                        "detén la emisión antes de cambiar a/desde SRT"));
+                return;
+            }
+            camera.stopPreview();
+            camera = position == 2
+                    ? new SrtCamera2(previewView, this)
+                    : new RtspCamera2(previewView, this);
+            camera.prepareVideo();
+            camera.prepareAudio();
+            camera.startPreview(CameraHelper.Facing.BACK);
         }
         lastValidProtocolPosition = position;
         trustAllCertsCheckbox.setVisibility(position == 1 ? View.VISIBLE : View.GONE);
@@ -278,7 +297,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             View paneView = PluginLayoutInflater.inflate(pluginContext,
                     R.layout.main_layout, null);
 
-            OpenGlView previewView = paneView.findViewById(R.id.preview_view);
+            previewView = paneView.findViewById(R.id.preview_view);
 
             rtspUrlInput = paneView.findViewById(R.id.rtsp_url_input);
             streamToggleButton = paneView.findViewById(R.id.stream_toggle_button);
