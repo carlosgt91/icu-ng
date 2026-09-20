@@ -2,7 +2,7 @@
 <resources>
     <string-array name="protocol_entries">
         <item>RTSP</item>
-        <item>RTSPS (TLS)</item>
+        <item>RTSPS</item>
         <item>SRT</item>
     </string-array>
 

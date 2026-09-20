@@ -9,7 +9,9 @@
     <string name="stop_stream">Detener</string>
 
     <string name="trust_all_certs">Confiar en cualquier certificado (solo pruebas/LAN)</string>
-    <string name="srt_passphrase_hint">Passphrase SRT (10-79 caracteres, vacío = sin cifrar)</string>
+    <string name="srt_passphrase_hint">Passphrase SRT</string>
+    <string name="srt_passphrase_caption">10-79 caracteres · vacío = sin cifrar</string>
+    <string name="srt_encryption_caption">Cifrado</string>
     <string name="status_idle">Detenido</string>
     <string name="status_connecting">Conectando…</string>
     <string name="status_streaming">Emitiendo</string>

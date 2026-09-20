@@ -14,19 +14,20 @@
         android:layout_gravity="bottom"
         android:orientation="vertical"
         android:background="#80000000"
-        android:padding="4dp">
+        android:padding="@dimen/auto_margin">
 
         <TextView
             android:id="@+id/status_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textColor="#FFFFFF"
+            android:textColor="@color/status_neutral"
             android:textStyle="bold"
             android:paddingBottom="4dp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/auto_margin"
             android:orientation="horizontal">
 
             <Spinner
@@ -40,6 +41,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
+                android:layout_marginStart="4dp"
                 android:inputType="textUri"
                 android:hint="rtsp://host:puerto/stream"
                 android:text="rtsp://10.0.2.2:8554/icung"
@@ -50,6 +52,7 @@
                 android:id="@+id/stream_toggle_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginStart="4dp"
                 android:text="@string/start_stream" />
 
         </LinearLayout>
@@ -58,6 +61,7 @@
             android:id="@+id/trust_all_certs_checkbox"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/auto_margin"
             android:text="@string/trust_all_certs"
             android:textColor="#FFFFFF"
             android:visibility="gone" />
@@ -66,24 +70,50 @@
             android:id="@+id/srt_encryption_row"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
+            android:layout_marginTop="@dimen/auto_margin"
+            android:orientation="vertical"
             android:visibility="gone">
 
-            <EditText
-                android:id="@+id/srt_passphrase_input"
-                android:layout_width="0dp"
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:inputType="textPassword"
-                android:hint="@string/srt_passphrase_hint"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#AAAAAA" />
+                android:text="@string/srt_passphrase_caption"
+                android:textColor="#AAAAAA"
+                android:textSize="11sp" />
 
-            <Spinner
-                android:id="@+id/srt_encryption_spinner"
-                android:layout_width="wrap_content"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:spinnerMode="dropdown" />
+                android:layout_marginTop="2dp"
+                android:orientation="horizontal">
+
+                <EditText
+                    android:id="@+id/srt_passphrase_input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:inputType="textPassword"
+                    android:hint="@string/srt_passphrase_hint"
+                    android:textColor="#FFFFFF"
+                    android:textColorHint="#AAAAAA" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:layout_gravity="center_vertical"
+                    android:text="@string/srt_encryption_caption"
+                    android:textColor="#AAAAAA"
+                    android:textSize="11sp" />
+
+                <Spinner
+                    android:id="@+id/srt_encryption_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:spinnerMode="dropdown" />
+
+            </LinearLayout>
 
         </LinearLayout>
 
