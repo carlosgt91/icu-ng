@@ -43,6 +43,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     SelfVideoDetailHandler videoDetailHandler;
     ConnectionEntry connectionEntry;
     SelfSensorFovController sensorFovController;
+    boolean surfaceReady;
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -164,9 +165,13 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             // on a later layout pass, not synchronously when the view is
             // inflated. Wait for surfaceCreated(), same pattern RootEncoder's
             // own demo app uses for TextureView's onSurfaceTextureAvailable.
+            // onPaneVisible(true) (below) fires on this very first show too,
+            // before the surface exists - surfaceReady is what keeps it from
+            // racing this same callback.
             previewView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
+                    surfaceReady = true;
                     if (!camera.isOnPreview()) {
                         camera.startPreview(CameraHelper.Facing.BACK);
                     }
@@ -200,7 +205,11 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
                 @Override
                 public void onPaneVisible(boolean visible) {
                     if (visible) {
-                        if (camera != null && !camera.isOnPreview()) {
+                        // Only a restart for a pane shown before - the very
+                        // first show is surfaceCreated()'s job (above), since
+                        // onPaneVisible(true) also fires then, before the
+                        // Surface exists.
+                        if (surfaceReady && camera != null && !camera.isOnPreview()) {
                             camera.startPreview(CameraHelper.Facing.BACK);
                         }
                     } else {
