@@ -43,6 +43,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     SelfVideoDetailHandler videoDetailHandler;
     ConnectionEntry connectionEntry;
     SelfSensorFovController sensorFovController;
+    String activeStreamUrl;
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -150,18 +151,28 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     }
 
     // Called whenever the panel stops being visible for any reason (hidden
-    // or closed) - resets to null rather than trying to resume the same
-    // RtspCamera2/Pane/OpenGlView later, so every reopen goes through the
-    // one construction path (below) that's actually proven to work: a fresh
-    // SurfaceView whose surfaceCreated() reliably fires before anything
-    // touches it. Whether ATAK/Android would have reused the same Surface
-    // instead of recreating it on a plain re-show isn't something this
-    // project could verify from outside a running device, so this sidesteps
-    // the question entirely instead of gambling on it.
+    // or closed). If ICU NG is actively streaming, keeps it alive headless
+    // (Fase 4) instead of stopping it - replaceView(Context) only swaps the
+    // local camera->encoder render target (verified: it never touches
+    // startStream()/stopStream()), so the RTSP push, and the <__video>/
+    // <sensor> from Fase 3 that key off isStreaming(), stay up. If it was
+    // only previewing (never pressed Emitir), there's nothing worth keeping
+    // alive - same full stop as before, and templatePane/paneView/
+    // previewView always get rebuilt from scratch on the next open either
+    // way (that part of the Fase 3 fix stands - only camera is ever reused).
     private void tearDownPane() {
-        stopCameraAndStream();
         templatePane = null;
-        camera = null;
+
+        if (camera == null) {
+            return;
+        }
+
+        if (camera.isStreaming()) {
+            camera.replaceView(pluginContext);
+        } else {
+            stopCameraAndStream();
+            camera = null;
+        }
     }
 
     private void showPane() {
@@ -246,6 +257,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             stopStreamOnly();
         } else {
             String url = rtspUrlInput.getText().toString();
+            activeStreamUrl = url;
             camera.startStream(url);
             streamToggleButton.setText(R.string.stop_stream);
 
