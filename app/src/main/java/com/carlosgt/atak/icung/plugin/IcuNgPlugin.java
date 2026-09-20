@@ -4,6 +4,8 @@ package com.carlosgt.atak.icung.plugin;
 import android.content.Context;
 import android.view.SurfaceHolder;
 import android.view.View;
+import android.widget.Button;
+import android.widget.EditText;
 
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
@@ -29,6 +31,8 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     ToolbarItem toolbarItem;
     Pane templatePane;
     RtspCamera2 camera;
+    EditText rtspUrlInput;
+    Button streamToggleButton;
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -79,6 +83,10 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
         uiService.removeToolbarItem(toolbarItem);
 
+        if (camera != null && camera.isStreaming()) {
+            camera.stopStream();
+        }
+
         if (camera != null && camera.isOnPreview()) {
             camera.stopPreview();
         }
@@ -96,6 +104,12 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
             OpenGlView previewView = paneView.findViewById(R.id.preview_view);
             camera = new RtspCamera2(previewView, this);
+            camera.prepareVideo();
+            camera.prepareAudio();
+
+            rtspUrlInput = paneView.findViewById(R.id.rtsp_url_input);
+            streamToggleButton = paneView.findViewById(R.id.stream_toggle_button);
+            streamToggleButton.setOnClickListener(v -> toggleStream());
 
             // RootEncoder needs the SurfaceView's real Surface to exist before
             // startPreview() can touch it - calling it right after inflate()
@@ -137,6 +151,17 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         // if the plugin pane is not visible, show it!
         if(!uiService.isPaneVisible(templatePane)) {
             uiService.showPane(templatePane, null);
+        }
+    }
+
+    private void toggleStream() {
+        if (camera.isStreaming()) {
+            camera.stopStream();
+            streamToggleButton.setText(R.string.start_stream);
+        } else {
+            String url = rtspUrlInput.getText().toString();
+            camera.startStream(url);
+            streamToggleButton.setText(R.string.stop_stream);
         }
     }
 
