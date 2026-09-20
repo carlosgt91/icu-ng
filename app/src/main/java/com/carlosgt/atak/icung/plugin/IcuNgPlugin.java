@@ -24,6 +24,11 @@ import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.library.view.OpenGlView;
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType;
 
+import java.security.cert.X509Certificate;
+
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
+
 import gov.tak.api.plugin.IPlugin;
 import gov.tak.api.plugin.IServiceController;
 import gov.tak.api.ui.IHostUIService;
@@ -77,6 +82,21 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         }
         return 0;
     }
+
+    private static final TrustManager TRUST_ALL_CERTS = new X509TrustManager() {
+        @Override
+        public void checkClientTrusted(X509Certificate[] chain, String authType) {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] chain, String authType) {
+        }
+
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return new X509Certificate[0];
+        }
+    };
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -216,6 +236,11 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         int schemeEnd = url.indexOf("://");
         String rest = schemeEnd >= 0 ? url.substring(schemeEnd + 3) : url;
         return scheme + "://" + rest;
+    }
+
+    private static String parseUrlScheme(String url) {
+        int schemeEnd = url.indexOf("://");
+        return schemeEnd >= 0 ? url.substring(0, schemeEnd) : "";
     }
 
     // Called whenever the panel stops being visible for any reason (hidden
@@ -384,27 +409,71 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             stopStreamOnly();
         } else {
             String url = rtspUrlInput.getText().toString();
+            int protocol = protocolSpinner.getSelectedItemPosition();
+
+            String expectedScheme = protocol == 1 ? "rtsps" : protocol == 2 ? "srt" : "rtsp";
+            if (!expectedScheme.equals(parseUrlScheme(url))) {
+                setStatus(pluginContext.getString(R.string.status_error_format,
+                        "la URL debe empezar por " + expectedScheme + "://"));
+                return;
+            }
+
+            String passphrase = srtPassphraseInput.getText().toString();
+            if (protocol == 2 && !passphrase.isEmpty()
+                    && (passphrase.length() < 10 || passphrase.length() > 79)) {
+                setStatus(pluginContext.getString(R.string.status_error_format,
+                        "el passphrase SRT debe tener entre 10 y 79 caracteres"));
+                return;
+            }
+
+            EncryptionType encryptionType = SRT_ENCRYPTION_TYPES[srtEncryptionSpinner.getSelectedItemPosition()];
+            if (protocol == 1) {
+                ((RtspStreamClient) camera.getStreamClient())
+                        .addCertificates(trustAllCertsCheckbox.isChecked() ? TRUST_ALL_CERTS : null);
+            } else if (protocol == 2 && !passphrase.isEmpty()) {
+                ((SrtStreamClient) camera.getStreamClient()).setPassphrase(passphrase, encryptionType);
+            }
+
             activeStreamUrl = url;
+            activeProtocol = protocol;
+            activeTrustAllCerts = trustAllCertsCheckbox.isChecked();
+            activeSrtPassphrase = passphrase;
+            activeSrtEncryptionType = encryptionType;
+
             camera.startStream(url);
             streamToggleButton.setText(R.string.stop_stream);
 
-            connectionEntry = buildConnectionEntry(url);
-            videoConnectionManager.addConnectionEntry(connectionEntry);
+            connectionEntry = protocol == 1 ? null : buildConnectionEntry(url, protocol, passphrase);
+            if (connectionEntry != null) {
+                videoConnectionManager.addConnectionEntry(connectionEntry);
+            }
             sensorFovController.refresh(true);
         }
     }
 
-    private ConnectionEntry buildConnectionEntry(String url) {
+    private ConnectionEntry buildConnectionEntry(String url, int protocol, String passphrase) {
         android.net.Uri parsed = android.net.Uri.parse(url);
-        return new ConnectionEntry.Builder()
+        ConnectionEntry.Protocol cotProtocol = protocol == 2
+                ? ConnectionEntry.Protocol.SRT
+                : ConnectionEntry.Protocol.RTSP;
+
+        String path = parsed.getQueryParameter("streamid");
+        if (path == null || path.isEmpty()) {
+            path = parsed.getPath();
+        }
+
+        ConnectionEntry.Builder builder = new ConnectionEntry.Builder()
                 .setUID(pluginContext.getPackageName() + "." + System.currentTimeMillis())
                 .setAlias("ICU NG")
                 .setAddress(parsed.getHost())
-                .setPort(parsed.getPort() > 0 ? parsed.getPort() : ConnectionEntry.Protocol.RTSP.getDefaultPort())
-                .setPath(parsed.getPath())
-                .setProtocol(ConnectionEntry.Protocol.RTSP)
-                .setSource(ConnectionEntry.Source.EXTERNAL)
-                .build();
+                .setPort(parsed.getPort() > 0 ? parsed.getPort() : cotProtocol.getDefaultPort())
+                .setPath(path)
+                .setProtocol(cotProtocol)
+                .setSource(ConnectionEntry.Source.EXTERNAL);
+        if (protocol == 2 && !passphrase.isEmpty()) {
+            builder.setPassphrase(passphrase);
+        }
+        return builder.build();
     }
 
     @Override
