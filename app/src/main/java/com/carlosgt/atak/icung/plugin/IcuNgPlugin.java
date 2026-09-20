@@ -83,6 +83,10 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
         uiService.removeToolbarItem(toolbarItem);
 
+        stopCameraAndStream();
+    }
+
+    private void stopCameraAndStream() {
         if (camera != null && camera.isStreaming()) {
             camera.stopStream();
         }
@@ -150,7 +154,23 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
         // if the plugin pane is not visible, show it!
         if(!uiService.isPaneVisible(templatePane)) {
-            uiService.showPane(templatePane, null);
+            uiService.showPane(templatePane, new IHostUIService.IPaneLifecycleListener() {
+                @Override
+                public void onPaneVisible(boolean visible) {
+                    if (visible) {
+                        if (camera != null && !camera.isOnPreview()) {
+                            camera.startPreview(CameraHelper.Facing.BACK);
+                        }
+                    } else {
+                        stopCameraAndStream();
+                    }
+                }
+
+                @Override
+                public void onPaneClose() {
+                    stopCameraAndStream();
+                }
+            });
         }
     }
 
