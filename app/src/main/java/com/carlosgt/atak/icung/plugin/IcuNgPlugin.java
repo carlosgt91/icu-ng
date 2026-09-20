@@ -4,8 +4,13 @@ package com.carlosgt.atak.icung.plugin;
 import android.content.Context;
 import android.view.SurfaceHolder;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.Spinner;
+import android.widget.TextView;
 
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
@@ -39,6 +44,13 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
     RtspCamera2 camera;
     EditText rtspUrlInput;
     Button streamToggleButton;
+    Spinner protocolSpinner;
+    CheckBox trustAllCertsCheckbox;
+    View srtEncryptionRow;
+    EditText srtPassphraseInput;
+    Spinner srtEncryptionSpinner;
+    TextView statusText;
+    boolean suppressProtocolListener;
     IVideoConnectionManager videoConnectionManager;
     SelfVideoDetailHandler videoDetailHandler;
     ConnectionEntry connectionEntry;
@@ -150,6 +162,26 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         }
     }
 
+    private void setStatus(String text) {
+        if (statusText != null) {
+            statusText.setText(text);
+        }
+    }
+
+    private void onProtocolSelected(int position) {
+        trustAllCertsCheckbox.setVisibility(position == 1 ? View.VISIBLE : View.GONE);
+        srtEncryptionRow.setVisibility(position == 2 ? View.VISIBLE : View.GONE);
+        rtspUrlInput.setText(rewriteUrlScheme(rtspUrlInput.getText().toString(), position));
+    }
+
+    // position: 0=RTSP, 1=RTSPS, 2=SRT (mismo orden que R.array.protocol_entries)
+    private static String rewriteUrlScheme(String url, int position) {
+        String scheme = position == 1 ? "rtsps" : position == 2 ? "srt" : "rtsp";
+        int schemeEnd = url.indexOf("://");
+        String rest = schemeEnd >= 0 ? url.substring(schemeEnd + 3) : url;
+        return scheme + "://" + rest;
+    }
+
     // Called whenever the panel stops being visible for any reason (hidden
     // or closed). If ICU NG is actively streaming, keeps it alive headless
     // (Fase 4) instead of stopping it - replaceView(Context) only swaps the
@@ -191,6 +223,38 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             streamToggleButton = paneView.findViewById(R.id.stream_toggle_button);
             streamToggleButton.setOnClickListener(v -> toggleStream());
 
+            protocolSpinner = paneView.findViewById(R.id.protocol_spinner);
+            trustAllCertsCheckbox = paneView.findViewById(R.id.trust_all_certs_checkbox);
+            srtEncryptionRow = paneView.findViewById(R.id.srt_encryption_row);
+            srtPassphraseInput = paneView.findViewById(R.id.srt_passphrase_input);
+            srtEncryptionSpinner = paneView.findViewById(R.id.srt_encryption_spinner);
+            statusText = paneView.findViewById(R.id.status_text);
+
+            ArrayAdapter<CharSequence> protocolAdapter = ArrayAdapter.createFromResource(
+                    pluginContext, R.array.protocol_entries, android.R.layout.simple_spinner_item);
+            protocolAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            protocolSpinner.setAdapter(protocolAdapter);
+
+            ArrayAdapter<CharSequence> encryptionAdapter = ArrayAdapter.createFromResource(
+                    pluginContext, R.array.srt_encryption_entries, android.R.layout.simple_spinner_item);
+            encryptionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            srtEncryptionSpinner.setAdapter(encryptionAdapter);
+
+            protocolSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (suppressProtocolListener) return;
+                    onProtocolSelected(position);
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    // no-op
+                }
+            });
+
+            setStatus(pluginContext.getString(R.string.status_idle));
+
             // Fase 4: if camera already exists, it's one tearDownPane() left
             // alive in the background - reattach it instead of building a
             // new one, and restore the UI to reflect that it's still
@@ -199,6 +263,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             if (resumingBackgroundCamera) {
                 rtspUrlInput.setText(activeStreamUrl);
                 streamToggleButton.setText(R.string.stop_stream);
+                setStatus(pluginContext.getString(R.string.status_streaming));
             } else {
                 camera = new RtspCamera2(previewView, this);
                 camera.prepareVideo();

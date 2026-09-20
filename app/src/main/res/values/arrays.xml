@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="protocol_entries">
+        <item>RTSP</item>
+        <item>RTSPS (TLS)</item>
+        <item>SRT</item>
+    </string-array>
+
+    <string-array name="srt_encryption_entries">
+        <item>AES-128</item>
+        <item>AES-192</item>
+        <item>AES-256</item>
+    </string-array>
+</resources>
