@@ -440,6 +440,14 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             activeSrtPassphrase = passphrase;
             activeSrtEncryptionType = encryptionType;
 
+            // Verificado en BaseEncoder: stop() pone prepared=false, y start()
+            // exige prepared=true - sin volver a preparar aqui, un segundo
+            // intento de emitir sobre la misma camara (tras "Detener" o tras
+            // un fallo de conexion que ahora dispara stopStreamOnly(), Task 4)
+            // crashea con IllegalStateException: VideoEncoder not prepared yet.
+            camera.prepareVideo();
+            camera.prepareAudio();
+
             camera.startStream(url);
             streamToggleButton.setText(R.string.stop_stream);
 
