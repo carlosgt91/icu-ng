@@ -2,6 +2,7 @@
 package com.carlosgt.atak.icung.plugin;
 
 import android.content.Context;
+import android.view.SurfaceHolder;
 import android.view.View;
 
 import com.atak.plugins.impl.PluginContextProvider;
@@ -96,6 +97,32 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             OpenGlView previewView = paneView.findViewById(R.id.preview_view);
             camera = new RtspCamera2(previewView, this);
 
+            // RootEncoder needs the SurfaceView's real Surface to exist before
+            // startPreview() can touch it - calling it right after inflate()
+            // crashes with NullPointerException: getSurfaceTexture(...) must
+            // not be null, because Android creates the Surface asynchronously
+            // on a later layout pass, not synchronously when the view is
+            // inflated. Wait for surfaceCreated(), same pattern RootEncoder's
+            // own demo app uses for TextureView's onSurfaceTextureAvailable.
+            previewView.getHolder().addCallback(new SurfaceHolder.Callback() {
+                @Override
+                public void surfaceCreated(SurfaceHolder holder) {
+                    if (!camera.isOnPreview()) {
+                        camera.startPreview(CameraHelper.Facing.BACK);
+                    }
+                }
+
+                @Override
+                public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+                    // no-op
+                }
+
+                @Override
+                public void surfaceDestroyed(SurfaceHolder holder) {
+                    // no-op
+                }
+            });
+
             templatePane = new PaneBuilder(paneView)
                     // relative location is set to default; pane will switch location dependent on
                     // current orientation of device screen
@@ -110,10 +137,6 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         // if the plugin pane is not visible, show it!
         if(!uiService.isPaneVisible(templatePane)) {
             uiService.showPane(templatePane, null);
-        }
-
-        if (camera != null && !camera.isOnPreview()) {
-            camera.startPreview(CameraHelper.Facing.BACK);
         }
     }
 
