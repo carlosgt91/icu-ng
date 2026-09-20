@@ -443,6 +443,13 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             camera.startStream(url);
             streamToggleButton.setText(R.string.stop_stream);
 
+            // RTSPS (protocol == 1) nunca se anuncia por CoT/IVideoConnectionManager:
+            // verificado con javap que ConnectionEntryBase.Protocol no tiene una
+            // constante RTSPS (solo RTSP/RTMP/RTMPS/SRT/...), y que Protocol.RTSP.toURL()
+            // siempre construye literalmente "rtsp://" - anunciar RTSPS como
+            // Protocol.RTSP le daria a otros ATAK una URL rota que su cliente de
+            // Video no podria abrir contra un servidor que exige TLS. El push RTSPS
+            // en si sigue funcionando igual - solo se deja de anunciar en el mapa.
             connectionEntry = protocol == 1 ? null : buildConnectionEntry(url, protocol, passphrase);
             if (connectionEntry != null) {
                 videoConnectionManager.addConnectionEntry(connectionEntry);
