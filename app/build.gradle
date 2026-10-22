@@ -288,6 +288,15 @@ dependencies {
     implementation fileTree(dir: 'libs', include: '*.jar')
     testImplementation 'junit:junit:4.13.2'
     implementation 'com.github.pedroSG94.RootEncoder:library:2.8.1'
+    // QR decoding only (core, pure Java) - the scanner UI is QrScanDialog
+    implementation 'com.google.zxing:core:3.5.3'
+    // USB (UVC) cameras. appcompat/legacy-support are excluded because ATAK
+    // already provides androidx at runtime; a bundled second copy breaks
+    // resource linking.
+    implementation('com.herohan:UVCAndroid:1.0.13') {
+        exclude group: 'androidx.legacy', module: 'legacy-support-v4'
+        exclude group: 'androidx.appcompat', module: 'appcompat'
+    }
 }
 
 configurations.all {
@@ -325,3 +334,11 @@ configurations.implementation {
 
 }       
 
+
+// RootEncoder's RTSP client is replaced by our modified copy (KLV metadata
+// track), see rootencoder-rtsp/NOTICE.md.
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module('com.github.pedroSG94.RootEncoder:rtsp') using project(':rootencoder-rtsp')
+    }
+}

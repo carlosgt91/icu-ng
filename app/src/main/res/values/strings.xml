@@ -12,6 +12,13 @@
     <string name="srt_passphrase_hint">Passphrase SRT</string>
     <string name="srt_passphrase_caption">10-79 caracteres · vacío = sin cifrar</string>
     <string name="srt_encryption_caption">Cifrado</string>
+    <string name="camera_caption">Cámara</string>
+    <string name="klv_checkbox">Enviar telemetría KLV (MISB 0601) · no con cámara USB</string>
+    <string name="qr_button">QR</string>
+    <string name="qr_scan_title">Apunta al QR del servidor de vídeo</string>
+    <string name="qr_loaded">Configuración cargada del QR</string>
+    <string name="qr_loaded_named">Configuración cargada del QR: %1$s</string>
+    <string name="qr_error_streaming">Detén la emisión antes de escanear un QR</string>
     <string name="status_idle">Detenido</string>
     <string name="status_connecting">Conectando…</string>
     <string name="status_streaming">Emitiendo</string>

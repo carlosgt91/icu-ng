@@ -11,4 +11,10 @@
         <item>AES-192</item>
         <item>AES-256</item>
     </string-array>
+
+    <string-array name="camera_entries">
+        <item>Trasera</item>
+        <item>Frontal</item>
+        <item>USB</item>
+    </string-array>
 </resources>

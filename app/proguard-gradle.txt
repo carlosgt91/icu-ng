@@ -94,3 +94,20 @@
 ## dontwarn and keep directives
 ######################################################################
 
+
+# UVCAndroid: its native libs call back into these classes by name (JNI),
+# so R8 must neither strip nor rename them.
+-keep class com.serenegiant.** { *; }
+-keep class com.herohan.** { *; }
+-dontwarn com.serenegiant.**
+-dontwarn com.herohan.**
+# UVCAndroid depends on hutool, whose desktop-JVM helpers (images, Swing,
+# JAXB, JMX...) reference classes Android doesn't have. Never called here.
+-dontwarn java.awt.**
+-dontwarn java.beans.**
+-dontwarn java.lang.management.**
+-dontwarn javax.imageio.**
+-dontwarn javax.naming.**
+-dontwarn javax.swing.**
+-dontwarn javax.tools.**
+-dontwarn javax.xml.bind.**

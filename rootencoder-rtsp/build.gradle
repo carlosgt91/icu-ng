@@ -1,0 +1,31 @@
+// Copy of RootEncoder 2.8.1's `rtsp` module (pedroSG94, Apache-2.0, see
+// LICENSE.txt and NOTICE.md), modified to carry a MISB ST 0601 KLV metadata
+// track alongside video/audio. The app substitutes this project for the
+// JitPack `com.github.pedroSG94.RootEncoder:rtsp` artifact.
+plugins {
+    id("com.android.library")
+    id("org.jetbrains.kotlin.android")
+}
+
+android {
+    namespace 'com.pedro.rtsp'
+    compileSdk 36
+
+    defaultConfig {
+        minSdk 21
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = '17'
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.11.0'
+    api 'com.github.pedroSG94.RootEncoder:common:2.8.1'
+}

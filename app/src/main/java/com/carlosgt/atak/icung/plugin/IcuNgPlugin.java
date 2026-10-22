@@ -1,9 +1,10 @@
-
 package com.carlosgt.atak.icung.plugin;
 
 import android.content.Context;
-import android.util.Log;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.SurfaceHolder;
+import android.view.SurfaceView;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -17,20 +18,6 @@ import androidx.core.content.ContextCompat;
 
 import com.atak.plugins.impl.PluginContextProvider;
 import com.atak.plugins.impl.PluginLayoutInflater;
-import com.pedro.common.ConnectChecker;
-import com.pedro.encoder.input.video.CameraHelper;
-import com.pedro.library.base.Camera2Base;
-import com.pedro.library.rtsp.RtspCamera2;
-import com.pedro.library.srt.SrtCamera2;
-import com.pedro.library.util.streamclient.RtspStreamClient;
-import com.pedro.library.util.streamclient.SrtStreamClient;
-import com.pedro.library.view.OpenGlView;
-import com.pedro.srt.srt.packets.control.handshake.EncryptionType;
-
-import java.security.cert.X509Certificate;
-
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
 
 import gov.tak.api.plugin.IPlugin;
 import gov.tak.api.plugin.IServiceController;
@@ -39,68 +26,41 @@ import gov.tak.api.ui.Pane;
 import gov.tak.api.ui.PaneBuilder;
 import gov.tak.api.ui.ToolbarItem;
 import gov.tak.api.ui.ToolbarItemAdapter;
-import gov.tak.api.video.ConnectionEntry;
-import gov.tak.api.video.IVideoConnectionManager;
 import gov.tak.platform.marshal.MarshalManager;
 
 import com.atakmap.android.cot.detail.CotDetailManager;
 import com.atakmap.android.maps.MapView;
 import com.atakmap.android.video.manager.VideoManager;
 
-public class IcuNgPlugin implements IPlugin, ConnectChecker {
+public class IcuNgPlugin implements IPlugin, StreamController.Listener {
 
     IServiceController serviceController;
     Context pluginContext;
+    Context atakContext;
     IHostUIService uiService;
     ToolbarItem toolbarItem;
     Pane templatePane;
-    Camera2Base camera;
-    OpenGlView previewView;
-    EditText rtspUrlInput;
+    SurfaceView previewView;
+    EditText urlInput;
     Button streamToggleButton;
+    Button qrButton;
     Spinner protocolSpinner;
+    Spinner cameraSpinner;
     CheckBox trustAllCertsCheckbox;
+    CheckBox klvCheckbox;
     View srtEncryptionRow;
     EditText srtPassphraseInput;
     Spinner srtEncryptionSpinner;
     TextView statusText;
     boolean suppressProtocolListener;
-    IVideoConnectionManager videoConnectionManager;
-    SelfVideoDetailHandler videoDetailHandler;
-    ConnectionEntry connectionEntry;
-    SelfSensorFovController sensorFovController;
-    String activeStreamUrl;
-    int activeProtocol; // 0=RTSP, 1=RTSPS, 2=SRT - mismo orden que R.array.protocol_entries
-    boolean activeTrustAllCerts;
-    String activeSrtPassphrase = "";
-    EncryptionType activeSrtEncryptionType = EncryptionType.AES128;
     int lastValidProtocolPosition;
+    StreamSettings settings;
 
-    private static final EncryptionType[] SRT_ENCRYPTION_TYPES = {
-            EncryptionType.AES128, EncryptionType.AES192, EncryptionType.AES256
-    };
-
-    private static int indexOfEncryptionType(EncryptionType type) {
-        for (int i = 0; i < SRT_ENCRYPTION_TYPES.length; i++) {
-            if (SRT_ENCRYPTION_TYPES[i] == type) return i;
-        }
-        return 0;
-    }
-
-    private static final TrustManager TRUST_ALL_CERTS = new X509TrustManager() {
-        @Override
-        public void checkClientTrusted(X509Certificate[] chain, String authType) {
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] chain, String authType) {
-        }
-
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return new X509Certificate[0];
-        }
-    };
+    SelfVideoDetailHandler videoDetailHandler;
+    SelfSensorFovController sensorFovController;
+    StreamController streamController;
+    RecButtonWidget recButton;
+    SelfMarkerRadialMenu radialMenu;
 
     public IcuNgPlugin(IServiceController serviceController) {
         this.serviceController = serviceController;
@@ -142,21 +102,31 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
         uiService.addToolbarItem(toolbarItem);
 
-        videoConnectionManager = VideoManager.getInstance();
-
-        String selfUid = MapView.getMapView().getSelfMarker().getUID();
-        videoDetailHandler = new SelfVideoDetailHandler(
-                selfUid,
-                this::isStreamingWithFix,
-                () -> connectionEntry);
-        CotDetailManager.getInstance().registerHandler(videoDetailHandler);
+        MapView mapView = MapView.getMapView();
+        atakContext = mapView.getContext();
 
         sensorFovController = new SelfSensorFovController();
         sensorFovController.start();
+
+        streamController = new StreamController(atakContext, pluginContext,
+                VideoManager.getInstance(), sensorFovController);
+
+        String selfUid = mapView.getSelfMarker().getUID();
+        videoDetailHandler = new SelfVideoDetailHandler(
+                selfUid,
+                this::isStreamingWithFix,
+                () -> streamController.getConnectionEntry());
+        CotDetailManager.getInstance().registerHandler(videoDetailHandler);
+
+        recButton = new RecButtonWidget(mapView, streamController, this::showPane);
+        recButton.show();
+
+        radialMenu = new SelfMarkerRadialMenu(mapView, streamController);
+        radialMenu.register();
     }
 
     private boolean isStreamingWithFix() {
-        return camera != null && camera.isStreaming()
+        return streamController != null && streamController.isStreaming()
                 && MapView.getMapView().getSelfMarker().getPoint().isValid();
     }
 
@@ -168,81 +138,25 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
         uiService.removeToolbarItem(toolbarItem);
 
-        stopCameraAndStream();
-
+        if (templatePane != null && uiService.isPaneVisible(templatePane)) {
+            uiService.closePane(templatePane);
+        }
+        if (radialMenu != null) {
+            radialMenu.dispose();
+        }
+        if (recButton != null) {
+            recButton.dispose();
+        }
+        if (streamController != null) {
+            streamController.dispose();
+        }
         if (videoDetailHandler != null) {
             CotDetailManager.getInstance().unregisterHandler(videoDetailHandler);
         }
-
         if (sensorFovController != null) {
             sensorFovController.stop();
         }
     }
-
-    private void stopCameraAndStream() {
-        if (camera != null && camera.isStreaming()) {
-            stopStreamOnly();
-        }
-
-        if (camera != null && camera.isOnPreview()) {
-            camera.stopPreview();
-        }
-    }
-
-    // Everything that undoes toggleStream()'s "start" branch - shared by the
-    // direct "Detener" click and any indirect stop (hiding/closing the panel),
-    // so the button text and CoT/video bookkeeping never fall out of sync
-    // with the actual RtspCamera2 state.
-    private void stopStreamOnly() {
-        camera.stopStream();
-        if (connectionEntry != null) {
-            videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
-            connectionEntry = null;
-        }
-        if (sensorFovController != null) {
-            sensorFovController.refresh(false);
-        }
-        if (streamToggleButton != null) {
-            streamToggleButton.setText(R.string.start_stream);
-        }
-    }
-
-    private static final String TAG = "IcuNgPlugin";
-
-    // onConnectionFailed()/onAuthError() ya llaman a stopStreamOnly(), que a
-    // su vez dispara camera.stopStream() - y eso provoca, un instante
-    // despues, un onDisconnect() asincrono de RootEncoder (verificado en
-    // logcat: el aviso rojo de error se mostraba y acto seguido se
-    // sobreescribia con "Desconectado" neutro). Este flag evita que ese
-    // onDisconnect() de limpieza tape el mensaje de error que el usuario
-    // todavia no ha tenido tiempo de leer.
-    //
-    // Puntos donde se resetea a false (revisado explicitamente para
-    // descartar que se quede pegado en true bloqueando un estado neutro
-    // futuro): setStatusIdle() (panel reabierto desde cero),
-    // setStatusConnecting() (onConnectionStarted() de CUALQUIER intento
-    // nuevo de "Emitir", incluido un segundo intento tras un primer fallo -
-    // RtspClient/SrtClient siempre lo disparan como primer paso de
-    // connect(), verificado en la Fase 5) y setStatusStreaming(). Un
-    // "Detener" manual no pasa por aqui en absoluto - toggleStream() pinta
-    // el estado el mismo directamente (ver mas abajo), sin depender de que
-    // llegue ningun callback async.
-    //
-    // Limitacion aceptada y no resuelta aqui (de alcance mayor que este
-    // fix - necesitaria una marca de "generacion" por intento de conexion,
-    // no solo un booleano): si un callback tardio de un intento YA
-    // superado (p.ej. el onDisconnect() de limpieza de un fallo anterior)
-    // llega despues de que un intento NUEVO ya este en curso (statusIsError
-    // ya vuelto a false por ese intento nuevo), ese callback tardio podria
-    // pisar el estado del intento nuevo e incluso volver a llamar a
-    // stopStreamOnly() sobre el. No reproducido en las pruebas de esta
-    // sesion (la ventana real observada entre onConnectionFailed() y su
-    // onDisconnect() de limpieza es de bastante menos de un segundo, muy
-    // por debajo del tiempo de reaccion humano para reintentar), pero
-    // tampoco esta descartado por completo - queda anotado para no perder
-    // el hilo si algun dia aparece un reintento manual muy rapido o una red
-    // especialmente lenta en confirmar la desconexion.
-    private boolean statusIsError;
 
     private void setStatus(String text, int colorRes) {
         if (statusText == null) return;
@@ -250,126 +164,170 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         statusText.setTextColor(ContextCompat.getColor(pluginContext, colorRes));
     }
 
-    private void setStatusIdle() {
-        statusIsError = false;
-        setStatus(pluginContext.getString(R.string.status_idle), R.color.status_neutral);
+    @Override
+    public void onStreamStateChanged(StreamController.State state, String message) {
+        switch (state) {
+            case CONNECTING:
+                setStatus(pluginContext.getString(R.string.status_connecting),
+                        R.color.status_connecting);
+                break;
+            case STREAMING:
+                setStatus(pluginContext.getString(R.string.status_streaming),
+                        R.color.status_streaming);
+                break;
+            case ERROR:
+                setStatus(message, R.color.status_error);
+                break;
+            default:
+                setStatus(pluginContext.getString(R.string.status_idle),
+                        R.color.status_neutral);
+                break;
+        }
+        boolean live = state == StreamController.State.STREAMING
+                || state == StreamController.State.CONNECTING;
+        if (streamToggleButton != null) {
+            streamToggleButton.setText(live ? R.string.stop_stream : R.string.start_stream);
+        }
+        // While a stream runs, its settings are fixed - show those, not
+        // whatever was left half-typed, and don't let them be edited.
+        setInputsEnabled(!live);
+        StreamSettings active = streamController.getActiveSettings();
+        if (active != null) {
+            fillInputs(active);
+        }
     }
 
-    private void setStatusConnecting() {
-        statusIsError = false;
-        setStatus(pluginContext.getString(R.string.status_connecting), R.color.status_connecting);
+    private void setInputsEnabled(boolean enabled) {
+        if (urlInput == null) return;
+        urlInput.setEnabled(enabled);
+        protocolSpinner.setEnabled(enabled);
+        qrButton.setEnabled(enabled);
+        trustAllCertsCheckbox.setEnabled(enabled);
+        klvCheckbox.setEnabled(enabled);
+        srtPassphraseInput.setEnabled(enabled);
+        srtEncryptionSpinner.setEnabled(enabled);
     }
 
-    private void setStatusStreaming() {
-        statusIsError = false;
-        setStatus(pluginContext.getString(R.string.status_streaming), R.color.status_streaming);
+    private void fillInputs(StreamSettings s) {
+        suppressProtocolListener = true;
+        protocolSpinner.setSelection(s.protocol);
+        suppressProtocolListener = false;
+        lastValidProtocolPosition = s.protocol;
+        urlInput.setText(s.url);
+        trustAllCertsCheckbox.setChecked(s.trustAllCerts);
+        klvCheckbox.setChecked(s.klv);
+        srtPassphraseInput.setText(s.srtPassphrase);
+        srtEncryptionSpinner.setSelection(s.srtEncryptionIndex);
+        cameraSpinner.setSelection(s.camera);
+        updateProtocolRows(s.protocol);
     }
 
-    private void setStatusDisconnected() {
-        if (statusIsError) return;
-        setStatus(pluginContext.getString(R.string.status_disconnected), R.color.status_neutral);
+    private void updateProtocolRows(int protocol) {
+        trustAllCertsCheckbox.setVisibility(
+                protocol == StreamSettings.PROTOCOL_RTSPS ? View.VISIBLE : View.GONE);
+        srtEncryptionRow.setVisibility(
+                protocol == StreamSettings.PROTOCOL_SRT ? View.VISIBLE : View.GONE);
+        // KLV is only implemented on the RTSP client
+        klvCheckbox.setVisibility(
+                protocol == StreamSettings.PROTOCOL_SRT ? View.GONE : View.VISIBLE);
     }
 
-    private void setStatusError(String message) {
-        statusIsError = true;
-        setStatus(message, R.color.status_error);
+    // Every edit in the pane is written straight to the persisted settings,
+    // so the REC map button always streams with what the pane shows.
+    private void saveInputs() {
+        if (settings == null || streamController.isStreaming()) return;
+        settings.protocol = protocolSpinner.getSelectedItemPosition();
+        settings.url = urlInput.getText().toString().trim();
+        settings.trustAllCerts = trustAllCertsCheckbox.isChecked();
+        settings.klv = klvCheckbox.isChecked();
+        settings.srtPassphrase = srtPassphraseInput.getText().toString();
+        settings.srtEncryptionIndex = srtEncryptionSpinner.getSelectedItemPosition();
+        settings.camera = cameraSpinner.getSelectedItemPosition();
+        settings.save(atakContext);
     }
 
     private void onProtocolSelected(int position) {
-        boolean crossingSrtBoundary = camera != null
-                && (position == 2) != (camera instanceof SrtCamera2);
-        if (crossingSrtBoundary) {
-            // La cámara ya existe siempre en cuanto se abre el panel (el
-            // preview arranca solo, antes de que el usuario toque nada), así
-            // que "esperar a que camera sea null" nunca ocurre en la práctica
-            // - dejaba SRT inalcanzable desde la UI. Mientras no se esté
-            // emitiendo, reconstruir aquí es seguro: es exactamente el mismo
-            // patrón (stopPreview() -> nueva instancia -> prepareVideo/Audio
-            // -> startPreview) que showPane() ya hace al abrir el panel desde
-            // cero, solo que sin esperar a un nuevo surfaceCreated() porque
-            // la Surface de previewView ya existe y sigue siendo válida.
-            if (camera.isStreaming()) {
-                revertProtocolSelection();
-                setStatusError(pluginContext.getString(
-                        R.string.status_error_change_protocol_while_streaming));
-                return;
-            }
-            camera.stopPreview();
-            camera = position == 2
-                    ? new SrtCamera2(previewView, this)
-                    : new RtspCamera2(previewView, this);
-            camera.prepareVideo();
-            camera.prepareAudio();
-            camera.startPreview(CameraHelper.Facing.BACK);
-        }
-        lastValidProtocolPosition = position;
-        trustAllCertsCheckbox.setVisibility(position == 1 ? View.VISIBLE : View.GONE);
-        srtEncryptionRow.setVisibility(position == 2 ? View.VISIBLE : View.GONE);
-        rtspUrlInput.setText(rewriteUrlScheme(rtspUrlInput.getText().toString(), position));
-    }
-
-    private void revertProtocolSelection() {
-        suppressProtocolListener = true;
-        protocolSpinner.setSelection(lastValidProtocolPosition);
-        suppressProtocolListener = false;
-    }
-
-    // position: 0=RTSP, 1=RTSPS, 2=SRT (mismo orden que R.array.protocol_entries)
-    private static String rewriteUrlScheme(String url, int position) {
-        String scheme = position == 1 ? "rtsps" : position == 2 ? "srt" : "rtsp";
-        int schemeEnd = url.indexOf("://");
-        String rest = schemeEnd >= 0 ? url.substring(schemeEnd + 3) : url;
-        return scheme + "://" + rest;
-    }
-
-    private static String parseUrlScheme(String url) {
-        int schemeEnd = url.indexOf("://");
-        return schemeEnd >= 0 ? url.substring(0, schemeEnd) : "";
-    }
-
-    // Called whenever the panel stops being visible for any reason (hidden
-    // or closed). If ICU NG is actively streaming, keeps it alive headless
-    // (Fase 4) instead of stopping it - replaceView(Context) only swaps the
-    // local camera->encoder render target (verified: it never touches
-    // startStream()/stopStream()), so the RTSP push, and the <__video>/
-    // <sensor> from Fase 3 that key off isStreaming(), stay up. If it was
-    // only previewing (never pressed Emitir), there's nothing worth keeping
-    // alive - same full stop as before, and templatePane/paneView/
-    // previewView always get rebuilt from scratch on the next open either
-    // way (that part of the Fase 3 fix stands - only camera is ever reused).
-    private void tearDownPane() {
-        templatePane = null;
-
-        if (camera == null) {
+        if (!streamController.onProtocolChanged(position)) {
+            suppressProtocolListener = true;
+            protocolSpinner.setSelection(lastValidProtocolPosition);
+            suppressProtocolListener = false;
+            setStatus(pluginContext.getString(
+                    R.string.status_error_change_protocol_while_streaming),
+                    R.color.status_error);
             return;
         }
+        lastValidProtocolPosition = position;
+        updateProtocolRows(position);
+        urlInput.setText(StreamSettings.rewriteUrlScheme(urlInput.getText().toString(), position));
+        saveInputs();
+    }
 
-        if (camera.isStreaming()) {
-            camera.replaceView(pluginContext);
-        } else {
-            stopCameraAndStream();
-            camera = null;
+    private void scanQr() {
+        if (streamController.isStreaming()) {
+            setStatus(pluginContext.getString(R.string.qr_error_streaming), R.color.status_error);
+            return;
         }
+        // The scanner needs the camera the pane preview is holding.
+        final SurfaceView preview = previewView;
+        streamController.detachPreview(preview);
+        QrScanDialog dialog = new QrScanDialog(atakContext,
+                pluginContext.getString(R.string.qr_scan_title), this::applyQr);
+        dialog.setOnDismissListener(d -> {
+            if (preview != null && preview == previewView
+                    && preview.getHolder().getSurface().isValid()) {
+                streamController.attachPreview(preview);
+            }
+        });
+        dialog.show();
+    }
+
+    private void applyQr(String text) {
+        QrStreamUrl.Result qr;
+        try {
+            qr = QrStreamUrl.parse(text);
+        } catch (IllegalArgumentException e) {
+            setStatus(e.getMessage(), R.color.status_error);
+            return;
+        }
+        if (settings == null || urlInput == null) return; // pane closed meanwhile
+        settings.protocol = qr.protocol;
+        settings.url = qr.url;
+        if (qr.srtPassphrase != null) settings.srtPassphrase = qr.srtPassphrase;
+        settings.save(atakContext);
+        fillInputs(settings);
+        streamController.onProtocolChanged(qr.protocol);
+        setStatus(qr.name == null
+                ? pluginContext.getString(R.string.qr_loaded)
+                : pluginContext.getString(R.string.qr_loaded_named, qr.name),
+                R.color.status_streaming);
+    }
+
+    private void tearDownPane() {
+        if (templatePane == null) return;
+        templatePane = null;
+        streamController.removeListener(this);
+        streamController.detachPreview(previewView);
+        previewView = null;
+        urlInput = null;
+        statusText = null;
+        streamToggleButton = null;
     }
 
     private void showPane() {
         // instantiate the plugin view if necessary
-        if(templatePane == null) {
+        if (templatePane == null) {
             // Remember to use the PluginLayoutInflator if you are actually inflating a custom view
-            // In this case, using it is not necessary - but I am putting it here to remind
-            // developers to look at this Inflator
-
             View paneView = PluginLayoutInflater.inflate(pluginContext,
                     R.layout.main_layout, null);
 
             previewView = paneView.findViewById(R.id.preview_view);
-
-            rtspUrlInput = paneView.findViewById(R.id.rtsp_url_input);
+            urlInput = paneView.findViewById(R.id.rtsp_url_input);
             streamToggleButton = paneView.findViewById(R.id.stream_toggle_button);
-            streamToggleButton.setOnClickListener(v -> toggleStream());
-
+            qrButton = paneView.findViewById(R.id.qr_button);
             protocolSpinner = paneView.findViewById(R.id.protocol_spinner);
+            cameraSpinner = paneView.findViewById(R.id.camera_spinner);
             trustAllCertsCheckbox = paneView.findViewById(R.id.trust_all_certs_checkbox);
+            klvCheckbox = paneView.findViewById(R.id.klv_checkbox);
             srtEncryptionRow = paneView.findViewById(R.id.srt_encryption_row);
             srtPassphraseInput = paneView.findViewById(R.id.srt_passphrase_input);
             srtEncryptionSpinner = paneView.findViewById(R.id.srt_encryption_spinner);
@@ -385,10 +343,18 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
             encryptionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
             srtEncryptionSpinner.setAdapter(encryptionAdapter);
 
+            ArrayAdapter<CharSequence> cameraAdapter = ArrayAdapter.createFromResource(
+                    pluginContext, R.array.camera_entries, android.R.layout.simple_spinner_item);
+            cameraAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            cameraSpinner.setAdapter(cameraAdapter);
+
+            settings = StreamSettings.load(atakContext);
+            fillInputs(settings);
+
             protocolSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                    if (suppressProtocolListener) return;
+                    if (suppressProtocolListener || position == lastValidProtocolPosition) return;
                     onProtocolSelected(position);
                 }
 
@@ -397,55 +363,70 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
                     // no-op
                 }
             });
+            // The camera is the one setting that can change mid-stream.
+            cameraSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    if (position == settings.camera) return;
+                    settings.camera = position;
+                    settings.save(atakContext);
+                    streamController.setCamera(position);
+                }
 
-            // Fase 4: if camera already exists, it's one tearDownPane() left
-            // alive in the background - reattach it instead of building a
-            // new one, and restore the UI (URL, boton, protocolo, cifrado)
-            // to reflect that it's still streaming.
-            final boolean resumingBackgroundCamera = camera != null;
-            if (resumingBackgroundCamera) {
-                rtspUrlInput.setText(activeStreamUrl);
-                streamToggleButton.setText(R.string.stop_stream);
-                setStatusStreaming();
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    // no-op
+                }
+            });
+            srtEncryptionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    saveInputs();
+                }
 
-                suppressProtocolListener = true;
-                protocolSpinner.setSelection(activeProtocol);
-                suppressProtocolListener = false;
-                lastValidProtocolPosition = activeProtocol;
-                trustAllCertsCheckbox.setVisibility(activeProtocol == 1 ? View.VISIBLE : View.GONE);
-                trustAllCertsCheckbox.setChecked(activeTrustAllCerts);
-                srtEncryptionRow.setVisibility(activeProtocol == 2 ? View.VISIBLE : View.GONE);
-                srtPassphraseInput.setText(activeSrtPassphrase);
-                srtEncryptionSpinner.setSelection(indexOfEncryptionType(activeSrtEncryptionType));
-            } else {
-                lastValidProtocolPosition = protocolSpinner.getSelectedItemPosition();
-                setStatusIdle();
-                camera = protocolSpinner.getSelectedItemPosition() == 2
-                        ? new SrtCamera2(previewView, this)
-                        : new RtspCamera2(previewView, this);
-                camera.prepareVideo();
-                camera.prepareAudio();
-            }
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    // no-op
+                }
+            });
+            TextWatcher saveOnEdit = new TextWatcher() {
+                @Override
+                public void beforeTextChanged(CharSequence s, int start, int count, int after) {
+                }
+
+                @Override
+                public void onTextChanged(CharSequence s, int start, int before, int count) {
+                }
+
+                @Override
+                public void afterTextChanged(Editable s) {
+                    saveInputs();
+                }
+            };
+            urlInput.addTextChangedListener(saveOnEdit);
+            srtPassphraseInput.addTextChangedListener(saveOnEdit);
+            trustAllCertsCheckbox.setOnCheckedChangeListener((b, checked) -> saveInputs());
+            klvCheckbox.setOnCheckedChangeListener((b, checked) -> saveInputs());
+
+            qrButton.setOnClickListener(v -> scanQr());
+
+            streamToggleButton.setOnClickListener(v -> {
+                saveInputs();
+                streamController.toggle();
+            });
+
+            // Registered after fillInputs(): reflects the current stream
+            // state immediately, including a stream started from the map.
+            streamController.addListener(this);
 
             // RootEncoder needs the SurfaceView's real Surface to exist before
-            // startPreview()/replaceView() can touch it - calling it right
-            // after inflate() crashes with NullPointerException:
-            // getSurfaceTexture(...) must not be null, because Android
-            // creates the Surface asynchronously on a later layout pass, not
-            // synchronously when the view is inflated. Wait for
-            // surfaceCreated(), same pattern RootEncoder's own demo app uses
-            // for TextureView's onSurfaceTextureAvailable. This is the only
-            // place startPreview()/replaceView() are ever called - see
-            // tearDownPane() for why nothing tries to resume across a full
-            // rebuild of paneView/previewView themselves, only camera.
+            // startPreview() can touch it - Android creates it asynchronously
+            // on a later layout pass, not when the view is inflated.
+            final SurfaceView surface = previewView;
             previewView.getHolder().addCallback(new SurfaceHolder.Callback() {
                 @Override
                 public void surfaceCreated(SurfaceHolder holder) {
-                    if (resumingBackgroundCamera) {
-                        camera.replaceView(previewView);
-                    } else if (!camera.isOnPreview()) {
-                        camera.startPreview(CameraHelper.Facing.BACK);
-                    }
+                    streamController.attachPreview(surface);
                 }
 
                 @Override
@@ -455,7 +436,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
 
                 @Override
                 public void surfaceDestroyed(SurfaceHolder holder) {
-                    // no-op
+                    streamController.detachPreview(surface);
                 }
             });
 
@@ -471,7 +452,7 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
         }
 
         // if the plugin pane is not visible, show it!
-        if(!uiService.isPaneVisible(templatePane)) {
+        if (!uiService.isPaneVisible(templatePane)) {
             uiService.showPane(templatePane, new IHostUIService.IPaneLifecycleListener() {
                 @Override
                 public void onPaneVisible(boolean visible) {
@@ -486,134 +467,5 @@ public class IcuNgPlugin implements IPlugin, ConnectChecker {
                 }
             });
         }
-    }
-
-    private void toggleStream() {
-        if (camera.isStreaming()) {
-            // No confiar solo en que el onDisconnect() asincrono de RootEncoder
-            // llegue a tiempo (o llegue en absoluto) para reflejar un "Detener"
-            // que el propio usuario acaba de pedir - eso es exactamente lo que
-            // se rompia con onConnectionFailed()/onDisconnect() (ver el flag
-            // statusIsError mas abajo). Para una parada manual no hace falta
-            // esperar a la red: lo sabemos ya, aqui mismo.
-            stopStreamOnly();
-            setStatusDisconnected();
-        } else {
-            String url = rtspUrlInput.getText().toString();
-            int protocol = protocolSpinner.getSelectedItemPosition();
-
-            String expectedScheme = protocol == 1 ? "rtsps" : protocol == 2 ? "srt" : "rtsp";
-            if (!expectedScheme.equals(parseUrlScheme(url))) {
-                setStatusError(pluginContext.getString(
-                        R.string.status_error_scheme_format, expectedScheme));
-                return;
-            }
-
-            String passphrase = srtPassphraseInput.getText().toString();
-            if (protocol == 2 && !passphrase.isEmpty()
-                    && (passphrase.length() < 10 || passphrase.length() > 79)) {
-                setStatusError(pluginContext.getString(
-                        R.string.status_error_srt_passphrase_length));
-                return;
-            }
-
-            EncryptionType encryptionType = SRT_ENCRYPTION_TYPES[srtEncryptionSpinner.getSelectedItemPosition()];
-            if (protocol == 1) {
-                ((RtspStreamClient) camera.getStreamClient())
-                        .addCertificates(trustAllCertsCheckbox.isChecked() ? TRUST_ALL_CERTS : null);
-            } else if (protocol == 2 && !passphrase.isEmpty()) {
-                ((SrtStreamClient) camera.getStreamClient()).setPassphrase(passphrase, encryptionType);
-            }
-
-            activeStreamUrl = url;
-            activeProtocol = protocol;
-            activeTrustAllCerts = trustAllCertsCheckbox.isChecked();
-            activeSrtPassphrase = passphrase;
-            activeSrtEncryptionType = encryptionType;
-
-            // Verificado en BaseEncoder: stop() pone prepared=false, y start()
-            // exige prepared=true - sin volver a preparar aqui, un segundo
-            // intento de emitir sobre la misma camara (tras "Detener" o tras
-            // un fallo de conexion que ahora dispara stopStreamOnly(), Task 4)
-            // crashea con IllegalStateException: VideoEncoder not prepared yet.
-            camera.prepareVideo();
-            camera.prepareAudio();
-
-            camera.startStream(url);
-            streamToggleButton.setText(R.string.stop_stream);
-
-            // RTSPS (protocol == 1) nunca se anuncia por CoT/IVideoConnectionManager:
-            // verificado con javap que ConnectionEntryBase.Protocol no tiene una
-            // constante RTSPS (solo RTSP/RTMP/RTMPS/SRT/...), y que Protocol.RTSP.toURL()
-            // siempre construye literalmente "rtsp://" - anunciar RTSPS como
-            // Protocol.RTSP le daria a otros ATAK una URL rota que su cliente de
-            // Video no podria abrir contra un servidor que exige TLS. El push RTSPS
-            // en si sigue funcionando igual - solo se deja de anunciar en el mapa.
-            connectionEntry = protocol == 1 ? null : buildConnectionEntry(url, protocol, passphrase);
-            if (connectionEntry != null) {
-                videoConnectionManager.addConnectionEntry(connectionEntry);
-            }
-            sensorFovController.refresh(true);
-        }
-    }
-
-    private ConnectionEntry buildConnectionEntry(String url, int protocol, String passphrase) {
-        android.net.Uri parsed = android.net.Uri.parse(url);
-        ConnectionEntry.Protocol cotProtocol = protocol == 2
-                ? ConnectionEntry.Protocol.SRT
-                : ConnectionEntry.Protocol.RTSP;
-
-        String path = parsed.getQueryParameter("streamid");
-        if (path == null || path.isEmpty()) {
-            path = parsed.getPath();
-        }
-
-        ConnectionEntry.Builder builder = new ConnectionEntry.Builder()
-                .setUID(pluginContext.getPackageName() + "." + System.currentTimeMillis())
-                .setAlias("ICU NG")
-                .setAddress(parsed.getHost())
-                .setPort(parsed.getPort() > 0 ? parsed.getPort() : cotProtocol.getDefaultPort())
-                .setPath(path)
-                .setProtocol(cotProtocol)
-                .setSource(ConnectionEntry.Source.EXTERNAL);
-        if (protocol == 2 && !passphrase.isEmpty()) {
-            builder.setPassphrase(passphrase);
-        }
-        return builder.build();
-    }
-
-    @Override
-    public void onConnectionStarted(String url) {
-        setStatusConnecting();
-    }
-
-    @Override
-    public void onConnectionSuccess() {
-        setStatusStreaming();
-    }
-
-    @Override
-    public void onConnectionFailed(String reason) {
-        Log.w(TAG, "Conexion fallida (detalle interno de RootEncoder): " + reason);
-        setStatusError(pluginContext.getString(R.string.status_error_connection));
-        stopStreamOnly();
-    }
-
-    @Override
-    public void onDisconnect() {
-        setStatusDisconnected();
-        stopStreamOnly();
-    }
-
-    @Override
-    public void onAuthError() {
-        Log.w(TAG, "Fallo de autenticacion reportado por RootEncoder");
-        setStatusError(pluginContext.getString(R.string.status_error_auth));
-        stopStreamOnly();
-    }
-
-    @Override
-    public void onAuthSuccess() {
-        setStatusStreaming();
     }
 }
