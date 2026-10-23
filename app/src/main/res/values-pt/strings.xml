@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- description -->
+    <string name="app_desc">Substituto do TAK ICU: transmissão de câmara com áudio, anunciada no mapa via CoT.</string>
+
+    <string name="prefs_summary">Manual do utilizador</string>
+    <string name="manual_title">Manual do utilizador</string>
+    <string name="manual_summary">Como transmitir, a aplicação ICU NG Capture, qualidade e KLV</string>
+
+    <string name="start_stream">Transmitir</string>
+    <string name="stop_stream">Parar</string>
+
+    <string name="trust_all_certs">Confiar em todos os certificados (apenas testes/LAN)</string>
+    <string name="srt_passphrase_hint">Frase-passe SRT</string>
+    <string name="srt_passphrase_caption">10-79 carateres · vazio = não encriptado</string>
+    <string name="srt_encryption_caption">Encriptação</string>
+    <string name="camera_caption">Câmara</string>
+    <string name="quality_button">Qualidade</string>
+    <string name="resolution_caption">Resolução</string>
+    <string name="bitrate_caption">Taxa de bits</string>
+    <string name="adaptive_bitrate_checkbox">Taxa de bits adaptativa (reduz se a rede estiver congestionada)</string>
+    <string name="microphone_checkbox">Microfone</string>
+    <string name="quality_note">A resolução e os fps aplicam-se ao iniciar a transmissão; a taxa de bits e o microfone, imediatamente.</string>
+    <string name="klv_checkbox">Enviar telemetria KLV (MISB 0601) · não disponível com câmara USB</string>
+    <string name="qr_scan_title">Aponte para o código QR do servidor de vídeo</string>
+    <string name="qr_loaded">Configuração carregada a partir do QR</string>
+    <string name="qr_loaded_named">Configuração carregada a partir do QR: %1$s</string>
+    <string name="qr_error_empty">O código QR está vazio</string>
+    <string name="qr_error_not_url">O código QR não contém um URL válido</string>
+    <string name="qr_error_no_host">O URL do QR não contém anfitrião</string>
+    <string name="qr_error_rtmp">O ICU NG não transmite por RTMP: gere o código QR em RTSP ou SRT</string>
+    <string name="qr_error_protocol">Protocolo não suportado: %1$s</string>
+    <string name="qr_error_srt_streamid">O URL SRT do QR não inclui streamid</string>
+    <string name="qr_error_srt_passphrase">A frase-passe SRT do QR deve ter entre 10 e 79 carateres</string>
+    <string name="qr_scan_no_camera">Nenhuma câmara traseira disponível</string>
+    <string name="qr_scan_open_failed">Não foi possível abrir a câmara</string>
+    <string name="qr_scan_open_failed_code">Não foi possível abrir a câmara (erro %1$d)</string>
+    <string name="qr_scan_config_failed">Não foi possível configurar a câmara</string>
+    <string name="qr_error_streaming">Pare a transmissão antes de ler um código QR</string>
+    <string name="status_idle">Parado</string>
+    <string name="status_connecting">A ligar…</string>
+    <string name="status_streaming">A transmitir</string>
+    <string name="status_disconnected">Desconectado</string>
+    <string name="status_error_connection">Erro de ligação</string>
+    <string name="status_error_auth">Erro de autenticação</string>
+    <string name="mode_capture_app">Transmissão via ICU NG Capture · continua com o ecrã desligado</string>
+    <string name="mode_plugin">Transmissão via plugin · instale o ICU NG Capture para transmitir com o ecrã desligado</string>
+    <string name="status_error_capture_app">Erro: não foi possível abrir o ICU NG Capture</string>
+    <string name="status_error_camera">Erro: não foi possível abrir a câmara</string>
+    <string name="status_error_scheme_format">Erro: o URL deve começar por %1$s://</string>
+    <string name="status_error_srt_passphrase_length">Erro: a frase-passe SRT deve ter entre 10 e 79 carateres</string>
+    <string name="status_error_change_protocol_while_streaming">Erro: pare a transmissão antes de mudar para/de SRT</string>
+
+    <string name="url_hint">rtsp://anfitrião:porta/transmissão</string>
+</resources>

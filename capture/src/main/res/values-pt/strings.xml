@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_text">O ICU NG Capture transmite a câmara em segundo plano, mesmo com o ecrã desligado.\n\nNão é configurado aqui: é gerido a partir do ATAK através do plugin ICU NG (botão REC).\n\nConceda as permissões de câmara, microfone e notificações.</string>
+    <string name="channel_name">Transmissão de vídeo</string>
+    <string name="notif_streaming">A transmitir</string>
+    <string name="notif_connecting">A ligar…</string>
+    <string name="notif_stop">Parar</string>
+    <string name="status_retrying">Sem ligação, a tentar novamente…</string>
+    <string name="error_camera">Erro: não foi possível abrir a câmara</string>
+    <string name="error_auth">Erro de autenticação</string>
+    <string name="error_permission">Erro: o ICU NG Capture não tem permissão para a câmara</string>
+</resources>
