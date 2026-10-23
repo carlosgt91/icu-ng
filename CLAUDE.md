@@ -23,3 +23,13 @@ El plugin solo captura y *publica* (RootEncoder → RTSP/RTSPS/SRT). No es respo
 - Punto de integración exacto en el menú nativo de ATAK (extension point) — ver la skill `atak-plugin` para referencia de extension points.
 
 Ver `../CLAUDE.md` para el entorno de build y las convenciones generales del monorepo.
+
+## App compañera ICU NG Capture (`capture/`, rama `icu-ng/app-companera`)
+
+App Android normal (no plugin, no necesita firma de TAK) que emite las cámaras del móvil desde un servicio en primer plano de tipo `camera|microphone`, para que la emisión siga con la pantalla apagada (ATAK solo tiene servicio de tipo `location` y Android le quita la cámara en segundo plano). El plugin hace de interfaz: `CaptureLink` (plugin) ↔ `CaptureContract` (app), mantener ambos iguales.
+
+- Órdenes plugin→app: `startActivityForResult` a `ControlActivity` (transparente); la app solo obedece si `getCallingPackage()` es ATAK. Estado app→plugin: broadcasts al paquete de ATAK + latido cada 5 s.
+- ATAK 5.8 (targetSdk 35) solo ve apps que casen con sus `<queries>`; el filtro `VIEW` con mimeType propio en `ControlActivity` es lo que hace visible la app.
+- Sin la app instalada, el plugin emite él mismo como antes. Cámaras USB: siempre desde el plugin.
+- La versión anterior (solo plugin) está en la etiqueta `icu-ng-plugin-solo-v0.1`.
+- Build: `./gradlew :capture:assembleDebug`.

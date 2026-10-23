@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ICU NG Capture</string>
+    <string name="main_text">ICU NG Capture emite la cámara en segundo plano, también con la pantalla apagada.\n\nNo se configura aquí: se maneja desde ATAK con el plugin ICU NG (botón REC).\n\nAcepta los permisos de cámara, micrófono y notificaciones.</string>
+    <string name="channel_name">Emisión de vídeo</string>
+    <string name="notif_streaming">Emitiendo</string>
+    <string name="notif_connecting">Conectando…</string>
+    <string name="notif_stop">Detener</string>
+    <string name="status_retrying">Sin conexión, reintentando…</string>
+    <string name="error_camera">Error: no se pudo abrir la cámara</string>
+    <string name="error_auth">Error de autenticación</string>
+    <string name="error_permission">Error: ICU NG Capture no tiene permiso de cámara</string>
+</resources>

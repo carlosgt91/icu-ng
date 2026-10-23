@@ -1,0 +1,42 @@
+// ICU NG Capture: ordinary Android app (not an ATAK plugin) that owns the
+// camera, microphone and encoder in a camera/microphone foreground service,
+// so a stream keeps running with the screen off. The ATAK plugin is only
+// its user interface - see CaptureContract for the interface between them.
+plugins {
+    id("com.android.application")
+}
+
+android {
+    namespace 'com.carlosgt.icung.capture'
+    compileSdk 36
+
+    defaultConfig {
+        applicationId 'com.carlosgt.icung.capture'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '0.1'
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+}
+
+dependencies {
+    implementation 'com.github.pedroSG94.RootEncoder:library:2.8.1'
+}
+
+// Same RTSP client as the plugin: RootEncoder's, plus the KLV track.
+configurations.all {
+    resolutionStrategy.dependencySubstitution {
+        substitute module('com.github.pedroSG94.RootEncoder:rtsp') using project(':rootencoder-rtsp')
+    }
+}

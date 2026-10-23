@@ -52,6 +52,12 @@ import gov.tak.api.video.IVideoConnectionManager;
  * it never times out by itself; when ATAK comes back after the power button
  * or another app, the camera is reopened, and a connection the server
  * dropped meanwhile is re-established.
+ *
+ * With the ICU NG Capture app installed, the phone cameras are streamed by
+ * that app instead (see CaptureLink): its own camera foreground service
+ * keeps streaming with the screen off. This class then only drives it and
+ * keeps the CoT/video bookkeeping. USB cameras stay here - they are not
+ * affected by the background camera restriction.
  */
 public class StreamController implements ConnectChecker {
 
@@ -104,6 +110,11 @@ public class StreamController implements ConnectChecker {
     private boolean atakStopped;
     private boolean cameraLostInBackground;
     private boolean reconnectOnForeground;
+    private final CaptureLink captureLink;
+    /** a stream is live in the Capture app */
+    private boolean remoteLive;
+    // A heartbeat in flight when the user stops must not bring it back.
+    private long ignoreRemoteUntil;
 
     public StreamController(Context atakContext, Context pluginContext,
             IVideoConnectionManager videoConnectionManager,
@@ -114,6 +125,18 @@ public class StreamController implements ConnectChecker {
         this.sensorFovController = sensorFovController;
         ((Application) atakContext.getApplicationContext())
                 .registerActivityLifecycleCallbacks(lifecycle);
+        if (CaptureLink.isInstalled(atakContext)) {
+            Log.i(TAG, "ICU NG Capture instalada: las camaras del movil se emiten desde ella");
+            captureLink = new CaptureLink(atakContext, this::onCaptureState);
+            captureLink.watch();
+        } else {
+            captureLink = null;
+        }
+    }
+
+    // Phone cameras go through the Capture app when it is installed.
+    private boolean useCaptureApp(int camera) {
+        return captureLink != null && camera != StreamSettings.CAMERA_USB;
     }
 
     public void addListener(Listener l) {
@@ -130,7 +153,7 @@ public class StreamController implements ConnectChecker {
     }
 
     public boolean isStreaming() {
-        return stream != null && stream.isStreaming();
+        return remoteLive || (stream != null && stream.isStreaming());
     }
 
     public ConnectionEntry getConnectionEntry() {
@@ -152,6 +175,11 @@ public class StreamController implements ConnectChecker {
             setState(State.ERROR, error == R.string.status_error_scheme_format
                     ? pluginContext.getString(error, settings.expectedScheme())
                     : pluginContext.getString(error));
+            return;
+        }
+
+        if (useCaptureApp(settings.camera)) {
+            startRemote(settings);
             return;
         }
 
@@ -201,8 +229,77 @@ public class StreamController implements ConnectChecker {
         sensorFovController.refresh(true);
     }
 
+    private void startRemote(StreamSettings settings) {
+        // The pane preview may be holding the camera the app is about to open.
+        releaseLocalCamera();
+        int rotation = CameraHelper.getCameraOrientation(atakContext);
+        if (!captureLink.start(settings, rotation)) {
+            setState(State.ERROR, pluginContext.getString(R.string.status_error_capture_app));
+            return;
+        }
+        beginRemote(settings);
+        setState(State.CONNECTING, null);
+    }
+
+    private void beginRemote(StreamSettings settings) {
+        remoteLive = true;
+        activeSettings = settings;
+        connectionEntry = settings.protocol == StreamSettings.PROTOCOL_RTSPS
+                ? null : buildConnectionEntry(settings);
+        if (connectionEntry != null) {
+            videoConnectionManager.addConnectionEntry(connectionEntry);
+        }
+        sensorFovController.refresh(true);
+    }
+
+    private void endRemote() {
+        remoteLive = false;
+        if (connectionEntry != null) {
+            videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
+            connectionEntry = null;
+        }
+        activeSettings = null;
+        sensorFovController.refresh(false);
+    }
+
+    private void releaseLocalCamera() {
+        if (stream == null) return;
+        if (stream.isOnPreview()) stream.stopPreview();
+        releaseStream();
+    }
+
+    // Status from the Capture app, on the main thread.
+    private void onCaptureState(State remoteState, String message) {
+        boolean live = remoteState == State.CONNECTING || remoteState == State.STREAMING;
+        if (live) {
+            if (!remoteLive) {
+                // Running without us knowing: ATAK (or the plugin) restarted
+                // while the app kept streaming. Take it over.
+                if (System.currentTimeMillis() < ignoreRemoteUntil
+                        || (stream != null && stream.isStreaming())) return;
+                Log.i(TAG, "ICU NG Capture ya estaba emitiendo, se retoma");
+                beginRemote(StreamSettings.load(atakContext));
+            }
+            if (remoteState != state || !java.util.Objects.equals(message, stateMessage)) {
+                setState(remoteState, message);
+            }
+        } else if (remoteLive) {
+            endRemote();
+            setState(remoteState, message);
+        } else if (remoteState == State.ERROR) {
+            setState(State.ERROR, message); // e.g. permission refused before starting
+        }
+    }
+
     /** Manual stop. Must be called on the main thread. */
     public void stop() {
+        if (remoteLive) {
+            ignoreRemoteUntil = System.currentTimeMillis() + 2000;
+            captureLink.stop();
+            endRemote();
+            setState(State.IDLE, null);
+            return;
+        }
         reconnectOnForeground = false;
         stopStreamOnly();
         setState(State.IDLE, null);
@@ -219,6 +316,9 @@ public class StreamController implements ConnectChecker {
      * the pane opens.
      */
     public void attachPreview(SurfaceView surfaceView) {
+        // No preview of a phone camera while the Capture app owns them
+        // (not yet: it would have to hand its frames over to the plugin).
+        if (useCaptureApp(StreamSettings.load(atakContext).camera)) return;
         if (stream == null) {
             ensureStream(StreamSettings.load(atakContext).protocol
                     == StreamSettings.PROTOCOL_SRT);
@@ -282,6 +382,19 @@ public class StreamController implements ConnectChecker {
      * see the new camera without the stream reconnecting.
      */
     public void setCamera(int camera) {
+        if (remoteLive) {
+            // The app rebuilds its stream for the new camera; to or from
+            // USB (streamed here, not there) takes effect on the next start.
+            if (useCaptureApp(camera) && activeSettings != null) {
+                activeSettings.camera = camera;
+                captureLink.start(activeSettings, CameraHelper.getCameraOrientation(atakContext));
+            }
+            return;
+        }
+        if (useCaptureApp(camera)) {
+            releaseLocalCamera();
+            return;
+        }
         if (stream == null) return; // picked up from the settings on next build
         stream.changeVideoSource(createVideoSource(camera));
         // The KLV track is already negotiated; just describe the new camera.
@@ -292,6 +405,9 @@ public class StreamController implements ConnectChecker {
         ((Application) atakContext.getApplicationContext())
                 .unregisterActivityLifecycleCallbacks(lifecycle);
         setKeepScreenOn(false);
+        // A stream in the Capture app is left running: that is the point
+        // of it. Its notification stops it.
+        if (captureLink != null) captureLink.dispose();
         reconnectOnForeground = false;
         stopStreamOnly();
         releaseStream();
@@ -415,7 +531,10 @@ public class StreamController implements ConnectChecker {
     private void setState(State newState, String message) {
         state = newState;
         stateMessage = message;
-        setKeepScreenOn(newState == State.CONNECTING || newState == State.STREAMING);
+        // Not needed when the Capture app streams: it keeps going with the
+        // screen off.
+        setKeepScreenOn(!remoteLive
+                && (newState == State.CONNECTING || newState == State.STREAMING));
         for (Listener l : listeners) {
             l.onStreamStateChanged(newState, message);
         }
@@ -465,7 +584,7 @@ public class StreamController implements ConnectChecker {
         public void onActivityStopped(Activity activity) {
             if (!isMapActivity(activity)) return;
             atakStopped = true;
-            if (isStreaming()) cameraLostInBackground = true;
+            if (stream != null && stream.isStreaming()) cameraLostInBackground = true;
         }
 
         @Override

@@ -18,3 +18,4 @@ rootProject.name = 'icu-ng'
 
 include ':app'
 include ':rootencoder-rtsp'
+include ':capture'
