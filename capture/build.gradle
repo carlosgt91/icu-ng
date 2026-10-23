@@ -14,8 +14,8 @@ android {
         applicationId 'com.carlosgt.icung.capture'
         minSdk 26
         targetSdk 34
-        versionCode 1
-        versionName '0.1'
+        versionCode 10000
+        versionName '1.0'
     }
 
     buildFeatures {
@@ -27,9 +27,39 @@ android {
         targetCompatibility JavaVersion.VERSION_17
     }
 
+    // Release signing key: kept out of the repository. Its properties file
+    // (storeFile, storePassword, keyAlias, keyPassword) is
+    // ~/.config/atak-plugins/keys/icung-capture.properties, or the path in
+    // local.properties as capture.signing.properties. Every update of the
+    // app must be signed with the same key - lose it and installed copies
+    // can no longer be updated.
+    def signingProps = new Properties()
+    def localProps = rootProject.file('local.properties')
+    if (localProps.isFile()) localProps.withInputStream { signingProps.load(it) }
+    def keyFile = file(signingProps.getProperty('capture.signing.properties',
+            "${System.getProperty('user.home')}/.config/atak-plugins/keys/icung-capture.properties"))
+    def releaseKey = new Properties()
+    if (keyFile.isFile()) keyFile.withInputStream { releaseKey.load(it) }
+
+    signingConfigs {
+        if (releaseKey.getProperty('storeFile')) {
+            release {
+                storeFile file(releaseKey.getProperty('storeFile'))
+                storePassword releaseKey.getProperty('storePassword')
+                keyAlias releaseKey.getProperty('keyAlias')
+                keyPassword releaseKey.getProperty('keyPassword')
+            }
+        }
+    }
+
     buildTypes {
         release {
             minifyEnabled false
+            if (releaseKey.getProperty('storeFile')) {
+                signingConfig signingConfigs.release
+            } else {
+                logger.warn("ICU NG Capture: no release key at ${keyFile}, release APK left unsigned")
+            }
         }
     }
 }
