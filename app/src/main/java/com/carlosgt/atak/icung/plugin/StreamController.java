@@ -1,10 +1,14 @@
 package com.carlosgt.atak.icung.plugin;
 
+import android.app.Activity;
+import android.app.Application;
 import android.content.Context;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.util.Log;
 import android.view.SurfaceView;
+import android.view.WindowManager;
 
 import com.atakmap.android.maps.MapView;
 import com.pedro.common.ConnectChecker;
@@ -41,6 +45,13 @@ import gov.tak.api.video.IVideoConnectionManager;
  *
  * All listener callbacks are delivered on the main thread - RootEncoder's
  * ConnectChecker fires from its network threads.
+ *
+ * Screen off / app switch: the plugin runs inside ATAK, whose only
+ * foreground service is of type "location", so Android revokes the camera
+ * whenever ATAK leaves the foreground. While live the screen is kept on so
+ * it never times out by itself; when ATAK comes back after the power button
+ * or another app, the camera is reopened, and a connection the server
+ * dropped meanwhile is re-established.
  */
 public class StreamController implements ConnectChecker {
 
@@ -90,6 +101,9 @@ public class StreamController implements ConnectChecker {
     private ConnectionEntry connectionEntry;
     private StreamSettings activeSettings;
     private KlvTelemetry klvTelemetry;
+    private boolean atakStopped;
+    private boolean cameraLostInBackground;
+    private boolean reconnectOnForeground;
 
     public StreamController(Context atakContext, Context pluginContext,
             IVideoConnectionManager videoConnectionManager,
@@ -98,6 +112,8 @@ public class StreamController implements ConnectChecker {
         this.pluginContext = pluginContext;
         this.videoConnectionManager = videoConnectionManager;
         this.sensorFovController = sensorFovController;
+        ((Application) atakContext.getApplicationContext())
+                .registerActivityLifecycleCallbacks(lifecycle);
     }
 
     public void addListener(Listener l) {
@@ -187,6 +203,7 @@ public class StreamController implements ConnectChecker {
 
     /** Manual stop. Must be called on the main thread. */
     public void stop() {
+        reconnectOnForeground = false;
         stopStreamOnly();
         setState(State.IDLE, null);
     }
@@ -272,6 +289,10 @@ public class StreamController implements ConnectChecker {
     }
 
     public void dispose() {
+        ((Application) atakContext.getApplicationContext())
+                .unregisterActivityLifecycleCallbacks(lifecycle);
+        setKeepScreenOn(false);
+        reconnectOnForeground = false;
         stopStreamOnly();
         releaseStream();
         listeners.clear();
@@ -394,8 +415,103 @@ public class StreamController implements ConnectChecker {
     private void setState(State newState, String message) {
         state = newState;
         stateMessage = message;
+        setKeepScreenOn(newState == State.CONNECTING || newState == State.STREAMING);
         for (Listener l : listeners) {
             l.onStreamStateChanged(newState, message);
+        }
+    }
+
+    private void setKeepScreenOn(boolean on) {
+        Context c = MapView.getMapView() == null ? null : MapView.getMapView().getContext();
+        if (!(c instanceof Activity)) return;
+        if (on) {
+            ((Activity) c).getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        } else {
+            ((Activity) c).getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        }
+    }
+
+    private boolean inBackground() {
+        return atakStopped;
+    }
+
+    // ATAK's map activity - the one whose leaving the screen takes the camera.
+    private static boolean isMapActivity(Activity activity) {
+        return MapView.getMapView() != null && MapView.getMapView().getContext() == activity;
+    }
+
+    // A connection lost while ATAK is in the background is not reported as
+    // an error: the camera is gone anyway, so it is re-established as soon
+    // as ATAK is back in front ("Conectando..." meanwhile).
+    private void onLostConnection(State reportedState, String message) {
+        stopStreamOnly();
+        if (inBackground()) {
+            Log.i(TAG, "conexion perdida en segundo plano, se reconecta al volver");
+            reconnectOnForeground = true;
+            setState(State.CONNECTING, null);
+        } else {
+            setState(reportedState, message);
+        }
+    }
+
+    private final Application.ActivityLifecycleCallbacks lifecycle =
+            new Application.ActivityLifecycleCallbacks() {
+        @Override
+        public void onActivityStarted(Activity activity) {
+            if (isMapActivity(activity)) atakStopped = false;
+        }
+
+        @Override
+        public void onActivityStopped(Activity activity) {
+            if (!isMapActivity(activity)) return;
+            atakStopped = true;
+            if (isStreaming()) cameraLostInBackground = true;
+        }
+
+        @Override
+        public void onActivityResumed(Activity activity) {
+            if (!isMapActivity(activity)) return;
+            if (reconnectOnForeground) {
+                reconnectOnForeground = false;
+                cameraLostInBackground = false;
+                Log.i(TAG, "ATAK en primer plano: reconectando");
+                start();
+            } else if (cameraLostInBackground) {
+                cameraLostInBackground = false;
+                reopenCamera();
+            }
+        }
+
+        @Override
+        public void onActivityCreated(Activity activity, Bundle savedInstanceState) {
+        }
+
+        @Override
+        public void onActivityPaused(Activity activity) {
+        }
+
+        @Override
+        public void onActivitySaveInstanceState(Activity activity, Bundle outState) {
+        }
+
+        @Override
+        public void onActivityDestroyed(Activity activity) {
+        }
+    };
+
+    // Android closed the phone camera while ATAK was in the background; the
+    // encoder is still running, so a fresh source brings the picture back
+    // without the viewers' stream reconnecting. A USB camera is not affected
+    // (UVC goes through USB host, not the camera service).
+    private void reopenCamera() {
+        if (!isStreaming() || activeSettings == null
+                || activeSettings.camera == StreamSettings.CAMERA_USB) return;
+        Log.i(TAG, "ATAK en primer plano: reabriendo la camara");
+        try {
+            stream.changeVideoSource(createVideoSource(activeSettings.camera));
+        } catch (RuntimeException e) {
+            Log.e(TAG, "no se pudo reabrir la camara", e);
+            failCamera();
         }
     }
 
@@ -429,8 +545,7 @@ public class StreamController implements ConnectChecker {
         Log.w(TAG, "Conexion fallida (detalle interno de RootEncoder): " + reason);
         onMain(() -> {
             if (!isStreaming()) return;
-            stopStreamOnly();
-            setState(State.ERROR, pluginContext.getString(R.string.status_error_connection));
+            onLostConnection(State.ERROR, pluginContext.getString(R.string.status_error_connection));
         });
     }
 
@@ -438,8 +553,7 @@ public class StreamController implements ConnectChecker {
     public void onDisconnect() {
         onMain(() -> {
             if (!isStreaming()) return;
-            stopStreamOnly();
-            setState(State.IDLE, null);
+            onLostConnection(State.IDLE, null);
         });
     }
 
