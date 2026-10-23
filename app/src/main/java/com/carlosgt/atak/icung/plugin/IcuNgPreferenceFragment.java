@@ -10,20 +10,43 @@ import com.atakmap.android.util.PdfHelper;
 import com.atakmap.coremap.filesystem.FileSystemUtils;
 
 import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Locale;
 
 /**
  * ICU NG's entry under ATAK's Tool Preferences, and the only way to open
  * the user manual: tak.gov compiles docs/user_manual into
  * assets/usermanual.pdf, which nobody can reach from inside the APK.
+ *
+ * One PDF per language (usermanual_es.pdf, usermanual_de.pdf...); the one
+ * for the device language opens, English (usermanual.pdf) otherwise.
  */
 public class IcuNgPreferenceFragment extends PluginPreferenceFragment {
 
-    private static final String USER_GUIDE = "usermanual.pdf";
+    private static final String USER_GUIDE = "usermanual";
 
-    /** What the operator sees in a file picker, so named for what it is. */
-    private static final String USER_GUIDE_PATH = FileSystemUtils.getRoot()
-            + File.separator + "tools" + File.separator + "icung"
-            + File.separator + "Manual ICU NG.pdf";
+    /** Asset name of the manual in the device language, or the English one. */
+    private static String userGuideAsset() {
+        String lang = Locale.getDefault().getLanguage();
+        String localized = USER_GUIDE + "_" + lang + ".pdf";
+        try {
+            String[] assets = pluginContext.getAssets().list("");
+            if (assets != null && Arrays.asList(assets).contains(localized)) return localized;
+        } catch (IOException ignored) {
+            // fall back to English
+        }
+        return USER_GUIDE + ".pdf";
+    }
+
+    /**
+     * Where it is extracted before a viewer is handed it: one file per
+     * language, so switching language never shows the previous one.
+     */
+    private static String userGuidePath(String asset) {
+        return FileSystemUtils.getRoot() + File.separator + "tools" + File.separator + "icung"
+                + File.separator + "ICU NG " + asset.replace(USER_GUIDE, "manual");
+    }
 
     private static Context pluginContext;
 
@@ -65,8 +88,9 @@ public class IcuNgPreferenceFragment extends PluginPreferenceFragment {
         manual.setOnPreferenceClickListener(new Preference.OnPreferenceClickListener() {
             @Override
             public boolean onPreferenceClick(Preference preference) {
-                PdfHelper.extractAndShow(pluginContext, getActivity(), USER_GUIDE,
-                        manualVersion(), USER_GUIDE_PATH, true);
+                String asset = userGuideAsset();
+                PdfHelper.extractAndShow(pluginContext, getActivity(), asset,
+                        manualVersion() ^ asset.hashCode(), userGuidePath(asset), true);
                 return true;
             }
         });

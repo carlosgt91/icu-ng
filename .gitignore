@@ -20,4 +20,4 @@ reports/
 *.keystore
 
 # Built by typst into the APK (tak.gov builds its own from docs/user_manual)
-app/src/main/assets/usermanual.pdf
+app/src/main/assets/usermanual*.pdf
