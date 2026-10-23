@@ -37,7 +37,7 @@ o único serviço de primeiro plano do ATAK é do tipo "location", pelo que o An
 interrompe o acesso do plugin à câmara quando o ecrã se desliga. Para continuar a
 transmitir com o ecrã desligado, a captura da câmara pode ser efetuada por uma
 aplicação complementar opcional, o ICU NG Capture (capture/ no repositório de
-código-fonte; uma aplicação Android vulgar, não integrada nesta submissão), que
+código-fonte; uma aplicação Android normal, não integrada nesta submissão), que
 mantém um serviço de primeiro plano de câmara/microfone. O plugin permanece como
 toda a interface de utilizador e controla a aplicação; sem a aplicação instalada,
 o plugin transmite autonomamente, apenas em primeiro plano.

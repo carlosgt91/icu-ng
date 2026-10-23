@@ -39,7 +39,7 @@
     <string name="qr_error_streaming">Arrêtez la diffusion avant de scanner un code QR</string>
     <string name="status_idle">Arrêté</string>
     <string name="status_connecting">Connexion…</string>
-    <string name="status_streaming">Diffusion</string>
+    <string name="status_streaming">En diffusion</string>
     <string name="status_disconnected">Déconnecté</string>
     <string name="status_error_connection">Erreur de connexion</string>
     <string name="status_error_auth">Erreur d\'authentification</string>
