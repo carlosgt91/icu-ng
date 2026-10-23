@@ -1,0 +1,41 @@
+ICU NG and ICU NG Capture
+Copyright 2026 carlosgt91
+
+Licensed under the Apache License, Version 2.0 (see LICENSE), except for the
+parts listed below, which keep their own terms.
+
+Files from the TAK Product Center's ATAK-CIV SDK plugin template
+-----------------------------------------------------------------
+Derived from samples/plugintemplate in the ATAK-CIV SDK and used under the
+TAK Software License Agreement, which permits deriving new works from it.
+That agreement, not the Apache License, governs the template's own content;
+the Apache License covers only the changes made here.
+
+  build.gradle, settings.gradle, gradle.properties, template.local.properties
+  app/build.gradle, app/proguard-gradle.txt
+  app/src/main/AndroidManifest.xml (plugin discovery activity, plugin-api)
+  app/src/main/assets/plugin.xml
+  app/src/main/res/drawable/btn_gray.xml, new_dark_button_*.xml
+  app/src/main/res/values/colors.xml, dimen.xml, styles.xml (template part)
+  app/src/main/res/xml/com_android_vending_archive_opt_out.xml
+  app/src/gov/res/values/strings.xml
+  app/src/test/java/com/atakmap/android/test/ExampleTest.java
+  gradle/typst.gradle, gradle/versions.gradle
+  docs/user_manual/formatting.typ, docs/user_manual/titlepage.svg
+
+The ATAK SDK itself (main.jar, atak.apk, the takdev Gradle plugin, keystores)
+is not part of this repository and must be obtained from tak.gov.
+
+Fonts in docs/user_manual/fonts/ (shipped with the same SDK template)
+  Libre Franklin - SIL Open Font License 1.1
+  Latin Modern Sans - GUST Font License
+
+Third-party code and libraries
+------------------------------
+  rootencoder-rtsp/ - modified copy of RootEncoder's rtsp module 2.8.1,
+    Copyright (C) pedroSG94, Apache License 2.0; changes described in
+    rootencoder-rtsp/NOTICE.md
+  RootEncoder 2.8.1 (com.github.pedroSG94.RootEncoder) - Apache License 2.0
+  UVCAndroid 1.0.13 (com.herohan) - Apache License 2.0
+  ZXing core 3.5.3 (com.google.zxing) - Apache License 2.0
+  Gradle wrapper (gradle/wrapper, gradlew) - Apache License 2.0
