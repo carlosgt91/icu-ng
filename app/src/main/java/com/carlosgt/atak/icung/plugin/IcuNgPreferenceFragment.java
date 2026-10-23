@@ -76,7 +76,20 @@ public class IcuNgPreferenceFragment extends PluginPreferenceFragment {
 
     @Override
     public String getSubTitle() {
-        return getSubTitle("Tool Preferences", pluginContext.getString(R.string.app_name));
+        return getSubTitle(atakString("toolPreferences", "Tool Preferences"),
+                pluginContext.getString(R.string.app_name));
+    }
+
+    // ATAK's own text, so the breadcrumb is in the language ATAK shows
+    // (looked up by name: ATAK keeps its resource names).
+    private String atakString(String name, String fallback) {
+        try {
+            android.content.Context atak = getActivity();
+            int id = atak.getResources().getIdentifier(name, "string", atak.getPackageName());
+            return id != 0 ? atak.getString(id) : fallback;
+        } catch (RuntimeException e) {
+            return fallback;
+        }
     }
 
     @Override

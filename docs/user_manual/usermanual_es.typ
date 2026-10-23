@@ -166,7 +166,7 @@ Un QR de _ver_ (`read:`) vale también: ICU NG siempre publica.
   Ábrela una vez desde el cajón de apps.
 - *Se queda en ámbar*: el servidor no contesta. Revisa la URL, la red o la VPN.
 - *"Error de autenticación"*: usuario o clave de la URL incorrectos.
-- *"No tiene permiso de cámara"*: Ajustes de Android → Apps → ICU NG Capture →
+- *"ICU NG Capture no tiene permiso de cámara"*: Ajustes de Android → Apps → ICU NG Capture →
   Permisos.
 - *Sin KLV en el receptor*: comprueba que la casilla KLV esté marcada, que el
   protocolo sea RTSP/RTSPS y que no sea cámara USB. Sin posición GPS no se envía.

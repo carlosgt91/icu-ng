@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "ICU NG",
-   plugin-version: "1.0",
+   plugin-version: "1.1",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
@@ -92,13 +92,13 @@ Tudo é guardado no momento: o botão REC transmite com o que estiver definido n
 O botão *Qualidade* abre:
 - *Resolução*: 480p, 720p ou 1080p.
 - *FPS*: 15, 24 ou 30.
-- *Bitrate*: _Auto_ (consoante a resolução) ou fixo, de 0,5 a 6 Mbps.
-- *Bitrate adaptativo*: se a rede não for suficiente (VPN, dados móveis), reduz a
+- *Taxa de bits*: _Auto_ (consoante a resolução) ou fixo, de 0,5 a 6 Mbps.
+- *Taxa de bits adaptativa*: se a rede não for suficiente (VPN, dados móveis), reduz a
   qualidade em vez de interromper, e aumenta-a quando melhorar.
 - *Microfone*: desativado envia silêncio.
 
-A resolução e os fps aplicam-se ao iniciar a transmissão. O bitrate, o modo adaptativo e o microfone
-mudam no momento, inclusive em plena transmissão.
+A resolução e os fps aplicam-se ao iniciar a transmissão. A taxa de bits, o modo adaptativo e o microfone
+mudam no momento, mesmo em plena transmissão.
 ]
 ]
 
@@ -166,7 +166,7 @@ Um QR de visualização (`read:`) também serve: o ICU NG publica sempre.
   Abra-a uma vez a partir da lista de aplicações.
 - *Fica em âmbar*: o servidor não responde. Verifique o URL, a rede ou a VPN.
 - *"Erro de autenticação"*: utilizador ou palavra-passe do URL incorretos.
-- *"O ICU NG Capture não tem autorização para a câmara"*: Definições do Android → Aplicações → ICU NG Capture →
+- *"O ICU NG Capture não tem permissão para a câmara"*: Definições do Android → Aplicações → ICU NG Capture →
   Permissões.
 - *Sem KLV no recetor*: confirme se a caixa KLV está selecionada, se o
   protocolo é RTSP/RTSPS e se não se trata de uma câmara USB. Sem posição GPS não é enviado.

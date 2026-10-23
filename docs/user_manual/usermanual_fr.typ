@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "ICU NG",
-   plugin-version: "1.0",
+   plugin-version: "1.1",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
@@ -92,12 +92,12 @@ Tout est enregistré instantanément : le bouton REC diffuse avec les paramètre
 Le bouton *Qualité* ouvre :
 - *Résolution* : 480p, 720p ou 1080p.
 - *FPS* : 15, 24 ou 30.
-- *Bitrate* : _Auto_ (selon la résolution) ou fixe, de 0,5 à 6 Mbps.
-- *Bitrate adaptatif* : si le réseau est limité (VPN, données mobiles), il réduit la
+- *Débit* : _Auto_ (selon la résolution) ou fixe, de 0,5 à 6 Mbps.
+- *Débit adaptatif* : si le réseau est limité (VPN, données mobiles), il réduit la
   qualité au lieu de couper, et l'augmente dès qu'il s'améliore.
 - *Microphone* : désactivé, il transmet du silence.
 
-La résolution et les fps s'appliquent au début de la diffusion. Le bitrate, le mode adaptatif et le microphone
+La résolution et les fps s'appliquent au début de la diffusion. Le débit, le débit adaptatif et le microphone
 changent instantanément, même en pleine diffusion.
 ]
 ]
@@ -128,8 +128,8 @@ reprend automatiquement la diffusion dès le rétablissement de la connexion.
   avant, il pointe vers l'arrière.
 - *KLV (MISB ST 0601)*, une fois par seconde : votre position et altitude, direction
   de la caméra (cap et inclinaison, issus des capteurs de l'appareil), son champ
-  de vision et le point au sol visé. Les visionneuses compatibles (notamment le propre
-  ATAK) l'affichent en surimpression sur la vidéo et sur la carte.
+  de vision et le point au sol visé. Les visionneuses compatibles (notamment ATAK
+  lui-même) l'affichent en surimpression sur la vidéo et sur la carte.
 - Le KLV passe par RTSP/RTSPS. Par SRT, il n'est pas envoyé.
 - Avec une *caméra USB*, le KLV n'est pas envoyé : on ne sait pas vers où elle pointe.
 ]
@@ -166,7 +166,7 @@ Un QR de visionnage (`read:`) convient aussi : ICU NG publie toujours.
   Ouvrez-la une fois depuis le tiroir d'applications.
 - *Reste ambre*: le serveur ne répond pas. Vérifiez l'URL, le réseau ou le VPN.
 - *"Erreur d'authentification"*: nom d'utilisateur ou mot de passe incorrect dans l'URL.
-- *"ICU NG Capture n'a pas l'autorisation pour l'appareil photo"*: Paramètres Android → Applications → ICU NG Capture →
+- *"ICU NG Capture ne dispose pas de l'autorisation caméra"*: Paramètres Android → Applications → ICU NG Capture →
   Autorisations.
 - *Pas de KLV sur le récepteur*: vérifiez que la case KLV est cochée, que le
   protocole est RTSP/RTSPS et qu'il ne s'agit pas d'une caméra USB. Sans position GPS, rien n'est envoyé.
