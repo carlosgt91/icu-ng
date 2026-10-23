@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_text">ICU NG Capture транслює відео з камери у фоновому режимі, зокрема з вимкненим екраном.\n\nНалаштування виконується не тут: керування здійснюється з ATAK через плагін ICU NG (кнопка REC).\n\nНадайте дозволи для камери, мікрофона та сповіщень.</string>
+    <string name="channel_name">Відеотрансляція</string>
+    <string name="notif_streaming">Трансляція</string>
+    <string name="notif_connecting">Підключення…</string>
+    <string name="notif_stop">Зупинити</string>
+    <string name="status_retrying">Немає підключення, повторна спроба…</string>
+    <string name="error_camera">Помилка: не вдалося відкрити камеру</string>
+    <string name="error_auth">Помилка автентифікації</string>
+    <string name="error_permission">Помилка: ICU NG Capture не має дозволу на доступ до камери</string>
+</resources>

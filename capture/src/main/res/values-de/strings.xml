@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="main_text">ICU NG Capture streamt die Kamera im Hintergrund, auch bei ausgeschaltetem Bildschirm.\n\nDie Konfiguration erfolgt nicht hier: Die Steuerung erfolgt aus ATAK über das ICU NG-Plugin (REC-Taste).\n\nBitte Berechtigungen für Kamera, Mikrofon und Benachrichtigungen erteilen.</string>
+    <string name="channel_name">Video-Streaming</string>
+    <string name="notif_streaming">Streaming</string>
+    <string name="notif_connecting">Wird verbunden…</string>
+    <string name="notif_stop">Stoppen</string>
+    <string name="status_retrying">Keine Verbindung, erneuter Versuch…</string>
+    <string name="error_camera">Fehler: Kamera konnte nicht geöffnet werden</string>
+    <string name="error_auth">Authentifizierungsfehler</string>
+    <string name="error_permission">Fehler: ICU NG Capture hat keine Kameraberechtigung</string>
+</resources>

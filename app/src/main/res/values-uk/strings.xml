@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- description -->
+    <string name="app_desc">Заміна TAK ICU: трансляція з камери з аудіо, оголошена на карті через CoT.</string>
+
+    <string name="prefs_summary">Посібник користувача</string>
+    <string name="manual_title">Посібник користувача</string>
+    <string name="manual_summary">Як транслювати, застосунок ICU NG Capture, якість та KLV</string>
+
+    <string name="start_stream">Транслювати</string>
+    <string name="stop_stream">Зупинити</string>
+
+    <string name="trust_all_certs">Довіряти всім сертифікатам (лише тест/LAN)</string>
+    <string name="srt_passphrase_hint">Парольна фраза SRT</string>
+    <string name="srt_passphrase_caption">10-79 символів · порожньо = без шифрування</string>
+    <string name="srt_encryption_caption">Шифрування</string>
+    <string name="camera_caption">Камера</string>
+    <string name="quality_button">Якість</string>
+    <string name="resolution_caption">Роздільна здатність</string>
+    <string name="bitrate_caption">Бітрейт</string>
+    <string name="adaptive_bitrate_checkbox">Адаптивний бітрейт (знижується за слабкої мережі)</string>
+    <string name="microphone_checkbox">Мікрофон</string>
+    <string name="quality_note">Роздільна здатність і fps застосовуються на початку трансляції; бітрейт і мікрофон — одразу.</string>
+    <string name="klv_checkbox">Надсилати телеметрію KLV (MISB 0601) · не для USB-камери</string>
+    <string name="qr_scan_title">Наведіть на QR-код відеосервера</string>
+    <string name="qr_loaded">Конфігурацію завантажено з QR</string>
+    <string name="qr_loaded_named">Конфігурацію завантажено з QR: %1$s</string>
+    <string name="qr_error_empty">QR-код порожній</string>
+    <string name="qr_error_not_url">QR-код не містить дійсної URL-адреси</string>
+    <string name="qr_error_no_host">URL-адреса QR не містить хоста</string>
+    <string name="qr_error_rtmp">ICU NG не транслює через RTMP: згенеруйте QR для RTSP або SRT</string>
+    <string name="qr_error_protocol">Непідтримуваний протокол: %1$s</string>
+    <string name="qr_error_srt_streamid">SRT URL-адреса QR не містить streamid</string>
+    <string name="qr_error_srt_passphrase">Парольна фраза SRT з QR має містити від 10 до 79 символів</string>
+    <string name="qr_scan_no_camera">Задня камера недоступна</string>
+    <string name="qr_scan_open_failed">Не вдалося відкрити камеру</string>
+    <string name="qr_scan_open_failed_code">Не вдалося відкрити камеру (помилка %1$d)</string>
+    <string name="qr_scan_config_failed">Не вдалося налаштувати камеру</string>
+    <string name="qr_error_streaming">Зупиніть трансляцію перед скануванням QR-коду</string>
+    <string name="status_idle">Зупинено</string>
+    <string name="status_connecting">Підключення…</string>
+    <string name="status_streaming">Трансляція</string>
+    <string name="status_disconnected">Відключено</string>
+    <string name="status_error_connection">Помилка підключення</string>
+    <string name="status_error_auth">Помилка автентифікації</string>
+    <string name="mode_capture_app">Трансляція через ICU NG Capture · працює з вимкненим екраном</string>
+    <string name="mode_plugin">Трансляція через плагін · встановіть ICU NG Capture для трансляції з вимкненим екраном</string>
+    <string name="status_error_capture_app">Помилка: не вдалося відкрити ICU NG Capture</string>
+    <string name="status_error_camera">Помилка: не вдалося відкрити камеру</string>
+    <string name="status_error_scheme_format">Помилка: URL-адреса має починатися з %1$s://</string>
+    <string name="status_error_srt_passphrase_length">Помилка: парольна фраза SRT має містити від 10 до 79 символів</string>
+    <string name="status_error_change_protocol_while_streaming">Помилка: зупиніть трансляцію перед перемиканням на/з SRT</string>
+    <string name="url_hint">rtsp://хост:порт/потік</string>
+</resources>
