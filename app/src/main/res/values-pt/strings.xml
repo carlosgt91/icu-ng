@@ -27,7 +27,7 @@
     <string name="qr_loaded_named">Configuração carregada a partir do QR: %1$s</string>
     <string name="qr_error_empty">O código QR está vazio</string>
     <string name="qr_error_not_url">O código QR não contém um URL válido</string>
-    <string name="qr_error_no_host">O URL do QR não contém anfitrião</string>
+    <string name="qr_error_no_host">O URL do QR não tem servidor</string>
     <string name="qr_error_rtmp">O ICU NG não transmite por RTMP: gere o código QR em RTSP ou SRT</string>
     <string name="qr_error_protocol">Protocolo não suportado: %1$s</string>
     <string name="qr_error_srt_streamid">O URL SRT do QR não inclui streamid</string>
@@ -40,7 +40,7 @@
     <string name="status_idle">Parado</string>
     <string name="status_connecting">A ligar…</string>
     <string name="status_streaming">A transmitir</string>
-    <string name="status_disconnected">Desconectado</string>
+    <string name="status_disconnected">Desligado</string>
     <string name="status_error_connection">Erro de ligação</string>
     <string name="status_error_auth">Erro de autenticação</string>
     <string name="mode_capture_app">Transmissão via ICU NG Capture · continua com o ecrã desligado</string>
@@ -51,5 +51,5 @@
     <string name="status_error_srt_passphrase_length">Erro: a frase-passe SRT deve ter entre 10 e 79 carateres</string>
     <string name="status_error_change_protocol_while_streaming">Erro: pare a transmissão antes de mudar para/de SRT</string>
 
-    <string name="url_hint">rtsp://anfitrião:porta/transmissão</string>
+    <string name="url_hint">rtsp://servidor:porta/transmissão</string>
 </resources>

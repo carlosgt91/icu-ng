@@ -2,7 +2,7 @@
 <resources>
     <string name="main_text">ICU NG Capture diffuse la caméra en arrière-plan, y compris avec l\'écran éteint.\n\nLa configuration ne s\'effectue pas ici : elle est gérée depuis ATAK via le plugin ICU NG (bouton REC).\n\nVeuillez accorder les autorisations d\'accès à la caméra, au microphone et aux notifications.</string>
     <string name="channel_name">Flux vidéo</string>
-    <string name="notif_streaming">Diffusion</string>
+    <string name="notif_streaming">En diffusion</string>
     <string name="notif_connecting">Connexion…</string>
     <string name="notif_stop">Arrêter</string>
     <string name="status_retrying">Aucune connexion, nouvelle tentative…</string>
