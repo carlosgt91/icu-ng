@@ -1,7 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- App -->
-    <string name="app_name">ICU NG</string>
     <!-- description -->
     <string name="app_desc">Sustituto de TAK ICU: streaming de cámara con audio, anunciado en el mapa vía CoT.</string>
 
@@ -24,7 +22,6 @@
     <string name="microphone_checkbox">Micrófono</string>
     <string name="quality_note">Resolución y fps se aplican al empezar a emitir; bitrate y micrófono, al momento.</string>
     <string name="klv_checkbox">Enviar telemetría KLV (MISB 0601) · no con cámara USB</string>
-    <string name="qr_button">QR</string>
     <string name="qr_scan_title">Apunta al QR del servidor de vídeo</string>
     <string name="qr_loaded">Configuración cargada del QR</string>
     <string name="qr_loaded_named">Configuración cargada del QR: %1$s</string>
@@ -54,4 +51,5 @@
     <string name="status_error_srt_passphrase_length">Error: el passphrase SRT debe tener entre 10 y 79 caracteres</string>
     <string name="status_error_change_protocol_while_streaming">Error: detén la emisión antes de cambiar a/desde SRT</string>
 
+    <string name="url_hint">rtsp://host:puerto/stream</string>
 </resources>

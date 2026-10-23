@@ -1,57 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <!-- App -->
-    <string name="app_name">ICU NG</string>
+    <string name="app_name" translatable="false">ICU NG</string>
     <!-- description -->
-    <string name="app_desc">Sustituto de TAK ICU: streaming de cámara con audio, anunciado en el mapa vía CoT.</string>
+    <string name="app_desc">TAK ICU replacement: camera streaming with audio, announced on the map via CoT.</string>
 
-    <string name="prefs_summary">Manual de usuario</string>
-    <string name="manual_title">Manual de usuario</string>
-    <string name="manual_summary">Cómo emitir, la app ICU NG Capture, calidad y KLV</string>
+    <string name="prefs_summary">User manual</string>
+    <string name="manual_title">User manual</string>
+    <string name="manual_summary">How to stream, the ICU NG Capture app, quality, and KLV</string>
 
-    <string name="start_stream">Emitir</string>
-    <string name="stop_stream">Detener</string>
+    <string name="start_stream">Stream</string>
+    <string name="stop_stream">Stop</string>
 
-    <string name="trust_all_certs">Confiar en cualquier certificado (solo pruebas/LAN)</string>
-    <string name="srt_passphrase_hint">Passphrase SRT</string>
-    <string name="srt_passphrase_caption">10-79 caracteres · vacío = sin cifrar</string>
-    <string name="srt_encryption_caption">Cifrado</string>
-    <string name="camera_caption">Cámara</string>
-    <string name="quality_button">Calidad</string>
-    <string name="resolution_caption">Resolución</string>
+    <string name="trust_all_certs">Trust all certificates (testing/LAN only)</string>
+    <string name="srt_passphrase_hint">SRT passphrase</string>
+    <string name="srt_passphrase_caption">10-79 characters · empty = unencrypted</string>
+    <string name="srt_encryption_caption">Encryption</string>
+    <string name="camera_caption">Camera</string>
+    <string name="quality_button">Quality</string>
+    <string name="resolution_caption">Resolution</string>
     <string name="bitrate_caption">Bitrate</string>
-    <string name="adaptive_bitrate_checkbox">Bitrate adaptativo (baja si la red va justa)</string>
-    <string name="microphone_checkbox">Micrófono</string>
-    <string name="quality_note">Resolución y fps se aplican al empezar a emitir; bitrate y micrófono, al momento.</string>
-    <string name="klv_checkbox">Enviar telemetría KLV (MISB 0601) · no con cámara USB</string>
-    <string name="qr_button">QR</string>
-    <string name="qr_scan_title">Apunta al QR del servidor de vídeo</string>
-    <string name="qr_loaded">Configuración cargada del QR</string>
-    <string name="qr_loaded_named">Configuración cargada del QR: %1$s</string>
-    <string name="qr_error_empty">El QR está vacío</string>
-    <string name="qr_error_not_url">El QR no contiene una URL válida</string>
-    <string name="qr_error_no_host">La URL del QR no tiene servidor</string>
-    <string name="qr_error_rtmp">ICU NG no emite por RTMP: genera el QR en RTSP o SRT</string>
-    <string name="qr_error_protocol">Protocolo no soportado: %1$s</string>
-    <string name="qr_error_srt_streamid">La URL SRT del QR no lleva streamid</string>
-    <string name="qr_error_srt_passphrase">El passphrase SRT del QR debe tener entre 10 y 79 caracteres</string>
-    <string name="qr_scan_no_camera">No hay cámara trasera disponible</string>
-    <string name="qr_scan_open_failed">No se pudo abrir la cámara</string>
-    <string name="qr_scan_open_failed_code">No se pudo abrir la cámara (error %1$d)</string>
-    <string name="qr_scan_config_failed">No se pudo configurar la cámara</string>
-    <string name="qr_error_streaming">Detén la emisión antes de escanear un QR</string>
-    <string name="status_idle">Detenido</string>
-    <string name="status_connecting">Conectando…</string>
-    <string name="status_streaming">Emitiendo</string>
-    <string name="status_disconnected">Desconectado</string>
-    <string name="status_error_connection">Error de conexión</string>
-    <string name="status_error_auth">Error de autenticación</string>
-    <string name="mode_capture_app">Emite ICU NG Capture · sigue con la pantalla apagada</string>
-    <string name="mode_plugin">Emite el plugin · instala ICU NG Capture para emitir con la pantalla apagada</string>
-    <string name="status_error_capture_app">Error: no se pudo abrir ICU NG Capture</string>
-    <string name="status_error_camera">Error: no se pudo abrir la cámara</string>
-    <string name="status_error_scheme_format">Error: la URL debe empezar por %1$s://</string>
-    <string name="status_error_srt_passphrase_length">Error: el passphrase SRT debe tener entre 10 y 79 caracteres</string>
-    <string name="status_error_change_protocol_while_streaming">Error: detén la emisión antes de cambiar a/desde SRT</string>
+    <string name="adaptive_bitrate_checkbox">Adaptive bitrate (reduces if network is constrained)</string>
+    <string name="microphone_checkbox">Microphone</string>
+    <string name="quality_note">Resolution and fps apply when streaming starts; bitrate and microphone, immediately.</string>
+    <string name="klv_checkbox">Send KLV telemetry (MISB 0601) · not with USB camera</string>
+    <string name="qr_button" translatable="false">QR</string>
+    <string name="qr_scan_title">Point at the video server QR code</string>
+    <string name="qr_loaded">Configuration loaded from QR</string>
+    <string name="qr_loaded_named">Configuration loaded from QR: %1$s</string>
+    <string name="qr_error_empty">QR code is empty</string>
+    <string name="qr_error_not_url">QR code does not contain a valid URL</string>
+    <string name="qr_error_no_host">QR URL has no host</string>
+    <string name="qr_error_rtmp">ICU NG does not stream over RTMP: generate the QR in RTSP or SRT</string>
+    <string name="qr_error_protocol">Unsupported protocol: %1$s</string>
+    <string name="qr_error_srt_streamid">QR SRT URL is missing streamid</string>
+    <string name="qr_error_srt_passphrase">QR SRT passphrase must be between 10 and 79 characters</string>
+    <string name="qr_scan_no_camera">No back camera available</string>
+    <string name="qr_scan_open_failed">Could not open camera</string>
+    <string name="qr_scan_open_failed_code">Could not open camera (error %1$d)</string>
+    <string name="qr_scan_config_failed">Could not configure camera</string>
+    <string name="qr_error_streaming">Stop streaming before scanning a QR code</string>
+    <string name="status_idle">Stopped</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_streaming">Streaming</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="status_error_connection">Connection error</string>
+    <string name="status_error_auth">Authentication error</string>
+    <string name="mode_capture_app">Streaming via ICU NG Capture · continues with screen off</string>
+    <string name="mode_plugin">Streaming via plugin · install ICU NG Capture to stream with screen off</string>
+    <string name="status_error_capture_app">Error: could not open ICU NG Capture</string>
+    <string name="status_error_camera">Error: could not open camera</string>
+    <string name="status_error_scheme_format">Error: URL must start with %1$s://</string>
+    <string name="status_error_srt_passphrase_length">Error: SRT passphrase must be between 10 and 79 characters</string>
+    <string name="status_error_change_protocol_while_streaming">Error: stop streaming before switching to/from SRT</string>
 
+    <string name="url_hint">rtsp://host:port/stream</string>
 </resources>

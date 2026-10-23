@@ -163,7 +163,7 @@
                 android:layout_weight="1"
                 android:layout_marginStart="8dp"
                 android:inputType="textUri"
-                android:hint="rtsp://host:puerto/stream"
+                android:hint="@string/url_hint"
                 style="@style/IcuNgField" />
 
             <Button
