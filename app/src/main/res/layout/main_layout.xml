@@ -11,10 +11,16 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
+    <!-- Scrolls when the controls (quality submenu open) are taller than
+         the pane. -->
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
         android:orientation="vertical"
         android:background="#B3000000"
         android:padding="@dimen/auto_margin">
@@ -53,6 +59,88 @@
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
                 style="@style/IcuNgSpinner" />
+
+            <Button
+                android:id="@+id/quality_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/quality_button"
+                style="@style/IcuNgButton.Secondary" />
+
+        </LinearLayout>
+
+        <!-- Quality submenu, folded away until "Calidad" is tapped. -->
+        <LinearLayout
+            android:id="@+id/quality_section"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="@dimen/auto_margin"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:text="@string/resolution_caption"
+                    style="@style/IcuNgCaption" />
+
+                <Spinner
+                    android:id="@+id/resolution_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    style="@style/IcuNgSpinner" />
+
+                <Spinner
+                    android:id="@+id/fps_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    style="@style/IcuNgSpinner" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/bitrate_caption"
+                    style="@style/IcuNgCaption" />
+
+                <Spinner
+                    android:id="@+id/bitrate_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    style="@style/IcuNgSpinner" />
+
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/adaptive_bitrate_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/adaptive_bitrate_checkbox"
+                style="@style/IcuNgCheckBox" />
+
+            <CheckBox
+                android:id="@+id/microphone_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/microphone_checkbox"
+                style="@style/IcuNgCheckBox" />
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/quality_note"
+                style="@style/IcuNgCaption" />
 
         </LinearLayout>
 
@@ -163,5 +251,7 @@
         </LinearLayout>
 
     </LinearLayout>
+
+    </ScrollView>
 
 </FrameLayout>

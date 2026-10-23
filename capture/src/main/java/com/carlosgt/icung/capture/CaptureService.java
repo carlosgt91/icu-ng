@@ -25,6 +25,7 @@ import com.pedro.encoder.input.sources.video.VideoSource;
 import com.pedro.library.base.StreamBase;
 import com.pedro.library.rtsp.RtspStream;
 import com.pedro.library.srt.SrtStream;
+import com.pedro.library.util.BitrateAdapter;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 import com.pedro.rtsp.rtsp.klv.KlvMetadata;
@@ -66,6 +67,7 @@ public class CaptureService extends Service implements ConnectChecker {
     // A packet older than this describes where the phone was, not is.
     private static final long KLV_MAX_AGE_MS = 3000;
 
+    // Defaults when the plugin sends no quality (older plugin).
     private static final int VIDEO_WIDTH = 640;
     private static final int VIDEO_HEIGHT = 480;
     private static final int VIDEO_BITRATE = 1200 * 1024;
@@ -102,6 +104,9 @@ public class CaptureService extends Service implements ConnectChecker {
     private static int stateCamera;
 
     private StreamBase stream;
+    private MicrophoneSource microphone;
+    private BitrateAdapter bitrateAdapter;
+    private volatile boolean adaptiveBitrate;
     private Intent config;
     private PowerManager.WakeLock wakeLock;
     private Surface previewSurface;
@@ -197,10 +202,14 @@ public class CaptureService extends Service implements ConnectChecker {
         int protocol = config.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0);
         try {
             VideoSource camera = createVideoSource(camera(config));
+            microphone = new MicrophoneSource();
             stream = protocol == 2
-                    ? new SrtStream(this, this, camera, new MicrophoneSource())
-                    : new RtspStream(this, this, camera, new MicrophoneSource());
-            stream.prepareVideo(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_BITRATE, VIDEO_FPS, 2,
+                    ? new SrtStream(this, this, camera, microphone)
+                    : new RtspStream(this, this, camera, microphone);
+            int bitrate = config.getIntExtra(CaptureContract.EXTRA_BITRATE, VIDEO_BITRATE);
+            stream.prepareVideo(config.getIntExtra(CaptureContract.EXTRA_WIDTH, VIDEO_WIDTH),
+                    config.getIntExtra(CaptureContract.EXTRA_HEIGHT, VIDEO_HEIGHT), bitrate,
+                    config.getIntExtra(CaptureContract.EXTRA_FPS, VIDEO_FPS), 2,
                     config.getIntExtra(CaptureContract.EXTRA_ROTATION, 0));
             stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE);
 
@@ -228,6 +237,9 @@ public class CaptureService extends Service implements ConnectChecker {
                 stream.startPreview(previewSurface, previewWidth, previewHeight);
                 Log.i(TAG, "vista previa en el panel de ATAK " + previewWidth + "x" + previewHeight);
             }
+            applyLiveOptions(bitrate,
+                    config.getBooleanExtra(CaptureContract.EXTRA_ADAPTIVE_BITRATE, true),
+                    config.getBooleanExtra(CaptureContract.EXTRA_MUTED, false));
             setState(State.CONNECTING, null);
             stream.startStream(config.getStringExtra(CaptureContract.EXTRA_URL));
         } catch (RuntimeException e) {
@@ -240,6 +252,39 @@ public class CaptureService extends Service implements ConnectChecker {
 
     private void stop() {
         finish(State.IDLE, null);
+    }
+
+    // On the main thread. Also remembered in config, for the rebuild after
+    // a dropped connection.
+    private void applyLiveOptions(int bitrate, boolean adaptive, boolean muted) {
+        if (config != null) {
+            config.putExtra(CaptureContract.EXTRA_BITRATE, bitrate)
+                    .putExtra(CaptureContract.EXTRA_ADAPTIVE_BITRATE, adaptive)
+                    .putExtra(CaptureContract.EXTRA_MUTED, muted);
+        }
+        if (stream == null) return;
+        Log.i(TAG, "opciones: " + bitrate / 1024 + " kbps, adaptativo " + adaptive
+                + ", microfono " + (muted ? "silenciado" : "activo"));
+        if (muted) microphone.mute();
+        else microphone.unMute();
+        adaptiveBitrate = adaptive;
+        bitrateAdapter = new BitrateAdapter(b -> {
+            StreamBase st = stream;
+            if (st != null) st.setVideoBitrateOnFly(b);
+        });
+        bitrateAdapter.setMaxBitrate(bitrate);
+        if (stream.isStreaming()) stream.setVideoBitrateOnFly(bitrate);
+    }
+
+    // RootEncoder's measured upload rate, about once a second, on its
+    // network thread: the adapter lowers the encoder bitrate while the link
+    // is congested (VPN, mobile data) and raises it back towards the chosen one.
+    @Override
+    public void onNewBitrate(long bitrate) {
+        BitrateAdapter adapter = bitrateAdapter;
+        StreamBase st = stream;
+        if (!adaptiveBitrate || adapter == null || st == null) return;
+        adapter.adaptBitrate(bitrate, st.getStreamClient().hasCongestion());
     }
 
     private void finish(State finalState, String message) {
@@ -430,6 +475,12 @@ public class CaptureService extends Service implements ConnectChecker {
                 if (config == null || camera == camera(config)) return;
                 switchCamera(new Intent(config).putExtra(CaptureContract.EXTRA_CAMERA, camera));
             });
+        }
+
+        @Override
+        public void setLiveOptions(int bitrate, boolean adaptive, boolean muted) {
+            checkCaller();
+            mainHandler.post(() -> applyLiveOptions(bitrate, adaptive, muted));
         }
 
         @Override

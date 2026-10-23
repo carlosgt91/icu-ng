@@ -24,6 +24,7 @@ public class SelfSensorFovController implements PointMapItem.OnPointChangedListe
 
     private final Marker selfMarker;
     private boolean streaming;
+    private boolean frontCamera;
     private SensorFOV fov;
 
     public SelfSensorFovController() {
@@ -44,6 +45,12 @@ public class SelfSensorFovController implements PointMapItem.OnPointChangedListe
         update();
     }
 
+    /** The front camera looks back from where the phone faces: the cone turns 180 degrees. */
+    public void refresh(boolean streaming, int camera) {
+        this.frontCamera = camera == StreamSettings.CAMERA_FRONT;
+        refresh(streaming);
+    }
+
     @Override
     public void onPointChanged(PointMapItem item) {
         update();
@@ -52,6 +59,7 @@ public class SelfSensorFovController implements PointMapItem.OnPointChangedListe
     private void update() {
         if (streaming && selfMarker.getPoint().isValid()) {
             double azimuth = selfMarker.getTrackHeading();
+            if (frontCamera) azimuth = (azimuth + 180d) % 360d;
             if (fov == null) {
                 fov = SensorDetailHandler.addFovToMap(selfMarker, azimuth, FOV_DEGREES,
                         RANGE_METERS, COLOR, true);

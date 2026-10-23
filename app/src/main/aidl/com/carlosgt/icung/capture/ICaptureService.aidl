@@ -17,6 +17,11 @@ interface ICaptureService {
     void setPreview(in Surface surface, int width, int height);
     /** Swaps the camera of the running stream (0 back, 1 front, 2 USB). */
     oneway void setCamera(int camera);
+    /**
+     * Video bitrate in bits/s (the ceiling when adaptive), whether to lower
+     * it while the network is congested, and whether to send silence.
+     */
+    oneway void setLiveOptions(int bitrate, boolean adaptive, boolean muted);
     /** Latest MISB ST 0601 packet; the app sends it with the next frame. */
     oneway void klv(in byte[] packet);
 }

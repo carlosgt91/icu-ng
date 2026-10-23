@@ -49,6 +49,12 @@ public class CaptureLink {
     private static final String EXTRA_SRT_ENCRYPTION = "srt_encryption";
     private static final String EXTRA_KLV = "klv";
     private static final String EXTRA_ROTATION = "rotation";
+    private static final String EXTRA_WIDTH = "width";
+    private static final String EXTRA_HEIGHT = "height";
+    private static final String EXTRA_FPS = "fps";
+    private static final String EXTRA_BITRATE = "bitrate";
+    private static final String EXTRA_ADAPTIVE_BITRATE = "adaptive_bitrate";
+    private static final String EXTRA_MUTED = "muted";
 
     private static final int REQUEST_CODE = 0x1C0;
 
@@ -164,7 +170,13 @@ public class CaptureLink {
                 .putExtra(EXTRA_SRT_PASSPHRASE, s.srtPassphrase)
                 .putExtra(EXTRA_SRT_ENCRYPTION, s.srtEncryptionIndex)
                 .putExtra(EXTRA_KLV, klv)
-                .putExtra(EXTRA_ROTATION, rotation);
+                .putExtra(EXTRA_ROTATION, rotation)
+                .putExtra(EXTRA_WIDTH, s.videoWidth())
+                .putExtra(EXTRA_HEIGHT, s.videoHeight())
+                .putExtra(EXTRA_FPS, s.fps())
+                .putExtra(EXTRA_BITRATE, s.videoBitrate())
+                .putExtra(EXTRA_ADAPTIVE_BITRATE, s.adaptiveBitrate)
+                .putExtra(EXTRA_MUTED, !s.microphone);
         return send(intent);
     }
 
@@ -188,6 +200,16 @@ public class CaptureLink {
             service.setPreview(surface, width, height);
         } catch (RemoteException | SecurityException e) {
             Log.w(TAG, "no se pudo pasar la vista previa", e);
+        }
+    }
+
+    /** Bitrate (bits/s), adaptive bitrate and microphone of the running stream. */
+    public void setLiveOptions(int bitrate, boolean adaptive, boolean muted) {
+        if (service == null) return;
+        try {
+            service.setLiveOptions(bitrate, adaptive, muted);
+        } catch (RemoteException | SecurityException e) {
+            Log.w(TAG, "no se pudieron cambiar las opciones", e);
         }
     }
 

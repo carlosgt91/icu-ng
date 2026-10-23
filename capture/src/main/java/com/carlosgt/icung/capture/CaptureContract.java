@@ -37,6 +37,15 @@ public final class CaptureContract {
     public static final String EXTRA_KLV = "klv";
     /** display rotation in degrees, for the encoder orientation */
     public static final String EXTRA_ROTATION = "rotation";
+    public static final String EXTRA_WIDTH = "width";
+    public static final String EXTRA_HEIGHT = "height";
+    public static final String EXTRA_FPS = "fps";
+    /** video bits/s; the ceiling when adaptive */
+    public static final String EXTRA_BITRATE = "bitrate";
+    /** lower the bitrate while the network is congested */
+    public static final String EXTRA_ADAPTIVE_BITRATE = "adaptive_bitrate";
+    /** send silence instead of the microphone */
+    public static final String EXTRA_MUTED = "muted";
 
     public static final int CAMERA_BACK = 0;
     public static final int CAMERA_FRONT = 1;

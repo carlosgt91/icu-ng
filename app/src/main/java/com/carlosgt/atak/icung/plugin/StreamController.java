@@ -19,6 +19,7 @@ import com.pedro.encoder.input.video.CameraHelper;
 import com.pedro.library.base.StreamBase;
 import com.pedro.library.rtsp.RtspStream;
 import com.pedro.library.srt.SrtStream;
+import com.pedro.library.util.BitrateAdapter;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.SrtStreamClient;
 
@@ -85,10 +86,6 @@ public class StreamController implements ConnectChecker {
         }
     };
 
-    private static final int VIDEO_WIDTH = 640;
-    private static final int VIDEO_HEIGHT = 480;
-    private static final int VIDEO_BITRATE = 1200 * 1024;
-    private static final int VIDEO_FPS = 30;
     private static final int AUDIO_SAMPLE_RATE = 32000;
     private static final int AUDIO_BITRATE = 64 * 1024;
 
@@ -101,6 +98,11 @@ public class StreamController implements ConnectChecker {
 
     private StreamBase stream;
     private boolean streamIsSrt;
+    // Resolution and fps the stream's encoder was built with.
+    private String streamEncoderKey;
+    private MicrophoneSource microphone;
+    private BitrateAdapter bitrateAdapter;
+    private volatile boolean adaptiveBitrate;
     private SurfaceView previewSurface;
     private State state = State.IDLE;
     private String stateMessage;
@@ -227,7 +229,8 @@ public class StreamController implements ConnectChecker {
     }
 
     private void startStream(StreamSettings settings) {
-        ensureStream(settings.protocol == StreamSettings.PROTOCOL_SRT);
+        ensureStream(settings.protocol == StreamSettings.PROTOCOL_SRT, settings);
+        applyLocalLiveOptions(settings);
         if (settings.protocol == StreamSettings.PROTOCOL_RTSPS) {
             ((RtspStreamClient) stream.getStreamClient())
                     .addCertificates(settings.trustAllCerts ? TRUST_ALL_CERTS : null);
@@ -258,7 +261,7 @@ public class StreamController implements ConnectChecker {
         if (connectionEntry != null) {
             videoConnectionManager.addConnectionEntry(connectionEntry);
         }
-        sensorFovController.refresh(true);
+        sensorFovController.refresh(true, settings.camera);
     }
 
     private void startRemote(StreamSettings settings) {
@@ -289,7 +292,7 @@ public class StreamController implements ConnectChecker {
         if (connectionEntry != null) {
             videoConnectionManager.addConnectionEntry(connectionEntry);
         }
-        sensorFovController.refresh(true);
+        sensorFovController.refresh(true, settings.camera);
         startKlv(settings.camera);
         sendPreviewToApp();
     }
@@ -399,8 +402,8 @@ public class StreamController implements ConnectChecker {
             return;
         }
         if (stream == null) {
-            ensureStream(StreamSettings.load(atakContext).protocol
-                    == StreamSettings.PROTOCOL_SRT);
+            StreamSettings s = StreamSettings.load(atakContext);
+            ensureStream(s.protocol == StreamSettings.PROTOCOL_SRT, s);
         }
         previewSurface = surfaceView;
         try {
@@ -458,7 +461,8 @@ public class StreamController implements ConnectChecker {
         boolean wantSrt = protocol == StreamSettings.PROTOCOL_SRT;
         if (stream == null || streamIsSrt == wantSrt) return true;
         if (stream.isStreaming()) return false;
-        ensureStream(wantSrt); // carries the preview over to the new instance
+        // carries the preview over to the new instance
+        ensureStream(wantSrt, StreamSettings.load(atakContext));
         return true;
     }
 
@@ -473,10 +477,12 @@ public class StreamController implements ConnectChecker {
             activeSettings.camera = camera;
             captureLink.setCamera(camera);
             startKlv(camera); // stops it for USB
+            sensorFovController.refresh(true, camera);
             return;
         }
         if (stream == null) return; // picked up from the settings on next build
         stream.changeVideoSource(createVideoSource(camera));
+        if (isStreaming()) sensorFovController.refresh(true, camera);
         // The KLV track is already negotiated; just describe the new camera.
         if (klvTelemetry != null) startKlv(camera);
     }
@@ -496,22 +502,64 @@ public class StreamController implements ConnectChecker {
         listeners.clear();
     }
 
-    private void ensureStream(boolean srt) {
-        if (stream != null && streamIsSrt == srt) return;
+    /**
+     * Bitrate, adaptive bitrate and microphone, applied to the running
+     * stream (wherever it runs) and kept for the next one.
+     */
+    public void applyLiveOptions(StreamSettings s) {
+        if (remoteLive) {
+            captureLink.setLiveOptions(s.videoBitrate(), s.adaptiveBitrate, !s.microphone);
+        } else if (stream != null && stream.isStreaming()) {
+            applyLocalLiveOptions(s);
+        }
+    }
+
+    private void applyLocalLiveOptions(StreamSettings s) {
+        if (stream == null) return;
+        Log.i(TAG, "opciones: " + s.videoBitrate() / 1024 + " kbps, adaptativo "
+                + s.adaptiveBitrate + ", microfono " + s.microphone);
+        if (s.microphone) microphone.unMute();
+        else microphone.mute();
+        adaptiveBitrate = s.adaptiveBitrate;
+        bitrateAdapter = new BitrateAdapter(bitrate -> {
+            StreamBase st = stream;
+            if (st != null) st.setVideoBitrateOnFly(bitrate);
+        });
+        bitrateAdapter.setMaxBitrate(s.videoBitrate());
+        if (stream.isStreaming()) stream.setVideoBitrateOnFly(s.videoBitrate());
+    }
+
+    // RootEncoder's measured upload rate, about once a second, on its
+    // network thread: the adapter lowers the encoder bitrate while the link
+    // is congested and raises it back towards the chosen one.
+    @Override
+    public void onNewBitrate(long bitrate) {
+        BitrateAdapter adapter = bitrateAdapter;
+        StreamBase st = stream;
+        if (!adaptiveBitrate || adapter == null || st == null) return;
+        adapter.adaptBitrate(bitrate, st.getStreamClient().hasCongestion());
+    }
+
+    private void ensureStream(boolean srt, StreamSettings settings) {
+        if (stream != null && streamIsSrt == srt
+                && settings.encoderKey().equals(streamEncoderKey)) return;
         SurfaceView preview = previewSurface;
         if (stream != null) releaseStream();
 
-        VideoSource videoSource = createVideoSource(StreamSettings.load(atakContext).camera);
+        VideoSource videoSource = createVideoSource(settings.camera);
         // The plugin context, not ATAK's: RootEncoder's GL pipeline loads its
         // shaders from its own raw resources, which live in the plugin APK.
         // With ATAK's context they don't resolve, GL init fails silently and
         // every camera ends up with no surface to draw into.
+        microphone = new MicrophoneSource();
         stream = srt
-                ? new SrtStream(pluginContext, this, videoSource, new MicrophoneSource())
-                : new RtspStream(pluginContext, this, videoSource, new MicrophoneSource());
+                ? new SrtStream(pluginContext, this, videoSource, microphone)
+                : new RtspStream(pluginContext, this, videoSource, microphone);
         streamIsSrt = srt;
+        streamEncoderKey = settings.encoderKey();
         int rotation = CameraHelper.getCameraOrientation(atakContext);
-        stream.prepareVideo(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_BITRATE, VIDEO_FPS, 2, rotation);
+        stream.prepareVideo(settings.videoWidth(), settings.videoHeight(),
+                settings.videoBitrate(), settings.fps(), 2, rotation);
         stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE);
 
         if (preview != null) {

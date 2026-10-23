@@ -51,6 +51,11 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     View srtEncryptionRow;
     EditText srtPassphraseInput;
     Spinner srtEncryptionSpinner;
+    Spinner resolutionSpinner;
+    Spinner fpsSpinner;
+    Spinner bitrateSpinner;
+    CheckBox adaptiveBitrateCheckbox;
+    CheckBox microphoneCheckbox;
     TextView statusText;
     boolean suppressProtocolListener;
     int lastValidProtocolPosition;
@@ -208,6 +213,9 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         klvCheckbox.setEnabled(enabled);
         srtPassphraseInput.setEnabled(enabled);
         srtEncryptionSpinner.setEnabled(enabled);
+        // The encoder is built with these; bitrate and microphone stay live.
+        resolutionSpinner.setEnabled(enabled);
+        fpsSpinner.setEnabled(enabled);
     }
 
     private void fillInputs(StreamSettings s) {
@@ -221,6 +229,11 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         srtPassphraseInput.setText(s.srtPassphrase);
         srtEncryptionSpinner.setSelection(s.srtEncryptionIndex);
         cameraSpinner.setSelection(s.camera);
+        resolutionSpinner.setSelection(s.resolutionIndex);
+        fpsSpinner.setSelection(s.fpsIndex);
+        bitrateSpinner.setSelection(s.bitrateIndex);
+        adaptiveBitrateCheckbox.setChecked(s.adaptiveBitrate);
+        microphoneCheckbox.setChecked(s.microphone);
         updateProtocolRows(s.protocol);
     }
 
@@ -245,7 +258,25 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         settings.srtPassphrase = srtPassphraseInput.getText().toString();
         settings.srtEncryptionIndex = srtEncryptionSpinner.getSelectedItemPosition();
         settings.camera = cameraSpinner.getSelectedItemPosition();
+        settings.resolutionIndex = resolutionSpinner.getSelectedItemPosition();
+        settings.fpsIndex = fpsSpinner.getSelectedItemPosition();
         settings.save(atakContext);
+    }
+
+    // Bitrate, adaptive bitrate and microphone: saved and applied at once,
+    // also mid-stream.
+    private void onLiveOptionChanged() {
+        if (settings == null || bitrateSpinner == null) return;
+        int bitrate = bitrateSpinner.getSelectedItemPosition();
+        boolean adaptive = adaptiveBitrateCheckbox.isChecked();
+        boolean mic = microphoneCheckbox.isChecked();
+        if (bitrate == settings.bitrateIndex && adaptive == settings.adaptiveBitrate
+                && mic == settings.microphone) return;
+        settings.bitrateIndex = bitrate;
+        settings.adaptiveBitrate = adaptive;
+        settings.microphone = mic;
+        settings.save(atakContext);
+        streamController.applyLiveOptions(settings);
     }
 
     private void onProtocolSelected(int position) {
@@ -352,6 +383,15 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             srtEncryptionRow = paneView.findViewById(R.id.srt_encryption_row);
             srtPassphraseInput = paneView.findViewById(R.id.srt_passphrase_input);
             srtEncryptionSpinner = paneView.findViewById(R.id.srt_encryption_spinner);
+            resolutionSpinner = paneView.findViewById(R.id.resolution_spinner);
+            fpsSpinner = paneView.findViewById(R.id.fps_spinner);
+            bitrateSpinner = paneView.findViewById(R.id.bitrate_spinner);
+            adaptiveBitrateCheckbox = paneView.findViewById(R.id.adaptive_bitrate_checkbox);
+            microphoneCheckbox = paneView.findViewById(R.id.microphone_checkbox);
+            View qualitySection = paneView.findViewById(R.id.quality_section);
+            paneView.findViewById(R.id.quality_button).setOnClickListener(v ->
+                    qualitySection.setVisibility(qualitySection.getVisibility() == View.VISIBLE
+                            ? View.GONE : View.VISIBLE));
             statusText = paneView.findViewById(R.id.status_text);
             ((TextView) paneView.findViewById(R.id.mode_text)).setText(
                     streamController.usesCaptureApp()
@@ -365,6 +405,9 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
 
             ArrayAdapter<CharSequence> cameraAdapter = spinnerAdapter(R.array.camera_entries);
             cameraSpinner.setAdapter(cameraAdapter);
+            resolutionSpinner.setAdapter(spinnerAdapter(R.array.resolution_entries));
+            fpsSpinner.setAdapter(spinnerAdapter(R.array.fps_entries));
+            bitrateSpinner.setAdapter(spinnerAdapter(R.array.bitrate_entries));
 
             settings = StreamSettings.load(atakContext);
             fillInputs(settings);
@@ -396,7 +439,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
                     // no-op
                 }
             });
-            srtEncryptionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            AdapterView.OnItemSelectedListener saveOnSelect = new AdapterView.OnItemSelectedListener() {
                 @Override
                 public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                     saveInputs();
@@ -406,7 +449,23 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
                 public void onNothingSelected(AdapterView<?> parent) {
                     // no-op
                 }
+            };
+            srtEncryptionSpinner.setOnItemSelectedListener(saveOnSelect);
+            resolutionSpinner.setOnItemSelectedListener(saveOnSelect);
+            fpsSpinner.setOnItemSelectedListener(saveOnSelect);
+            bitrateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                @Override
+                public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                    onLiveOptionChanged();
+                }
+
+                @Override
+                public void onNothingSelected(AdapterView<?> parent) {
+                    // no-op
+                }
             });
+            adaptiveBitrateCheckbox.setOnCheckedChangeListener((b, checked) -> onLiveOptionChanged());
+            microphoneCheckbox.setOnCheckedChangeListener((b, checked) -> onLiveOptionChanged());
             TextWatcher saveOnEdit = new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {
