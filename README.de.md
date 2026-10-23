@@ -1,4 +1,4 @@
-[English](README.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [Українська](README.uk.md)
+[English](README.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [Українська](README.uk.md) | [Français](README.fr.md) | [Português](README.pt.md)
 
 ATAK-Plugin — ICU NG
 

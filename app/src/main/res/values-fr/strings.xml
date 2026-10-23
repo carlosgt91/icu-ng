@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- description -->
+    <string name="app_desc">Remplacement de TAK ICU : diffusion de la caméra avec audio, annoncée sur la carte via CoT.</string>
+
+    <string name="prefs_summary">Manuel de l\'utilisateur</string>
+    <string name="manual_title">Manuel de l\'utilisateur</string>
+    <string name="manual_summary">Comment diffuser, l\'application ICU NG Capture, qualité et KLV</string>
+
+    <string name="start_stream">Diffuser</string>
+    <string name="stop_stream">Arrêter</string>
+
+    <string name="trust_all_certs">Faire confiance à tous les certificats (tests/LAN uniquement)</string>
+    <string name="srt_passphrase_hint">Phrase de passe SRT</string>
+    <string name="srt_passphrase_caption">10-79 caractères · vide = non chiffré</string>
+    <string name="srt_encryption_caption">Chiffrement</string>
+    <string name="camera_caption">Caméra</string>
+    <string name="quality_button">Qualité</string>
+    <string name="resolution_caption">Résolution</string>
+    <string name="bitrate_caption">Débit</string>
+    <string name="adaptive_bitrate_checkbox">Débit adaptatif (diminue si le réseau est limité)</string>
+    <string name="microphone_checkbox">Microphone</string>
+    <string name="quality_note">La résolution et les fps s\'appliquent au lancement de la diffusion ; le débit et le microphone, immédiatement.</string>
+    <string name="klv_checkbox">Envoyer la télémétrie KLV (MISB 0601) · non disponible avec une caméra USB</string>
+    <string name="qr_scan_title">Pointez vers le code QR du serveur vidéo</string>
+    <string name="qr_loaded">Configuration chargée depuis le code QR</string>
+    <string name="qr_loaded_named">Configuration chargée depuis le code QR : %1$s</string>
+    <string name="qr_error_empty">Le code QR est vide</string>
+    <string name="qr_error_not_url">Le code QR ne contient pas d\'URL valide</string>
+    <string name="qr_error_no_host">L\'URL du code QR ne contient pas d\'hôte</string>
+    <string name="qr_error_rtmp">ICU NG ne diffuse pas en RTMP : générez le code QR en RTSP ou SRT</string>
+    <string name="qr_error_protocol">Protocole non pris en charge : %1$s</string>
+    <string name="qr_error_srt_streamid">L\'URL SRT du code QR ne contient pas de streamid</string>
+    <string name="qr_error_srt_passphrase">La phrase de passe SRT du code QR doit comporter entre 10 et 79 caractères</string>
+    <string name="qr_scan_no_camera">Aucune caméra arrière disponible</string>
+    <string name="qr_scan_open_failed">Impossible d\'ouvrir la caméra</string>
+    <string name="qr_scan_open_failed_code">Impossible d\'ouvrir la caméra (erreur %1$d)</string>
+    <string name="qr_scan_config_failed">Impossible de configurer la caméra</string>
+    <string name="qr_error_streaming">Arrêtez la diffusion avant de scanner un code QR</string>
+    <string name="status_idle">Arrêté</string>
+    <string name="status_connecting">Connexion…</string>
+    <string name="status_streaming">Diffusion</string>
+    <string name="status_disconnected">Déconnecté</string>
+    <string name="status_error_connection">Erreur de connexion</string>
+    <string name="status_error_auth">Erreur d\'authentification</string>
+    <string name="mode_capture_app">Diffusion via ICU NG Capture · continue avec l\'écran éteint</string>
+    <string name="mode_plugin">Diffusion via le plugin · installez ICU NG Capture pour diffuser avec l\'écran éteint</string>
+    <string name="status_error_capture_app">Erreur : impossible d\'ouvrir ICU NG Capture</string>
+    <string name="status_error_camera">Erreur : impossible d\'ouvrir la caméra</string>
+    <string name="status_error_scheme_format">Erreur : l\'URL doit commencer par %1$s://</string>
+    <string name="status_error_srt_passphrase_length">Erreur : la phrase de passe SRT doit comporter entre 10 et 79 caractères</string>
+    <string name="status_error_change_protocol_while_streaming">Erreur : arrêtez la diffusion avant de basculer vers/depuis SRT</string>
+
+    <string name="url_hint">rtsp://hôte:port/flux</string>
+</resources>
