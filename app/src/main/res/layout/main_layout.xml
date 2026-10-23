@@ -16,7 +16,7 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"
         android:orientation="vertical"
-        android:background="#80000000"
+        android:background="#B3000000"
         android:padding="@dimen/auto_margin">
 
         <TextView
@@ -37,15 +37,14 @@
                 android:layout_height="wrap_content"
                 android:layout_gravity="center_vertical"
                 android:text="@string/camera_caption"
-                android:textColor="#AAAAAA"
-                android:textSize="11sp" />
+                style="@style/IcuNgCaption" />
 
             <Spinner
                 android:id="@+id/camera_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:spinnerMode="dropdown" />
+                android:layout_marginStart="8dp"
+                style="@style/IcuNgSpinner" />
 
         </LinearLayout>
 
@@ -59,33 +58,34 @@
                 android:id="@+id/protocol_spinner"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:spinnerMode="dropdown" />
+                style="@style/IcuNgSpinner" />
 
             <EditText
                 android:id="@+id/rtsp_url_input"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:layout_marginStart="4dp"
+                android:layout_marginStart="8dp"
                 android:inputType="textUri"
                 android:hint="rtsp://host:puerto/stream"
                 android:text="rtsp://10.0.2.2:8554/icung"
-                android:textColor="#FFFFFF"
-                android:textColorHint="#AAAAAA" />
+                style="@style/IcuNgField" />
 
             <Button
                 android:id="@+id/qr_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="@string/qr_button" />
+                android:layout_marginStart="8dp"
+                android:text="@string/qr_button"
+                style="@style/IcuNgButton.Secondary" />
 
             <Button
                 android:id="@+id/stream_toggle_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="4dp"
-                android:text="@string/start_stream" />
+                android:layout_marginStart="8dp"
+                android:text="@string/start_stream"
+                style="@style/IcuNgButton.Primary" />
 
         </LinearLayout>
 
@@ -95,7 +95,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/auto_margin"
             android:text="@string/klv_checkbox"
-            android:textColor="#FFFFFF" />
+            style="@style/IcuNgCheckBox" />
 
         <CheckBox
             android:id="@+id/trust_all_certs_checkbox"
@@ -103,7 +103,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="@dimen/auto_margin"
             android:text="@string/trust_all_certs"
-            android:textColor="#FFFFFF"
+            style="@style/IcuNgCheckBox"
             android:visibility="gone" />
 
         <LinearLayout
@@ -118,8 +118,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/srt_passphrase_caption"
-                android:textColor="#AAAAAA"
-                android:textSize="11sp" />
+                style="@style/IcuNgCaption" />
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -134,24 +133,22 @@
                     android:layout_weight="1"
                     android:inputType="textPassword"
                     android:hint="@string/srt_passphrase_hint"
-                    android:textColor="#FFFFFF"
-                    android:textColorHint="#AAAAAA" />
+                    style="@style/IcuNgField" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
+                    android:layout_marginStart="8dp"
                     android:layout_gravity="center_vertical"
                     android:text="@string/srt_encryption_caption"
-                    android:textColor="#AAAAAA"
-                    android:textSize="11sp" />
+                    style="@style/IcuNgCaption" />
 
                 <Spinner
                     android:id="@+id/srt_encryption_spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:spinnerMode="dropdown" />
+                    android:layout_marginStart="8dp"
+                    style="@style/IcuNgSpinner" />
 
             </LinearLayout>
 

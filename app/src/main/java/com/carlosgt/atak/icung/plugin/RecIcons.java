@@ -26,6 +26,10 @@ final class RecIcons {
 
     /** Round REC button: dark disc, white ring, coloured dot (or a stop square while live). */
     static String button(int sizePx, int dotColor, boolean live, int dotAlpha) {
+        return button(sizePx, Color.WHITE, dotColor, live, dotAlpha);
+    }
+
+    static String button(int sizePx, int ringColor, int dotColor, boolean live, int dotAlpha) {
         Bitmap bmp = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888);
         Canvas c = new Canvas(bmp);
         Paint p = new Paint(Paint.ANTI_ALIAS_FLAG);
@@ -36,7 +40,7 @@ final class RecIcons {
 
         p.setStyle(Paint.Style.STROKE);
         p.setStrokeWidth(sizePx * 0.06f);
-        p.setColor(Color.WHITE);
+        p.setColor(ringColor);
         c.drawCircle(r, r, r - sizePx * 0.06f, p);
 
         p.setStyle(Paint.Style.FILL);
@@ -46,7 +50,7 @@ final class RecIcons {
             float h = sizePx * 0.2f;
             c.drawRoundRect(new RectF(r - h, r - h, r + h, r + h), h * 0.25f, h * 0.25f, p);
         } else {
-            c.drawCircle(r, r, sizePx * 0.28f, p);
+            c.drawCircle(r, r, sizePx * 0.30f, p);
         }
         return encode(bmp);
     }

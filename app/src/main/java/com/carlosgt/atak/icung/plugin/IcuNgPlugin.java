@@ -187,6 +187,8 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
                 || state == StreamController.State.CONNECTING;
         if (streamToggleButton != null) {
             streamToggleButton.setText(live ? R.string.stop_stream : R.string.start_stream);
+            streamToggleButton.setBackground(pluginContext.getDrawable(
+                    live ? R.drawable.btn_stop : R.drawable.btn_primary));
         }
         // While a stream runs, its settings are fixed - show those, not
         // whatever was left half-typed, and don't let them be edited.

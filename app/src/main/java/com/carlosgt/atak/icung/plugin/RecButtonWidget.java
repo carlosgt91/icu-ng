@@ -16,17 +16,15 @@ import com.atakmap.coremap.maps.assets.Icon;
 /**
  * Red REC button floating on the map, so a stream can be started and
  * stopped without opening the pane. Tap toggles the stream with the
- * persisted settings; long press opens the pane. While live, the button
- * turns into a pulsing stop square.
+ * persisted settings; long press opens the pane. While live, the ring
+ * turns red and the dot blinks, like a camera's REC light.
  */
 public class RecButtonWidget extends MarkerIconWidget implements
         MapWidget.OnClickListener, MapWidget.OnLongPressListener,
         StreamController.Listener {
 
-    private static final float SIZE_DP = 56f;
-    private static final long PULSE_PERIOD_MS = 1200L;
-    private static final long PULSE_FRAME_MS = 100L;
-    private static final int PULSE_MIN_ALPHA = 90;
+    private static final float SIZE_DP = 72f;
+    private static final long BLINK_MS = 500L;
 
     private final MapView mapView;
     private final StreamController controller;
@@ -37,18 +35,19 @@ public class RecButtonWidget extends MarkerIconWidget implements
 
     private final String iconIdle;
     private final String iconConnecting;
-    private final String[] iconLiveFrames;
+    private final String iconLiveOn;
+    private final String iconLiveOff;
 
     private StreamController.State state = StreamController.State.IDLE;
-    private int pulseFrame;
+    private boolean blinkOn;
 
-    private final Runnable pulseTick = new Runnable() {
+    private final Runnable blinkTick = new Runnable() {
         @Override
         public void run() {
             if (state != StreamController.State.STREAMING) return;
-            pulseFrame = (pulseFrame + 1) % iconLiveFrames.length;
-            setIconUri(iconLiveFrames[pulseFrame]);
-            mainHandler.postDelayed(this, PULSE_FRAME_MS);
+            blinkOn = !blinkOn;
+            setIconUri(blinkOn ? iconLiveOn : iconLiveOff);
+            mainHandler.postDelayed(this, BLINK_MS);
         }
     };
 
@@ -62,16 +61,8 @@ public class RecButtonWidget extends MarkerIconWidget implements
                 .getDisplayMetrics().density);
         iconIdle = RecIcons.button(sizePx, RecIcons.COLOR_IDLE, false, 255);
         iconConnecting = RecIcons.button(sizePx, RecIcons.COLOR_CONNECTING, false, 255);
-
-        // Pre-render one pulse cycle (raised cosine on the stop square's
-        // alpha) instead of re-encoding a PNG every frame.
-        int frames = (int) (PULSE_PERIOD_MS / PULSE_FRAME_MS);
-        iconLiveFrames = new String[frames];
-        for (int i = 0; i < frames; i++) {
-            double wave = 0.5 + 0.5 * Math.cos(2 * Math.PI * i / frames);
-            int alpha = (int) (PULSE_MIN_ALPHA + wave * (255 - PULSE_MIN_ALPHA));
-            iconLiveFrames[i] = RecIcons.button(sizePx, RecIcons.COLOR_LIVE, true, alpha);
-        }
+        iconLiveOn = RecIcons.button(sizePx, RecIcons.COLOR_LIVE, RecIcons.COLOR_LIVE, false, 255);
+        iconLiveOff = RecIcons.button(sizePx, RecIcons.COLOR_LIVE, RecIcons.COLOR_LIVE, false, 0);
 
         RootLayoutWidget root = (RootLayoutWidget) mapView.getComponentExtra("rootLayoutWidget");
         layout = root.getLayout(RootLayoutWidget.RIGHT_EDGE)
@@ -90,7 +81,7 @@ public class RecButtonWidget extends MarkerIconWidget implements
 
     public void dispose() {
         controller.removeListener(this);
-        mainHandler.removeCallbacks(pulseTick);
+        mainHandler.removeCallbacks(blinkTick);
         removeOnClickListener(this);
         layout.removeWidget(this);
     }
@@ -108,15 +99,15 @@ public class RecButtonWidget extends MarkerIconWidget implements
     @Override
     public void onStreamStateChanged(StreamController.State newState, String message) {
         state = newState;
-        mainHandler.removeCallbacks(pulseTick);
+        mainHandler.removeCallbacks(blinkTick);
         switch (newState) {
             case CONNECTING:
                 setIconUri(iconConnecting);
                 break;
             case STREAMING:
-                pulseFrame = 0;
-                setIconUri(iconLiveFrames[0]);
-                mainHandler.postDelayed(pulseTick, PULSE_FRAME_MS);
+                blinkOn = true;
+                setIconUri(iconLiveOn);
+                mainHandler.postDelayed(blinkTick, BLINK_MS);
                 break;
             case ERROR:
                 setIconUri(iconIdle);
