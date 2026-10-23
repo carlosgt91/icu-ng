@@ -1,3 +1,22 @@
+# Build output and machine-local files (this directory is also a standalone
+# repository, so it does not rely on a parent .gitignore)
+.gradle/
+build/
+.takdev/
+*.apk
+*.aab
+local.properties
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
+# preflight scanner reports
+reports/
+# signing keys never live in the repository
+*.jks
+*.keystore
 
 # Built by typst into the APK (tak.gov builds its own from docs/user_manual)
 app/src/main/assets/usermanual.pdf
