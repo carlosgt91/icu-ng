@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Plugin icon: movie camera (Carlos's design, traced from his 256 px
+     PNG), white strokes in ATAK's minimalist style. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="48dp"
+    android:height="48dp"
+    android:viewportWidth="256"
+    android:viewportHeight="256">
+
+    <!-- reels -->
+    <path
+        android:pathData="M15,64 a35,35 0 1,0 70,0 a35,35 0 1,0 -70,0"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="20" />
+    <path
+        android:pathData="M112,64 a48,48 0 1,0 96,0 a48,48 0 1,0 -96,0"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="22" />
+
+    <!-- body -->
+    <path
+        android:pathData="M32,104 L178,104 A18,18 0 0 1 196,122 L196,226 A18,18 0 0 1 178,244 L32,244 A18,18 0 0 1 14,226 L14,122 A18,18 0 0 1 32,104 Z"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="20"
+        android:strokeLineJoin="round" />
+
+    <!-- lens -->
+    <path
+        android:pathData="M196,150 L242,120 L242,228 L196,198"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="20"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round" />
+
+    <!-- slot -->
+    <path
+        android:pathData="M54,201 L158,201"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="18"
+        android:strokeLineCap="round" />
+
+</vector>

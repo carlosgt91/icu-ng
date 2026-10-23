@@ -95,6 +95,15 @@
 ######################################################################
 
 
+# This plugin: the plugin loader and ATAK find its classes by name.
+-keep class com.carlosgt.atak.icung.plugin.** { *; }
+# The AIDL interface to ICU NG Capture, shared by name with the app.
+-keep class com.carlosgt.icung.capture.** { *; }
+# RootEncoder (and our rtsp copy with the KLV track): Kotlin, loads its GL
+# shaders and codecs at run time; kept whole rather than chase each case.
+-keep class com.pedro.** { *; }
+-dontwarn com.pedro.**
+
 # UVCAndroid: its native libs call back into these classes by name (JNI),
 # so R8 must neither strip nor rename them.
 -keep class com.serenegiant.** { *; }

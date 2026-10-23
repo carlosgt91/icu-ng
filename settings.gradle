@@ -14,8 +14,12 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = 'icu-ng'
+// Letters and digits only: it is also the proguard package and the APK
+// name tak.gov builds (a dash fails the release build).
+rootProject.name = 'IcuNg'
 
 include ':app'
 include ':rootencoder-rtsp'
-include ':capture'
+// ICU NG Capture, the companion app. Not part of the tak.gov submission
+// zip (it is not a plugin), so only built where it is checked out.
+if (file('capture').isDirectory()) include ':capture'

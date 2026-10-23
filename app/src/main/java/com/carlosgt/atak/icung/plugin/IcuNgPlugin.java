@@ -87,7 +87,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         toolbarItem = new ToolbarItem.Builder(
                 pluginContext.getString(R.string.app_name),
                 MarshalManager.marshal(
-                        pluginContext.getResources().getDrawable(R.drawable.ic_launcher),
+                        pluginContext.getResources().getDrawable(R.drawable.ic_toolbar),
                         android.graphics.drawable.Drawable.class,
                         gov.tak.api.commons.graphics.Bitmap.class))
                 .setListener(new ToolbarItemAdapter() {
@@ -128,6 +128,35 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
 
         radialMenu = new SelfMarkerRadialMenu(mapView, streamController);
         radialMenu.register();
+
+        registerPreferences();
+    }
+
+    private static final String PREFS_KEY = "icung_preferences";
+
+    // Guarded: an ATAK build without ToolsPreferenceFragment costs the
+    // manual, not the whole plugin.
+    private void registerPreferences() {
+        try {
+            com.atakmap.app.preferences.ToolsPreferenceFragment.register(
+                    new com.atakmap.app.preferences.ToolsPreferenceFragment.ToolPreference(
+                            pluginContext.getString(R.string.app_name),
+                            pluginContext.getString(R.string.prefs_summary),
+                            PREFS_KEY,
+                            // ic_toolbar: this row sits on ATAK's dark UI
+                            pluginContext.getResources().getDrawable(R.drawable.ic_toolbar),
+                            new IcuNgPreferenceFragment(pluginContext)));
+        } catch (LinkageError | RuntimeException notThisBuild) {
+            android.util.Log.w("IcuNgPlugin", "no se pudieron registrar las preferencias", notThisBuild);
+        }
+    }
+
+    private void unregisterPreferences() {
+        try {
+            com.atakmap.app.preferences.ToolsPreferenceFragment.unregister(PREFS_KEY);
+        } catch (LinkageError | RuntimeException notThisBuild) {
+            android.util.Log.w("IcuNgPlugin", "no se pudieron quitar las preferencias", notThisBuild);
+        }
     }
 
     private boolean isStreamingWithFix() {
@@ -142,6 +171,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             return;
 
         uiService.removeToolbarItem(toolbarItem);
+        unregisterPreferences();
 
         if (templatePane != null && uiService.isPaneVisible(templatePane)) {
             uiService.closePane(templatePane);

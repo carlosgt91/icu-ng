@@ -8,8 +8,22 @@
 
 buildscript {
 
-    ext.PLUGIN_VERSION = "0.1"
+    ext.PLUGIN_VERSION = "1.0"
     ext.ATAK_VERSION = '5.8.0'
+    // versionCode from PLUGIN_VERSION and the ATAK target, not from git:
+    // tak.gov builds the submission zip without .git, where the SDK's
+    // getVersionCode() is 1 on every release - and an MDM decides "is this
+    // an update" from that number alone. 1.0 on 5.8.0 -> 100005080.
+    ext.PLUGIN_VERSION_CODE = { ->
+        def p = (PLUGIN_VERSION.tokenize('.') + ['0', '0']).collect { it as int }
+        def a = (ATAK_VERSION.tokenize('.').takeWhile { it.isInteger() } + ['0', '0']).collect { it as int }
+        if (p[1] > 99 || p[2] > 99 || a[0] > 9 || a[1] > 99 || a[2] > 9)
+            throw new GradleException("PLUGIN_VERSION $PLUGIN_VERSION on ATAK $ATAK_VERSION does not fit the versionCode scheme")
+        def code = (p[0] * 10000 + p[1] * 100 + p[2]) * 10000 + a[0] * 1000 + a[1] * 10 + a[2]
+        if (code > 2100000000)
+            throw new GradleException("versionCode $code is past Android's limit: PLUGIN_VERSION major stays at or below 20")
+        return code
+    }()
 
     def takdevVersion = '3.+'
 
@@ -211,7 +225,8 @@ android {
             // It is strongly encouraged that plugin developers do not modify the archiveBaseName, version code logic and version 
             // name logic to provide for consistency within the community.   
             setProperty("archivesBaseName", "ATAK-Plugin-" + rootProject.name + "-" + PLUGIN_VERSION + "-" + getVersionName() + "-" + ATAK_VERSION)
-            defaultConfig.versionCode = getVersionCode()
+            // Not getVersionCode(): that is 1 at tak.gov. See PLUGIN_VERSION_CODE above.
+            defaultConfig.versionCode = PLUGIN_VERSION_CODE
             defaultConfig.versionName = PLUGIN_VERSION + " (" + getVersionName() + ") - [" + ATAK_VERSION + "]"
         }
 

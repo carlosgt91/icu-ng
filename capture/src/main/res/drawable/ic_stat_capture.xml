@@ -1,19 +1,42 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Status bar icon: the launcher camera, filled white (status bar icons
-     are drawn as a single-colour mask). -->
+<!-- Status bar icon: the launcher's movie camera at 24 dp (status bar
+     icons are drawn as a single-colour mask). -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
     android:width="24dp"
     android:height="24dp"
-    android:viewportWidth="32"
-    android:viewportHeight="32">
+    android:viewportWidth="256"
+    android:viewportHeight="256">
 
+    <!-- reels -->
     <path
-        android:fillColor="#FFFFFF"
-        android:fillType="evenOdd"
-        android:pathData="M6,9 L10.5,9 L12.5,6 L19.5,6 L21.5,9 L26,9 A3,3 0 0 1 29,12 L29,23 A3,3 0 0 1 26,26 L6,26 A3,3 0 0 1 3,23 L3,12 A3,3 0 0 1 6,9 Z M10.5,17.5 a5.5,5.5 0 1,0 11,0 a5.5,5.5 0 1,0 -11,0 Z" />
+        android:pathData="M15,64 a35,35 0 1,0 70,0 a35,35 0 1,0 -70,0"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="20" />
+    <path
+        android:pathData="M112,64 a48,48 0 1,0 96,0 a48,48 0 1,0 -96,0"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="22" />
 
+    <!-- body -->
     <path
-        android:fillColor="#FFFFFF"
-        android:pathData="M13.2,17.5 a2.8,2.8 0 1,0 5.6,0 a2.8,2.8 0 1,0 -5.6,0" />
+        android:pathData="M32,104 L178,104 A18,18 0 0 1 196,122 L196,226 A18,18 0 0 1 178,244 L32,244 A18,18 0 0 1 14,226 L14,122 A18,18 0 0 1 32,104 Z"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="20"
+        android:strokeLineJoin="round" />
+
+    <!-- lens -->
+    <path
+        android:pathData="M196,150 L242,120 L242,228 L196,198"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="20"
+        android:strokeLineJoin="round"
+        android:strokeLineCap="round" />
+
+    <!-- slot -->
+    <path
+        android:pathData="M54,201 L158,201"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="18"
+        android:strokeLineCap="round" />
 
 </vector>

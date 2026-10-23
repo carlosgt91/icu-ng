@@ -5,6 +5,10 @@
     <!-- description -->
     <string name="app_desc">Sustituto de TAK ICU: streaming de cámara con audio, anunciado en el mapa vía CoT.</string>
 
+    <string name="prefs_summary">Manual de usuario</string>
+    <string name="manual_title">Manual de usuario</string>
+    <string name="manual_summary">Cómo emitir, la app ICU NG Capture, calidad y KLV</string>
+
     <string name="start_stream">Emitir</string>
     <string name="stop_stream">Detener</string>
 
