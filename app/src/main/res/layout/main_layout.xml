@@ -164,7 +164,6 @@
                 android:layout_marginStart="8dp"
                 android:inputType="textUri"
                 android:hint="rtsp://host:puerto/stream"
-                android:text="rtsp://10.0.2.2:8554/icung"
                 style="@style/IcuNgField" />
 
             <Button

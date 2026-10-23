@@ -48,7 +48,9 @@ public final class StreamSettings {
     private static final String KEY_ADAPTIVE = "icung.adaptive_bitrate";
     private static final String KEY_MICROPHONE = "icung.microphone";
 
-    private static final String DEFAULT_URL = "rtsp://10.0.2.2:8554/icung";
+    // Empty until the operator types one or reads a QR: there is no server
+    // address that could be right by default.
+    private static final String DEFAULT_URL = "";
 
     public int protocol = PROTOCOL_RTSP;
     public String url = DEFAULT_URL;

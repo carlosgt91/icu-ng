@@ -11,6 +11,8 @@ Modified for ICU NG to publish a MISB ST 0601 KLV metadata track
 - `utils/RtpTracks.kt`: KLV track id.
 - `rtsp/commands/CommandsManager.kt`: KLV media in the SDP.
 - `rtsp/RtspClient.kt`: SETUP of the KLV track; SPS/PPS wait raised from
-  5 s to 30 s (USB cameras are slow to deliver their first frame).
+  5 s to 30 s (USB cameras are slow to deliver their first frame); two
+  field assignments in the connect coroutine moved into private setters
+  (no behaviour change).
 - `rtsp/RtspSender.kt`: sends KLV as RTP, timestamped with the video frame
   it rides on.

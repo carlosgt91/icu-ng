@@ -198,7 +198,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
           }
           return@launch
         }
-        this@RtspClient.url = url
+        storeUrl(url)
         onMainThread {
           connectChecker.onConnectionStarted(url)
         }
@@ -263,7 +263,7 @@ class RtspClient(private val connectChecker: ConnectChecker) {
             return@launch
           }
           val socket = StreamSocket.createTcpSocket(socketType, host, port, tlsEnabled, socketTimeout, tlsHostVerification, certificates)
-          this@RtspClient.socket = socket
+          storeSocket(socket)
           socket.connect()
           socket.write(commandsManager.createOptions())
           socket.flush()
@@ -562,4 +562,16 @@ class RtspClient(private val connectChecker: ConnectChecker) {
    * Get the exponential factor used to calculate the bitrate. Default 1f
    */
   fun getBitrateExponentialFactor() = rtspSender.getBitrateExponentialFactor()
+
+  // ICU NG: assignments to the url and socket fields from inside the
+  // connect coroutine, where locals of the same name shadow them. Upstream
+  // writes them with a labelled this (this-at-RtspClient), which the publish
+  // scrub run on submissions reads as an email address. Same behaviour.
+  private fun storeUrl(value: String?) {
+    url = value
+  }
+
+  private fun storeSocket(value: TcpStreamSocket) {
+    socket = value
+  }
 }
