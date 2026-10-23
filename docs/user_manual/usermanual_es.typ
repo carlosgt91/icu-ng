@@ -15,7 +15,7 @@
 ][
 ICU NG emite la cámara del dispositivo (vídeo y audio) a un servidor de vídeo por
 RTSP, RTSPS o SRT, con telemetría KLV (MISB ST 0601), y la anuncia en el mapa para
-que el resto de ATAK la vea desde su lista de Vídeo con tu callsign.
+que el resto de ATAK la vea desde el Reproductor de video con tu callsign.
 
 Son dos piezas que se instalan juntas:
 - *Plugin ICU NG* (dentro de ATAK): el botón REC del mapa, el panel de ajustes y el
@@ -33,7 +33,7 @@ pantalla.
 + Instala *ICU NG Capture* y después el plugin *ICU NG*.
 + Abre ICU NG Capture una vez desde el cajón de apps y acepta los permisos de
   cámara, micrófono y notificaciones. (Si no, los pide la primera vez que emitas.)
-+ Abre ATAK y carga el plugin en el gestor de plugins si lo pide.
++ Abre ATAK y carga el plugin en Plugins si lo pide.
 + Abre el panel de ICU NG: bajo el estado debe decir
   _"Emite ICU NG Capture · sigue con la pantalla apagada"_. Si dice
   _"Emite el plugin"_, ATAK no ha encontrado la app: reinstálala y reinicia ATAK.
@@ -121,8 +121,8 @@ vuelve a emitir sola cuando hay conexión.
 
 #tak-slide[
 = El vídeo en el mapa y la telemetría KLV
-- Mientras emites (RTSP o SRT), el resto de usuarios de ATAK ven tu vídeo en su
-  lista de *Vídeo*, con tu *callsign* como nombre. RTSPS no se anuncia: ATAK no
+- Mientras emites (RTSP o SRT), el resto de usuarios de ATAK ven tu vídeo en el
+  *Reproductor de video*, con tu *callsign* como nombre. RTSPS no se anuncia: ATAK no
   sabe abrir ese tipo de enlace.
 - En tu marcador aparece un *cono* con hacia dónde mira la cámara. Con la frontal
   apunta hacia atrás.
@@ -174,6 +174,6 @@ Un QR de _ver_ (`read:`) vale también: ICU NG siempre publica.
 #toolbox.side-by-side(columns: (3fr, 2fr))[
   #image("7.png", width: 100%)
 ][
-  Este manual: Ajustes → Tool Preferences → Specific Tool Preferences → ICU NG.
+  Este manual: Configuraciones → Preferencias de herramientas → Configuración específica de herramienta → ICU NG.
 ]
 ]

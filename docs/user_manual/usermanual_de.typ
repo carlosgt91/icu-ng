@@ -174,6 +174,6 @@ Ein QR-Code zum Anzeigen (`read:`) funktioniert ebenfalls: ICU NG veröffentlich
 #toolbox.side-by-side(columns: (3fr, 2fr))[
   #image("7.png", width: 100%)
 ][
-  Dieses Handbuch: Settings → Tool Preferences → Specific Tool Preferences → ICU NG.
+  Dieses Handbuch: Einstellungen → Werkzeugeinstellungen → Spezifische Werkzeugeinstellungen → ICU NG.
 ]
 ]

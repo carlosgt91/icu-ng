@@ -15,7 +15,7 @@
 ][
 ICU NG diffuse la caméra de l'appareil (vidéo et audio) vers un serveur vidéo via
 RTSP, RTSPS ou SRT, avec télémétrie KLV (MISB ST 0601), et l'annonce sur la carte
-afin que les autres utilisateurs d'ATAK la voient depuis leur liste Video avec votre callsign.
+afin que les autres utilisateurs d'ATAK la voient depuis le Lecteur vidéo avec votre callsign.
 
 Il se compose de deux éléments installés ensemble :
 - *Plugin ICU NG* (dans ATAK) : le bouton REC sur la carte, le panneau de configuration et
@@ -121,8 +121,8 @@ reprend automatiquement la diffusion dès le rétablissement de la connexion.
 
 #tak-slide[
 = La vidéo sur la carte et la télémétrie KLV
-- Pendant la diffusion (RTSP ou SRT), les autres utilisateurs d'ATAK voient votre vidéo dans leur
-  liste *Video*, avec votre *callsign* comme nom. RTSPS n'est pas annoncé : ATAK ne
+- Pendant la diffusion (RTSP ou SRT), les autres utilisateurs d'ATAK voient votre vidéo dans le
+  *Lecteur vidéo*, avec votre *callsign* comme nom. RTSPS n'est pas annoncé : ATAK ne
   sait pas ouvrir ce type de lien.
 - Un *cône* apparaît sur votre marqueur indiquant la direction visée par la caméra. Avec la caméra
   avant, il pointe vers l'arrière.
@@ -174,6 +174,6 @@ Un QR de visionnage (`read:`) convient aussi : ICU NG publie toujours.
 #toolbox.side-by-side(columns: (3fr, 2fr))[
   #image("7.png", width: 100%)
 ][
-  Ce manuel : Settings → Tool Preferences → Specific Tool Preferences → ICU NG.
+  Ce manuel : Réglages → Préférences d'outils → Specific Tool Preferences → ICU NG.
 ]
 ]
