@@ -9,171 +9,171 @@
 )
 
 #tak-slide[
-= Qué es ICU NG
+= What is ICU NG
 #toolbox.side-by-side(columns: (1fr, 8fr))[
 #image("plugin_icon.png", width: 90%)
 ][
-ICU NG emite la cámara del dispositivo (vídeo y audio) a un servidor de vídeo por
-RTSP, RTSPS o SRT, con telemetría KLV (MISB ST 0601), y la anuncia en el mapa para
-que el resto de ATAK la vea desde su lista de Vídeo con tu callsign.
+ICU NG streams the device camera (video and audio) to a video server via
+RTSP, RTSPS, or SRT, with KLV telemetry (MISB ST 0601), and announces it on the map
+so other ATAK users can view it from their Video list under your callsign.
 
-Son dos piezas que se instalan juntas:
-- *Plugin ICU NG* (dentro de ATAK): el botón REC del mapa, el panel de ajustes y el
-  anuncio del vídeo.
-- *App ICU NG Capture*: hace la emisión. Sigue emitiendo con la pantalla apagada o
-  con otra app delante, algo que un plugin no puede hacer por sí solo.
+It consists of two components installed together:
+- *ICU NG Plugin* (inside ATAK): the on-map REC button, the settings panel, and
+  the video announcement.
+- *ICU NG Capture app*: handles the streaming. It keeps streaming with the screen off
+  or with another app in front, something a plugin cannot do on its own.
 
-Sin ICU NG Capture el plugin emite él mismo, pero el vídeo se para al apagar la
-pantalla.
+Without ICU NG Capture, the plugin streams on its own, but video stops when the screen
+is turned off.
 ]
 ]
 
 #tak-slide[
-= Instalación
-+ Instala *ICU NG Capture* y después el plugin *ICU NG*.
-+ Abre ICU NG Capture una vez desde el cajón de apps y acepta los permisos de
-  cámara, micrófono y notificaciones. (Si no, los pide la primera vez que emitas.)
-+ Abre ATAK y carga el plugin en el gestor de plugins si lo pide.
-+ Abre el panel de ICU NG: bajo el estado debe decir
-  _"Emite ICU NG Capture · sigue con la pantalla apagada"_. Si dice
-  _"Emite el plugin"_, ATAK no ha encontrado la app: reinstálala y reinicia ATAK.
+= Installation
++ Install *ICU NG Capture* and then the *ICU NG* plugin.
++ Open ICU NG Capture once from the app drawer and grant permissions for
+  camera, microphone, and notifications. (Otherwise, it prompts the first time you stream.)
++ Open ATAK and load the plugin in Plugins if prompted.
++ Open the ICU NG panel: under the status it should say
+  _"Streaming via ICU NG Capture · continues with screen off"_. If it says
+  _"Streaming via plugin"_, ATAK has not found the app: reinstall it and restart ATAK.
 
 #toolbox.side-by-side(columns: (1fr, 1fr))[
   #image("2.png", width: 95%)
 ][
-  El panel se abre desde el menú de herramientas de ATAK (_ICU NG_) o manteniendo
-  pulsado el botón REC del mapa.
+  The panel is opened from the ATAK tools menu (_ICU NG_) or by long-pressing
+  the on-map REC button.
 ]
 ]
 
 #tak-slide[
-= Emitir desde el mapa: el botón REC
+= Streaming from the map: the REC button
 #toolbox.side-by-side(columns: (1fr, 1fr, 5fr))[
   #image("1.png", width: 95%)
 ][
   #image("4b.png", width: 80%)
 ][
-- *Toque*: empieza o para la emisión con los ajustes guardados, sin abrir el panel.
-- *Mantener pulsado y soltar*: abre el panel.
-- *Mantener pulsado y arrastrar*: mueve el botón arriba o abajo por el borde
-  derecho. La posición se recuerda.
+- *Tap*: starts or stops streaming with the saved settings, without opening the panel.
+- *Press and release*: opens the panel.
+- *Press and drag*: moves the button up or down along the right
+  edge. The position is remembered.
 
-Estados:
-- Anillo blanco: detenido.
-- Anillo ámbar: conectando (o reconectando).
-- Anillo rojo con el punto parpadeando: emitiendo.
-- Si falla (URL mal escrita, servidor caído, credenciales), aparece un aviso con
-  el motivo.
+States:
+- White ring: stopped.
+- Amber ring: connecting (or reconnecting).
+- Red ring with blinking dot: streaming.
+- If it fails (misspelled URL, server down, credentials), a notice appears with
+  the reason.
 ]
 ]
 
 #tak-slide[
-= El panel
+= The panel
 #toolbox.side-by-side(columns: (5fr, 4fr))[
   #image("3.png", width: 100%)
 ][
-- *Vista previa* de la cámara (también mientras emite).
-- *Estado* y quién emite (ICU NG Capture o el plugin).
-- *Cámara*: trasera, frontal o USB. Se puede cambiar emitiendo, sin cortar.
-- *Protocolo y URL* del servidor: `rtsp://`, `rtsps://` o `srt://`.
-- *QR*: lee la URL del servidor de un código QR.
-- *Emitir / Detener*.
-- *KLV*: envía la telemetría con el vídeo.
+- *Camera preview* (also while streaming).
+- *Status* and active streamer (ICU NG Capture or the plugin).
+- *Camera*: back, front, or USB. Can be changed while streaming, without interruption.
+- Server *protocol and URL*: `rtsp://`, `rtsps://`, or `srt://`.
+- *QR*: reads the server URL from a QR code.
+- *Stream / Stop*.
+- *KLV*: sends telemetry with the video.
 
-Todo se guarda al momento: el botón REC emite con lo que muestra el panel.
+Everything is saved immediately: the REC button streams with whatever the panel shows.
 ]
 ]
 
 #tak-slide[
-= Calidad
+= Quality
 #toolbox.side-by-side(columns: (5fr, 4fr))[
   #image("5.png", width: 100%)
 ][
-El botón *Calidad* abre:
-- *Resolución*: 480p, 720p o 1080p.
-- *FPS*: 15, 24 o 30.
-- *Bitrate*: _Auto_ (según resolución) o fijo, de 0,5 a 6 Mbps.
-- *Bitrate adaptativo*: si la red no da para más (VPN, datos móviles), baja la
-  calidad en vez de cortarse, y la sube cuando mejora.
-- *Micrófono*: desactivado envía silencio.
+The *Quality* button opens:
+- *Resolution*: 480p, 720p, or 1080p.
+- *FPS*: 15, 24, or 30.
+- *Bitrate*: _Auto_ (based on resolution) or fixed, from 0.5 to 6 Mbps.
+- *Adaptive bitrate*: if the network is constrained (VPN, mobile data), it lowers
+  quality instead of cutting out, and raises it when conditions improve.
+- *Microphone*: disabled sends silence.
 
-Resolución y fps se aplican al empezar a emitir. Bitrate, adaptativo y micrófono
-cambian al momento, también en plena emisión.
+Resolution and fps apply when streaming starts. Bitrate, adaptive bitrate, and microphone
+change immediately, even while streaming.
 ]
 ]
 
 #tak-slide[
-= Con la pantalla apagada
+= With the screen off
 #toolbox.side-by-side(columns: (1fr, 1fr))[
   #image("6.png", width: 100%)
 ][
-Mientras emite, ICU NG Capture muestra esta notificación fija. La emisión sigue:
-- con la pantalla apagada o el dispositivo en el bolsillo,
-- con otra app delante,
-- incluso si ATAK se cierra (al volver a abrirlo, el plugin la retoma).
+While streaming, ICU NG Capture displays this persistent notification. Streaming continues:
+- with the screen off or the device in your pocket,
+- with another app in front,
+- even if ATAK is closed (reopening it allows the plugin to resume control).
 
-*Detener* en la notificación para la emisión desde cualquier sitio.
+*Stop* in the notification halts streaming from anywhere.
 
-Si el servidor se cae o se pierde la red, la app reintenta cada pocos segundos y
-vuelve a emitir sola cuando hay conexión.
+If the server drops or network connectivity is lost, the app retries every few seconds and
+automatically resumes streaming once connected.
 ]
 ]
 
 #tak-slide[
-= El vídeo en el mapa y la telemetría KLV
-- Mientras emites (RTSP o SRT), el resto de usuarios de ATAK ven tu vídeo en su
-  lista de *Vídeo*, con tu *callsign* como nombre. RTSPS no se anuncia: ATAK no
-  sabe abrir ese tipo de enlace.
-- En tu marcador aparece un *cono* con hacia dónde mira la cámara. Con la frontal
-  apunta hacia atrás.
-- *KLV (MISB ST 0601)*, una vez por segundo: tu posición y altitud, hacia dónde
-  apunta la cámara (rumbo e inclinación, de los sensores del dispositivo), su campo
-  de visión y el punto del terreno al que mira. Los visores compatibles (el propio
-  ATAK, entre otros) lo muestran sobre el vídeo y en el mapa.
-- El KLV va por RTSP/RTSPS. Por SRT no se envía.
-- Con *cámara USB* no se envía KLV: no se sabe hacia dónde apunta.
+= Video on the map and KLV telemetry
+- While streaming (RTSP or SRT), other ATAK users see your video in their
+  *Video* list, with your *callsign* as the name. RTSPS is not announced: ATAK
+  does not support opening that type of link.
+- A *cone* appears on your marker showing where the camera is pointing. With the front
+  camera, it points backwards.
+- *KLV (MISB ST 0601)*, once per second: your position and altitude, camera
+  pointing direction (heading and pitch, from device sensors), field of view,
+  and the ground target point. Compatible viewers (including ATAK itself)
+  display this over the video and on the map.
+- KLV is transmitted over RTSP/RTSPS. It is not sent over SRT.
+- With a *USB camera*, KLV is not sent: camera orientation is unknown.
 ]
 
 #tak-slide[
-= Cámara USB y configuración por QR
+= USB camera and QR configuration
 #toolbox.side-by-side(columns: (1fr, 1fr))[
-*Cámara USB (UVC)*
+*USB camera (UVC)*
 
-Conecta la cámara, elige _USB_ en el panel y emite. La primera vez Android pide
-permiso para que ICU NG Capture use esa cámara. Si se conecta después de empezar,
-la imagen aparece sola al enchufarla.
+Connect the camera, select _USB_ in the panel, and stream. The first time, Android requests
+permission for ICU NG Capture to use that camera. If connected after starting,
+the image appears automatically upon plugging it in.
 ][
-*QR del servidor*
+*Server QR code*
 
-El botón *QR* lee la URL del servidor de un código QR (por ejemplo, el que genera
-el servidor de vídeo) y rellena protocolo, URL y, en SRT, el passphrase:
+The *QR* button reads the server URL from a QR code (for example, generated
+by the video server) and fills in protocol, URL, and, for SRT, the passphrase:
 
-`rtsp://[usuario:clave@]host:puerto/ruta`
+`rtsp://[user:password@]host:port/path`
 
-`rtsps://[usuario:clave@]host:puerto/ruta`
+`rtsps://[user:password@]host:port/path`
 
-`srt://host:puerto?streamid=publish:ruta`
+`srt://host:port?streamid=publish:path`
 
-Un QR de _ver_ (`read:`) vale también: ICU NG siempre publica.
+A "view" QR code (`read:`) works too: ICU NG always publishes.
 ]
 ]
 
 #tak-slide[
-= Problemas frecuentes
-- *El panel dice "Emite el plugin"*: ATAK no ve ICU NG Capture. Instálala (o
-  reinstálala) y reinicia ATAK.
-- *"No se pudo abrir ICU NG Capture"*: la app se ha desinstalado o no responde.
-  Ábrela una vez desde el cajón de apps.
-- *Se queda en ámbar*: el servidor no contesta. Revisa la URL, la red o la VPN.
-- *"Error de autenticación"*: usuario o clave de la URL incorrectos.
-- *"No tiene permiso de cámara"*: Ajustes de Android → Apps → ICU NG Capture →
-  Permisos.
-- *Sin KLV en el receptor*: comprueba que la casilla KLV esté marcada, que el
-  protocolo sea RTSP/RTSPS y que no sea cámara USB. Sin posición GPS no se envía.
+= Common issues
+- *Panel shows "Streaming via plugin"*: ATAK cannot find ICU NG Capture. Install (or
+  reinstall) it and restart ATAK.
+- *"Could not open ICU NG Capture"*: the app has been uninstalled or is not responding.
+  Open it once from the app drawer.
+- *Stays amber*: server is not responding. Check the URL, network, or VPN.
+- *"Authentication error"*: incorrect username or password in the URL.
+- *"ICU NG Capture does not have camera permission"*: Android Settings → Apps → ICU NG Capture →
+  Permissions.
+- *No KLV on receiver*: verify that the KLV checkbox is checked, protocol is
+  RTSP/RTSPS, and it is not a USB camera. It is not sent without GPS fix.
 
 #toolbox.side-by-side(columns: (3fr, 2fr))[
   #image("7.png", width: 100%)
 ][
-  Este manual: Ajustes → Tool Preferences → Specific Tool Preferences → ICU NG.
+  This manual: Settings → Tool Preferences → Specific Tool Preferences → ICU NG.
 ]
 ]
