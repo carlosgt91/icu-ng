@@ -235,7 +235,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     // Every edit in the pane is written straight to the persisted settings,
     // so the REC map button always streams with what the pane shows.
     private void saveInputs() {
-        if (settings == null || streamController.isStreaming()) return;
+        if (settings == null || urlInput == null || streamController.isStreaming()) return;
         settings.protocol = protocolSpinner.getSelectedItemPosition();
         settings.url = urlInput.getText().toString().trim();
         settings.trustAllCerts = trustAllCertsCheckbox.isChecked();
@@ -469,9 +469,12 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             uiService.showPane(templatePane, new IHostUIService.IPaneLifecycleListener() {
                 @Override
                 public void onPaneVisible(boolean visible) {
-                    if (!visible) {
-                        tearDownPane();
-                    }
+                    // ATAK reports the pane invisible for a moment while it
+                    // re-lays it out on rotation, then shows the same view
+                    // again without calling showPane(): tearing down here
+                    // left that view wired to nulled fields. The preview
+                    // follows its Surface on its own; only a real close
+                    // tears the pane down.
                 }
 
                 @Override
