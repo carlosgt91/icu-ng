@@ -16,6 +16,7 @@ import android.util.SizeF;
 import com.atakmap.android.maps.MapView;
 import com.atakmap.coremap.maps.conversion.EGM96;
 import com.atakmap.coremap.maps.coords.GeoPoint;
+import com.atakmap.map.elevation.ElevationManager;
 import com.pedro.rtsp.rtsp.klv.KlvMetadata;
 
 /**
@@ -40,6 +41,12 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
     private static final long INTERVAL_MS = 1000;
     private static final double DEFAULT_HFOV = 60;
     private static final double DEFAULT_VFOV = 45;
+    // Camera height above the ground when terrain data can't tell: a phone
+    // held at chest height.
+    private static final double HANDHELD_HEIGHT_M = 1.5;
+    // Farthest the frame center is placed, also used when the camera looks
+    // at or above the horizon (its axis never meets the ground then).
+    private static final double MAX_FRAME_CENTER_M = 500;
 
     private final Context atakContext;
     private final String sensorName;
@@ -149,7 +156,38 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         t.vfovDeg = vfovDeg;
         t.callsign = MapView.getMapView().getDeviceCallsign();
         t.sensorName = sensorName;
+        if (!Double.isNaN(t.azimuthDeg) && !Double.isNaN(elevation)) {
+            frameCenter(t, p, elevation);
+        }
         snapshot = t;
+    }
+
+    /**
+     * Where the camera axis meets the ground: from the camera's height over
+     * the terrain (ATAK's elevation data, or a handheld default) and how far
+     * below the horizon it points. ATAK shows this as the video's target.
+     */
+    private static void frameCenter(KlvEncoder.Telemetry t, GeoPoint p, double elevationDeg) {
+        double groundHae = ElevationManager.getElevation(p.getLatitude(), p.getLongitude(), null);
+        double height = HANDHELD_HEIGHT_M;
+        if (p.isAltitudeValid() && !Double.isNaN(groundHae)) {
+            double h = p.getAltitude() - groundHae;
+            // GPS altitude is noisy; only trust a plausible height.
+            if (h > 0.5 && h < 3000) height = h;
+        }
+        double distance = elevationDeg < -0.5
+                ? Math.min(height / Math.tan(Math.toRadians(-elevationDeg)), MAX_FRAME_CENTER_M)
+                : MAX_FRAME_CENTER_M;
+        double[] fc = KlvEncoder.destination(t.latitude, t.longitude, t.azimuthDeg, distance);
+        t.frameCenterLat = fc[0];
+        t.frameCenterLon = fc[1];
+        t.slantRange = Math.hypot(distance, height);
+        double fcGroundHae = ElevationManager.getElevation(fc[0], fc[1], null);
+        if (!Double.isNaN(fcGroundHae)) {
+            t.frameCenterMsl = EGM96.getMSL(fc[0], fc[1], fcGroundHae);
+        } else if (!Double.isNaN(t.altitudeMsl)) {
+            t.frameCenterMsl = t.altitudeMsl - height;
+        }
     }
 
     // Magnetic -> true north. Recomputed every 10 min; it barely moves.

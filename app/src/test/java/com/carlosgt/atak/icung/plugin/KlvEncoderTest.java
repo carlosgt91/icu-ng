@@ -82,6 +82,32 @@ public class KlvEncoderTest {
         assertEquals(270.0, unsigned(items.get(5)) * 360.0 / 0xFFFF, 0.01);
     }
 
+    @Test
+    public void frameCenterTagsRoundTrip() {
+        KlvEncoder.Telemetry t = sample();
+        t.frameCenterLat = 40.4170;
+        t.frameCenterLon = -3.7041;
+        t.frameCenterMsl = 650;
+        t.slantRange = 42.5;
+        Map<Integer, byte[]> items = decode(KlvEncoder.encode(t));
+        assertEquals(40.4170, signed(items.get(23)) * 90.0 / 0x7FFFFFFF, 1e-6);
+        assertEquals(-3.7041, signed(items.get(24)) * 180.0 / 0x7FFFFFFF, 1e-6);
+        assertEquals(650, unsigned(items.get(25)) * 19900.0 / 0xFFFF - 900, 0.5);
+        assertEquals(42.5, unsigned(items.get(21)) * 5_000_000.0 / 0xFFFFFFFFL, 0.01);
+    }
+
+    @Test
+    public void destinationMatchesKnownDistances() {
+        // 1 km due north: +0.008993 deg latitude, same longitude
+        double[] n = KlvEncoder.destination(40.0, -3.0, 0, 1000);
+        assertEquals(40.0 + 1000 / 111195.08, n[0], 1e-6);
+        assertEquals(-3.0, n[1], 1e-9);
+        // 1 km due east at 40N: longitude grows by 1000 / (111195 * cos 40)
+        double[] e = KlvEncoder.destination(40.0, -3.0, 90, 1000);
+        assertEquals(-3.0 + 1000 / (111195.08 * Math.cos(Math.toRadians(40))), e[1], 1e-5);
+        assertEquals(40.0, e[0], 1e-4);
+    }
+
     private static Map<Integer, byte[]> decode(byte[] p) {
         Map<Integer, byte[]> items = new LinkedHashMap<>();
         int i = 17;

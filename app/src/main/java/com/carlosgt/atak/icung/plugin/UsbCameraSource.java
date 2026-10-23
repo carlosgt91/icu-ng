@@ -41,6 +41,7 @@ public class UsbCameraSource extends VideoSource {
         if (running) return;
         surfaceTexture.setDefaultBufferSize(getWidth(), getHeight());
         surface = new Surface(surfaceTexture);
+        Log.i(TAG, "start: waiting for a UVC camera " + getWidth() + "x" + getHeight());
         cameraHelper = new CameraHelper();
         cameraHelper.setStateCallback(stateCallback);
         running = true;
@@ -86,11 +87,14 @@ public class UsbCameraSource extends VideoSource {
 
         @Override
         public void onDeviceOpen(UsbDevice device, boolean isFirstOpen) {
+            Log.i(TAG, "UVC device open (permission granted), opening camera");
             if (cameraHelper != null) cameraHelper.openCamera();
         }
 
         @Override
         public void onCameraOpen(UsbDevice device) {
+            Log.i(TAG, "UVC camera open, preview " + (cameraHelper == null ? "-"
+                    : cameraHelper.getPreviewSize()) + ", surface " + (surface != null));
             if (cameraHelper == null) return;
             cameraHelper.startPreview();
             if (surface != null) cameraHelper.addSurface(surface, false);
@@ -98,6 +102,7 @@ public class UsbCameraSource extends VideoSource {
 
         @Override
         public void onCameraClose(UsbDevice device) {
+            Log.i(TAG, "UVC camera closed");
             if (cameraHelper != null && surface != null) cameraHelper.removeSurface(surface);
         }
 

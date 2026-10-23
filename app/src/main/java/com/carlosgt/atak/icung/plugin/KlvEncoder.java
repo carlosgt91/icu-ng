@@ -23,6 +23,10 @@ import java.nio.charset.StandardCharsets;
  *  17  Sensor Vertical FOV         uint16  0..180
  *  18  Sensor Relative Azimuth     uint32  0..360        always 0
  *  19  Sensor Relative Elevation   int32   ±180          camera pitch
+ *  21  Slant Range                 uint32  0..5e6 m      sensor to frame center
+ *  23  Frame Center Latitude       int32   ±90           where the camera looks
+ *  24  Frame Center Longitude      int32   ±180
+ *  25  Frame Center Elevation      uint16  -900..19000 m (MSL)
  *  65  UAS Datalink LS Version     uint8   17
  *   1  Checksum                    uint16  last, see checksum()
  * </pre>
@@ -50,6 +54,11 @@ public final class KlvEncoder {
         public double vfovDeg;
         public String callsign;
         public String sensorName;
+        /** where the camera axis meets the ground; NaN if unknown (tags left out) */
+        public double frameCenterLat = Double.NaN;
+        public double frameCenterLon = Double.NaN;
+        public double frameCenterMsl = Double.NaN;
+        public double slantRange = Double.NaN;
     }
 
     private KlvEncoder() {
@@ -71,14 +80,26 @@ public final class KlvEncoder {
         putItem(value, 13, uint(scaleSigned(t.latitude, 90), 4));
         putItem(value, 14, uint(scaleSigned(t.longitude, 180), 4));
         if (!Double.isNaN(t.altitudeMsl)) {
-            double alt = clamp(t.altitudeMsl, -900, 19000) + 900;
-            putItem(value, 15, uint(Math.round(alt / 19900.0 * 0xFFFF), 2));
+            putItem(value, 15, uint(altitude(t.altitudeMsl), 2));
         }
         putItem(value, 16, uint(scaleUnsigned(clamp(t.hfovDeg, 0, 180), 180, 0xFFFFL), 2));
         putItem(value, 17, uint(scaleUnsigned(clamp(t.vfovDeg, 0, 180), 180, 0xFFFFL), 2));
         putItem(value, 18, uint(0, 4));
         if (!Double.isNaN(t.elevationDeg)) {
             putItem(value, 19, uint(scaleSigned(t.elevationDeg, 180), 4));
+        }
+        if (!Double.isNaN(t.slantRange)) {
+            putItem(value, 21, uint(scaleUnsigned(clamp(t.slantRange, 0, 5_000_000),
+                    5_000_000, 0xFFFFFFFFL), 4));
+        }
+        // ATAK's player fills its "TGT" line (and the target on the map)
+        // from the frame center; without it only the sensor is known.
+        if (!Double.isNaN(t.frameCenterLat) && !Double.isNaN(t.frameCenterLon)) {
+            putItem(value, 23, uint(scaleSigned(t.frameCenterLat, 90), 4));
+            putItem(value, 24, uint(scaleSigned(t.frameCenterLon, 180), 4));
+            if (!Double.isNaN(t.frameCenterMsl)) {
+                putItem(value, 25, uint(altitude(t.frameCenterMsl), 2));
+            }
         }
         putItem(value, 65, uint(LS_VERSION, 1));
 
@@ -106,6 +127,33 @@ public final class KlvEncoder {
      * of the key through the checksum item's length byte, even-indexed
      * bytes weighted as the high byte of a big-endian word. Not a CRC.
      */
+    /**
+     * Point at the given true-north azimuth and ground distance from a start
+     * point, on a sphere. Good to well under a metre over the few hundred
+     * metres a handheld camera's frame center is ever placed at.
+     *
+     * @return {lat, lon} in degrees
+     */
+    public static double[] destination(double latDeg, double lonDeg,
+            double azimuthDeg, double distanceM) {
+        final double r = 6371008.8;
+        double lat1 = Math.toRadians(latDeg);
+        double lon1 = Math.toRadians(lonDeg);
+        double az = Math.toRadians(azimuthDeg);
+        double d = distanceM / r;
+        double lat2 = Math.asin(Math.sin(lat1) * Math.cos(d)
+                + Math.cos(lat1) * Math.sin(d) * Math.cos(az));
+        double lon2 = lon1 + Math.atan2(Math.sin(az) * Math.sin(d) * Math.cos(lat1),
+                Math.cos(d) - Math.sin(lat1) * Math.sin(lat2));
+        double lonDeg2 = (Math.toDegrees(lon2) + 540) % 360 - 180;
+        return new double[] { Math.toDegrees(lat2), lonDeg2 };
+    }
+
+    // uint16 over -900..19000 m, shared by tags 15 and 25
+    private static long altitude(double metresMsl) {
+        return Math.round((clamp(metresMsl, -900, 19000) + 900) / 19900.0 * 0xFFFF);
+    }
+
     static int checksum(byte[] data, int len) {
         int bcc = 0;
         for (int i = 0; i < len; i++) {

@@ -241,7 +241,10 @@ class RtspClient(private val connectChecker: ConnectChecker) {
           if (!commandsManager.videoDisabled) {
             if (!commandsManager.videoInfoReady()) {
               Log.i(TAG, "waiting for sps and pps")
-              withTimeoutOrNull(5000.milliseconds) {
+              // ICU NG: 30 s instead of 5 - a USB camera can take longer
+              // than 5 s (permission dialog, opening, first frame) before
+              // the encoder produces its first SPS/PPS.
+              withTimeoutOrNull(30000.milliseconds) {
                 mutex.lock()
               }
               if (!commandsManager.videoInfoReady()) {
