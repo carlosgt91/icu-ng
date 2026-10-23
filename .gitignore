@@ -12,6 +12,7 @@ local.properties
 captures/
 .externalNativeBuild/
 .cxx/
+.kotlin/
 # preflight scanner reports
 reports/
 # signing keys never live in the repository

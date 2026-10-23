@@ -22,9 +22,9 @@ El plugin solo captura y *publica* (RootEncoder → RTSP/RTSPS/SRT). No es respo
 - Qué funcionalidad concreta se replica primero (probablemente: RTSP/RTSPS básico con audio, antes que SRT/multicast).
 - Punto de integración exacto en el menú nativo de ATAK (extension point) — ver la skill `atak-plugin` para referencia de extension points.
 
-Ver `../CLAUDE.md` para el entorno de build y las convenciones generales del monorepo.
+Repositorio propio (`carlosgt91/icu-ng`), incluido como submódulo `icu-replacement/` en el monorepo `atak-plugins`: ver su `CLAUDE.md` para el entorno de build (contenedor `atak-dev`, SDK de ATAK fuera del repo).
 
-## App compañera ICU NG Capture (`capture/`, rama `icu-ng/app-companera`)
+## App compañera ICU NG Capture (`capture/`)
 
 App Android normal (no plugin, no necesita firma de TAK) que emite desde un servicio en primer plano de tipo `camera|microphone`, para que la emisión siga con la pantalla apagada (ATAK solo tiene servicio de tipo `location` y Android le quita la cámara en segundo plano). El plugin hace de interfaz: `CaptureLink` (plugin) ↔ `CaptureContract` + `ICaptureService.aidl` (app). Los `.aidl` están duplicados en `app/src/main/aidl` y `capture/src/main/aidl`: cambiar ambos a la vez.
 

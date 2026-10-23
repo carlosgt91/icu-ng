@@ -57,7 +57,7 @@ _________________________________________________________________
 ANSPRECHPARTNER
 
 Carlos (carlosgt91)
-https://github.com/carlosgt91/atak-plugins/issues
+https://github.com/carlosgt91/icu-ng/issues
 
 _________________________________________________________________
 ERFORDERLICHE PORTS
