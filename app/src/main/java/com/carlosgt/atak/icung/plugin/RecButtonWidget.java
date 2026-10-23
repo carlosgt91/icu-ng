@@ -137,7 +137,9 @@ public class RecButtonWidget extends MarkerIconWidget implements
         Icon.Builder builder = new Icon.Builder();
         builder.setAnchor(0, 0);
         builder.setColor(Icon.STATE_DEFAULT, Color.WHITE);
-        builder.setSize(sizePx, sizePx);
+        // Icon sizes are in ATAK's density-independent units (it scales them
+        // itself); the bitmap is rendered at sizePx so it stays sharp.
+        builder.setSize((int) SIZE_DP, (int) SIZE_DP);
         builder.setImageUri(Icon.STATE_DEFAULT, uri);
         setIcon(builder.build());
     }

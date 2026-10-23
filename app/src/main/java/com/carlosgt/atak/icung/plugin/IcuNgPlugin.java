@@ -262,6 +262,25 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         saveInputs();
     }
 
+    // The plugin theme gives spinner drop-down rows white text on a white
+    // popup; style the rows explicitly so they are readable.
+    private ArrayAdapter<CharSequence> spinnerAdapter(int arrayRes) {
+        ArrayAdapter<CharSequence> adapter = new ArrayAdapter<CharSequence>(pluginContext,
+                android.R.layout.simple_spinner_item,
+                pluginContext.getResources().getTextArray(arrayRes)) {
+            @Override
+            public View getDropDownView(int position, View convertView,
+                    android.view.ViewGroup parent) {
+                TextView v = (TextView) super.getDropDownView(position, convertView, parent);
+                v.setTextColor(0xFF000000);
+                v.setBackgroundColor(0xFFEEEEEE);
+                return v;
+            }
+        };
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        return adapter;
+    }
+
     private void scanQr() {
         if (streamController.isStreaming()) {
             setStatus(pluginContext.getString(R.string.qr_error_streaming), R.color.status_error);
@@ -333,19 +352,13 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             srtEncryptionSpinner = paneView.findViewById(R.id.srt_encryption_spinner);
             statusText = paneView.findViewById(R.id.status_text);
 
-            ArrayAdapter<CharSequence> protocolAdapter = ArrayAdapter.createFromResource(
-                    pluginContext, R.array.protocol_entries, android.R.layout.simple_spinner_item);
-            protocolAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            ArrayAdapter<CharSequence> protocolAdapter = spinnerAdapter(R.array.protocol_entries);
             protocolSpinner.setAdapter(protocolAdapter);
 
-            ArrayAdapter<CharSequence> encryptionAdapter = ArrayAdapter.createFromResource(
-                    pluginContext, R.array.srt_encryption_entries, android.R.layout.simple_spinner_item);
-            encryptionAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            ArrayAdapter<CharSequence> encryptionAdapter = spinnerAdapter(R.array.srt_encryption_entries);
             srtEncryptionSpinner.setAdapter(encryptionAdapter);
 
-            ArrayAdapter<CharSequence> cameraAdapter = ArrayAdapter.createFromResource(
-                    pluginContext, R.array.camera_entries, android.R.layout.simple_spinner_item);
-            cameraAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+            ArrayAdapter<CharSequence> cameraAdapter = spinnerAdapter(R.array.camera_entries);
             cameraSpinner.setAdapter(cameraAdapter);
 
             settings = StreamSettings.load(atakContext);

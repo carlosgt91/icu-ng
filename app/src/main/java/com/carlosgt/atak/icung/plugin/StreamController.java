@@ -139,6 +139,18 @@ public class StreamController implements ConnectChecker {
             return;
         }
 
+        try {
+            startStream(settings);
+        } catch (RuntimeException e) {
+            // Whatever goes wrong inside the camera/GL/encoder stack, it must
+            // end as an error on screen, never as an exception that takes
+            // ATAK down with it.
+            Log.e(TAG, "no se pudo iniciar la emision", e);
+            failCamera();
+        }
+    }
+
+    private void startStream(StreamSettings settings) {
         ensureStream(settings.protocol == StreamSettings.PROTOCOL_SRT);
         if (settings.protocol == StreamSettings.PROTOCOL_RTSPS) {
             ((RtspStreamClient) stream.getStreamClient())
@@ -194,9 +206,30 @@ public class StreamController implements ConnectChecker {
             ensureStream(StreamSettings.load(atakContext).protocol
                     == StreamSettings.PROTOCOL_SRT);
         }
-        if (stream.isOnPreview()) stream.stopPreview();
         previewSurface = surfaceView;
-        stream.startPreview(surfaceView);
+        try {
+            if (stream.isOnPreview()) stream.stopPreview();
+            stream.startPreview(surfaceView);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "no se pudo iniciar la vista previa", e);
+            previewSurface = null;
+            failCamera();
+        }
+    }
+
+    // Tears everything down after a camera/encoder failure and reports it.
+    private void failCamera() {
+        try {
+            stopStreamOnly();
+        } catch (RuntimeException ignored) {
+            // already broken - only cleanup left
+        }
+        try {
+            releaseStream();
+        } catch (RuntimeException ignored) {
+            stream = null;
+        }
+        setState(State.ERROR, pluginContext.getString(R.string.status_error_camera));
     }
 
     /**
@@ -250,9 +283,13 @@ public class StreamController implements ConnectChecker {
         if (stream != null) releaseStream();
 
         VideoSource videoSource = createVideoSource(StreamSettings.load(atakContext).camera);
+        // The plugin context, not ATAK's: RootEncoder's GL pipeline loads its
+        // shaders from its own raw resources, which live in the plugin APK.
+        // With ATAK's context they don't resolve, GL init fails silently and
+        // every camera ends up with no surface to draw into.
         stream = srt
-                ? new SrtStream(atakContext, this, videoSource, new MicrophoneSource())
-                : new RtspStream(atakContext, this, videoSource, new MicrophoneSource());
+                ? new SrtStream(pluginContext, this, videoSource, new MicrophoneSource())
+                : new RtspStream(pluginContext, this, videoSource, new MicrophoneSource());
         streamIsSrt = srt;
         int rotation = CameraHelper.getCameraOrientation(atakContext);
         stream.prepareVideo(VIDEO_WIDTH, VIDEO_HEIGHT, VIDEO_BITRATE, VIDEO_FPS, 2, rotation);
