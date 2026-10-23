@@ -353,6 +353,9 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             srtPassphraseInput = paneView.findViewById(R.id.srt_passphrase_input);
             srtEncryptionSpinner = paneView.findViewById(R.id.srt_encryption_spinner);
             statusText = paneView.findViewById(R.id.status_text);
+            ((TextView) paneView.findViewById(R.id.mode_text)).setText(
+                    streamController.usesCaptureApp()
+                            ? R.string.mode_capture_app : R.string.mode_plugin);
 
             ArrayAdapter<CharSequence> protocolAdapter = spinnerAdapter(R.array.protocol_entries);
             protocolSpinner.setAdapter(protocolAdapter);

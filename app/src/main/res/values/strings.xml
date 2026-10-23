@@ -25,6 +25,8 @@
     <string name="status_disconnected">Desconectado</string>
     <string name="status_error_connection">Error de conexión</string>
     <string name="status_error_auth">Error de autenticación</string>
+    <string name="mode_capture_app">Emite ICU NG Capture · sigue con la pantalla apagada</string>
+    <string name="mode_plugin">Emite el plugin · instala ICU NG Capture para emitir con la pantalla apagada</string>
     <string name="status_error_capture_app">Error: no se pudo abrir ICU NG Capture</string>
     <string name="status_error_camera">Error: no se pudo abrir la cámara</string>
     <string name="status_error_scheme_format">Error: la URL debe empezar por %1$s://</string>

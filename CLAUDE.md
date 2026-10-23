@@ -26,10 +26,13 @@ Ver `../CLAUDE.md` para el entorno de build y las convenciones generales del mon
 
 ## App compañera ICU NG Capture (`capture/`, rama `icu-ng/app-companera`)
 
-App Android normal (no plugin, no necesita firma de TAK) que emite las cámaras del móvil desde un servicio en primer plano de tipo `camera|microphone`, para que la emisión siga con la pantalla apagada (ATAK solo tiene servicio de tipo `location` y Android le quita la cámara en segundo plano). El plugin hace de interfaz: `CaptureLink` (plugin) ↔ `CaptureContract` (app), mantener ambos iguales.
+App Android normal (no plugin, no necesita firma de TAK) que emite desde un servicio en primer plano de tipo `camera|microphone`, para que la emisión siga con la pantalla apagada (ATAK solo tiene servicio de tipo `location` y Android le quita la cámara en segundo plano). El plugin hace de interfaz: `CaptureLink` (plugin) ↔ `CaptureContract` + `ICaptureService.aidl` (app). Los `.aidl` están duplicados en `app/src/main/aidl` y `capture/src/main/aidl`: cambiar ambos a la vez.
 
-- Órdenes plugin→app: `startActivityForResult` a `ControlActivity` (transparente); la app solo obedece si `getCallingPackage()` es ATAK. Estado app→plugin: broadcasts al paquete de ATAK + latido cada 5 s.
+- Arranque/parada: `startActivityForResult` a `ControlActivity` (transparente; solo así la app puede arrancar un servicio de cámara). La app solo obedece si `getCallingPackage()` es ATAK.
+- Todo lo demás por el servicio enlazado (`ICaptureService`, cada llamada comprueba que viene del uid de ATAK): estado, vista previa del panel (el plugin pasa el `Surface`; `setPreview` es síncrono para que la app suelte la superficie antes de que se destruya), cambio de cámara sin reconexión y paquetes KLV.
+- El KLV se sigue calculando en el plugin (`KlvTelemetry` con `PacketSink`: posición de ATAK, elevación del terreno, sensores) y se pasa a la app 1 vez/s. Verificado que sigue llegando con la pantalla apagada.
+- Cámaras USB también desde la app (`UsbCameraSource` copiada). En reposo la vista previa del panel la sigue dibujando el plugin; al emitir se le pasa a la app y vuelve al parar.
 - ATAK 5.8 (targetSdk 35) solo ve apps que casen con sus `<queries>`; el filtro `VIEW` con mimeType propio en `ControlActivity` es lo que hace visible la app.
-- Sin la app instalada, el plugin emite él mismo como antes. Cámaras USB: siempre desde el plugin.
+- Sin la app instalada el plugin emite él mismo como antes; el panel dice quién emite. Se detecta también si se instala con ATAK abierto.
 - La versión anterior (solo plugin) está en la etiqueta `icu-ng-plugin-solo-v0.1`.
 - Build: `./gradlew :capture:assembleDebug`.

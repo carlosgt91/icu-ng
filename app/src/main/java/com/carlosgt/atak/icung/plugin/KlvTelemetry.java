@@ -31,6 +31,10 @@ import com.pedro.rtsp.rtsp.klv.KlvMetadata;
  * and elevation in any phone orientation. The front camera looks the other
  * way. Not used for USB cameras (see StreamController.startKlv).
  *
+ * When the ICU NG Capture app streams, the packets are handed to it
+ * instead (see {@link PacketSink}): the phone's position and attitude are
+ * still worked out here, where ATAK's self marker and elevation data are.
+ *
  * Sensor callbacks run on the main thread (where the self marker may be
  * read); nextPacket() runs on RootEncoder's sender thread and only reads
  * the volatile snapshot.
@@ -38,6 +42,12 @@ import com.pedro.rtsp.rtsp.klv.KlvMetadata;
 public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplier {
 
     private static final String TAG = "IcuNgKlv";
+
+    /** Receives each packet, once per second, on the main thread. */
+    public interface PacketSink {
+        void onKlvPacket(byte[] packet);
+    }
+
     private static final long INTERVAL_MS = 1000;
     private static final double DEFAULT_HFOV = 60;
     private static final double DEFAULT_VFOV = 45;
@@ -64,6 +74,7 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
     private double elevation = Double.NaN;
     private volatile KlvEncoder.Telemetry snapshot;
     private long lastSentMs;
+    private PacketSink sink;
 
     // Position is sampled on this tick (main thread) rather than from the
     // sensor callback, so KLV keeps flowing on devices with no attitude
@@ -72,6 +83,11 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         @Override
         public void run() {
             updateSnapshot();
+            KlvEncoder.Telemetry t = snapshot;
+            if (sink != null && t != null) {
+                t.timeMicros = System.currentTimeMillis() * 1000L;
+                sink.onKlvPacket(KlvEncoder.encode(t));
+            }
             mainHandler.postDelayed(this, INTERVAL_MS);
         }
     };
@@ -85,6 +101,12 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         this.vfovDeg = fov != null ? fov[1] : DEFAULT_VFOV;
     }
 
+    /** Packets go to the sink instead of this process's RTSP client. */
+    public void start(PacketSink sink) {
+        this.sink = sink;
+        start();
+    }
+
     public void start() {
         sensorManager = (SensorManager) atakContext.getSystemService(Context.SENSOR_SERVICE);
         Sensor sensor = sensorManager == null ? null
@@ -96,7 +118,7 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
             sensorManager = null;
         }
         mainHandler.post(tick);
-        KlvMetadata.setSupplier(this);
+        if (sink == null) KlvMetadata.setSupplier(this);
     }
 
     public void stop() {

@@ -5,27 +5,34 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.PowerManager;
+import android.os.RemoteCallbackList;
+import android.os.RemoteException;
 import android.util.Log;
+import android.view.Surface;
 
 import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.sources.audio.MicrophoneSource;
 import com.pedro.encoder.input.sources.video.Camera2Source;
+import com.pedro.encoder.input.sources.video.VideoSource;
 import com.pedro.library.base.StreamBase;
 import com.pedro.library.rtsp.RtspStream;
 import com.pedro.library.srt.SrtStream;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.SrtStreamClient;
+import com.pedro.rtsp.rtsp.klv.KlvMetadata;
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType;
 
 import java.security.cert.X509Certificate;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
 
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
@@ -36,12 +43,16 @@ import javax.net.ssl.X509TrustManager;
  * ATAK (whose only foreground service is of type location), it keeps both
  * with the screen off or another app in front.
  *
+ * Started (by ControlActivity) for a stream, bound (by the plugin) for
+ * everything else: status, the pane preview and KLV packets. Every binder
+ * call is checked to come from ATAK.
+ *
  * A dropped connection is retried every {@link #RETRY_MS} until stopped -
  * nobody may be looking at the phone to press Emitir again. Only an
  * authentication error ends the stream by itself.
  *
- * Everything runs on the main thread; RootEncoder's ConnectChecker
- * callbacks are posted there.
+ * Everything runs on the main thread: binder calls and RootEncoder's
+ * ConnectChecker callbacks are posted there.
  */
 public class CaptureService extends Service implements ConnectChecker {
 
@@ -52,6 +63,8 @@ public class CaptureService extends Service implements ConnectChecker {
     private static final String CHANNEL_ID = "stream";
     private static final int NOTIFICATION_ID = 1;
     private static final long RETRY_MS = 3000;
+    // A packet older than this describes where the phone was, not is.
+    private static final long KLV_MAX_AGE_MS = 3000;
 
     private static final int VIDEO_WIDTH = 640;
     private static final int VIDEO_HEIGHT = 480;
@@ -79,24 +92,35 @@ public class CaptureService extends Service implements ConnectChecker {
         }
     };
 
-    // Last state, also answered when the service is not running (IDLE).
+    // Process-wide so ControlActivity can report too (a permission refused
+    // before the service ever started).
+    private static final RemoteCallbackList<ICaptureListener> listeners =
+            new RemoteCallbackList<>();
+    private static final Handler mainHandler = new Handler(Looper.getMainLooper());
     private static State state = State.IDLE;
     private static String stateMessage;
+    private static int stateCamera;
 
-    private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private StreamBase stream;
     private Intent config;
     private PowerManager.WakeLock wakeLock;
+    private Surface previewSurface;
+    private int previewWidth;
+    private int previewHeight;
 
-    private final Runnable heartbeat = new Runnable() {
-        @Override
-        public void run() {
-            broadcastStatus(CaptureService.this, state, stateMessage);
-            mainHandler.postDelayed(this, CaptureContract.HEARTBEAT_MS);
-        }
-    };
+    private volatile byte[] klvPacket;
+    private volatile long klvPacketAt;
 
     private final Runnable retry = this::connect;
+
+    // Hands the plugin's latest packet to the RTSP sender once. Called on
+    // the sender thread.
+    private final KlvMetadata.KlvSupplier klvSupplier = () -> {
+        byte[] p = klvPacket;
+        if (p == null) return null;
+        klvPacket = null;
+        return System.currentTimeMillis() - klvPacketAt > KLV_MAX_AGE_MS ? null : p;
+    };
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
@@ -113,8 +137,10 @@ public class CaptureService extends Service implements ConnectChecker {
 
     private void start(Intent intent) {
         goForeground();
-        if (config != null && sameStream(config, intent)) {
-            broadcastStatus(this, state, stateMessage); // already on it
+        if (config != null && sameConnection(config, intent)) {
+            int camera = camera(intent);
+            if (camera != camera(config)) switchCamera(intent);
+            else notifyListeners();
             return;
         }
         releaseStream();
@@ -126,18 +152,40 @@ public class CaptureService extends Service implements ConnectChecker {
                     .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "icung:capture");
             wakeLock.acquire();
         }
-        mainHandler.removeCallbacks(heartbeat);
-        mainHandler.post(heartbeat);
         connect();
     }
 
-    // A camera change while live comes as a new START: rebuilt, viewers
-    // see a short reconnect.
-    private static boolean sameStream(Intent a, Intent b) {
+    private static boolean sameConnection(Intent a, Intent b) {
         String url = a.getStringExtra(CaptureContract.EXTRA_URL);
         return url != null && url.equals(b.getStringExtra(CaptureContract.EXTRA_URL))
-                && a.getIntExtra(CaptureContract.EXTRA_CAMERA, 0)
-                        == b.getIntExtra(CaptureContract.EXTRA_CAMERA, 0);
+                && a.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0)
+                        == b.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0);
+    }
+
+    private static int camera(Intent i) {
+        return i.getIntExtra(CaptureContract.EXTRA_CAMERA, CaptureContract.CAMERA_BACK);
+    }
+
+    // Swaps the source under the running encoder: viewers see the new
+    // camera without the stream reconnecting.
+    private void switchCamera(Intent intent) {
+        config = intent;
+        if (stream == null) return; // waiting to retry: connect() uses config
+        try {
+            stream.changeVideoSource(createVideoSource(camera(intent)));
+            setState(state, stateMessage);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "no se pudo cambiar de camara", e);
+            finish(State.ERROR, getString(R.string.error_camera));
+        }
+    }
+
+    private VideoSource createVideoSource(int camera) {
+        if (camera == CaptureContract.CAMERA_USB) return new UsbCameraSource();
+        Camera2Source source = new Camera2Source(this);
+        // Not running yet, so this only flips which camera start() opens.
+        if (camera == CaptureContract.CAMERA_FRONT) source.switchCamera();
+        return source;
     }
 
     // (Re)builds the whole stream: after a failure RootEncoder's objects are
@@ -148,8 +196,7 @@ public class CaptureService extends Service implements ConnectChecker {
         releaseStream();
         int protocol = config.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0);
         try {
-            Camera2Source camera = new Camera2Source(this);
-            if (config.getIntExtra(CaptureContract.EXTRA_CAMERA, 0) == 1) camera.switchCamera();
+            VideoSource camera = createVideoSource(camera(config));
             stream = protocol == 2
                     ? new SrtStream(this, this, camera, new MicrophoneSource())
                     : new RtspStream(this, this, camera, new MicrophoneSource());
@@ -170,6 +217,17 @@ public class CaptureService extends Service implements ConnectChecker {
                             .setPassphrase(passphrase, SRT_ENCRYPTION_TYPES[enc]);
                 }
             }
+            // Before startStream(): the RTSP client decides whether to
+            // announce the KLV track when it connects, from whether a
+            // supplier is set. RootEncoder's SRT muxer has no data stream.
+            boolean klv = protocol != 2
+                    && config.getBooleanExtra(CaptureContract.EXTRA_KLV, false);
+            KlvMetadata.setSupplier(klv ? klvSupplier : null);
+
+            if (previewSurface != null && previewSurface.isValid()) {
+                stream.startPreview(previewSurface, previewWidth, previewHeight);
+                Log.i(TAG, "vista previa en el panel de ATAK " + previewWidth + "x" + previewHeight);
+            }
             setState(State.CONNECTING, null);
             stream.startStream(config.getStringExtra(CaptureContract.EXTRA_URL));
         } catch (RuntimeException e) {
@@ -186,7 +244,6 @@ public class CaptureService extends Service implements ConnectChecker {
 
     private void finish(State finalState, String message) {
         mainHandler.removeCallbacks(retry);
-        mainHandler.removeCallbacks(heartbeat);
         releaseStream();
         config = null;
         if (wakeLock != null) {
@@ -194,13 +251,16 @@ public class CaptureService extends Service implements ConnectChecker {
             wakeLock = null;
         }
         setState(finalState, message);
+        forgetError();
         stopForeground(STOP_FOREGROUND_REMOVE);
         stopSelf();
     }
 
     private void releaseStream() {
+        if (KlvMetadata.getSupplier() == klvSupplier) KlvMetadata.setSupplier(null);
         if (stream == null) return;
         try {
+            if (stream.isOnPreview()) stream.stopPreview();
             if (stream.isStreaming()) stream.stopStream();
             stream.release();
         } catch (RuntimeException e) {
@@ -219,19 +279,54 @@ public class CaptureService extends Service implements ConnectChecker {
     private void setState(State newState, String message) {
         state = newState;
         stateMessage = message;
-        broadcastStatus(this, newState, message);
-        if (stream != null || newState == State.CONNECTING) {
+        stateCamera = config != null ? camera(config) : stateCamera;
+        notifyListeners();
+        if (config != null) {
             getSystemService(NotificationManager.class).notify(NOTIFICATION_ID, buildNotification());
         }
     }
 
-    static void broadcastStatus(Context context, State s, String message) {
-        for (String pkg : CaptureContract.ATAK_PACKAGES) {
-            Intent status = new Intent(CaptureContract.ACTION_STATUS)
-                    .setPackage(pkg)
-                    .putExtra(CaptureContract.EXTRA_STATE, s.name());
-            if (message != null) status.putExtra(CaptureContract.EXTRA_MESSAGE, message);
-            context.sendBroadcast(status);
+    /** For ControlActivity: a failure before any stream existed. */
+    static void reportError(String message) {
+        state = State.ERROR;
+        stateMessage = message;
+        notifyListeners();
+        forgetError();
+    }
+
+    // An error is told once, to whoever is listening; a plugin that
+    // registers later (ATAK restarted) must not show it as current.
+    private static void forgetError() {
+        if (state != State.ERROR) return;
+        state = State.IDLE;
+        stateMessage = null;
+    }
+
+    private static void notifyListeners() {
+        int n = listeners.beginBroadcast();
+        for (int i = 0; i < n; i++) {
+            try {
+                listeners.getBroadcastItem(i).onStatus(state.name(), stateMessage, stateCamera);
+            } catch (RemoteException ignored) {
+                // gone; RemoteCallbackList drops it
+            }
+        }
+        listeners.finishBroadcast();
+    }
+
+    // Preview changes, on the main thread.
+    private void applyPreview(Surface surface, int width, int height) {
+        if (stream != null && stream.isOnPreview()) stream.stopPreview();
+        previewSurface = surface;
+        previewWidth = width;
+        previewHeight = height;
+        if (stream != null && surface != null && surface.isValid()) {
+            try {
+                stream.startPreview(surface, width, height);
+                Log.i(TAG, "vista previa en el panel de ATAK " + width + "x" + height);
+            } catch (RuntimeException e) {
+                Log.w(TAG, "no se pudo mostrar la vista previa", e);
+            }
         }
     }
 
@@ -277,8 +372,73 @@ public class CaptureService extends Service implements ConnectChecker {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return binder;
     }
+
+    @Override
+    public boolean onUnbind(Intent intent) {
+        // ATAK went away: nothing left to draw the preview into.
+        mainHandler.post(() -> applyPreview(null, 0, 0));
+        return false;
+    }
+
+    // Only ATAK may use the binder: anything else could watch the camera
+    // through setPreview or feed false positions into the KLV.
+    private void checkCaller() {
+        String[] pkgs = getPackageManager().getPackagesForUid(Binder.getCallingUid());
+        if (pkgs != null) {
+            for (String p : pkgs) {
+                if (CaptureContract.isAtak(p)) return;
+            }
+        }
+        throw new SecurityException("ICU NG Capture solo acepta llamadas de ATAK");
+    }
+
+    private final ICaptureService.Stub binder = new ICaptureService.Stub() {
+        @Override
+        public void register(ICaptureListener listener) {
+            checkCaller();
+            listeners.register(listener);
+            mainHandler.post(CaptureService::notifyListeners);
+        }
+
+        @Override
+        public void unregister(ICaptureListener listener) {
+            checkCaller();
+            listeners.unregister(listener);
+        }
+
+        @Override
+        public void setPreview(Surface surface, int width, int height) {
+            checkCaller();
+            CountDownLatch done = new CountDownLatch(1);
+            mainHandler.post(() -> {
+                applyPreview(surface, width, height);
+                done.countDown();
+            });
+            try {
+                done.await(1, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        @Override
+        public void setCamera(int camera) {
+            checkCaller();
+            mainHandler.post(() -> {
+                if (config == null || camera == camera(config)) return;
+                switchCamera(new Intent(config).putExtra(CaptureContract.EXTRA_CAMERA, camera));
+            });
+        }
+
+        @Override
+        public void klv(byte[] packet) {
+            checkCaller();
+            klvPacketAt = System.currentTimeMillis();
+            klvPacket = packet;
+        }
+    };
 
     // Callbacks from a stream that has since been replaced or released are
     // dropped: RootEncoder reports the disconnect of its own cleanup.
@@ -315,10 +475,7 @@ public class CaptureService extends Service implements ConnectChecker {
     @Override
     public void onAuthError() {
         StreamBase from = stream;
-        onMain(from, () -> {
-            releaseStream();
-            finish(State.ERROR, getString(R.string.error_auth));
-        });
+        onMain(from, () -> finish(State.ERROR, getString(R.string.error_auth)));
     }
 
     @Override

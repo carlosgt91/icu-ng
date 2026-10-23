@@ -9,7 +9,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Status broadcasts go to ATAK by package name, which needs it visible. -->
+    <!-- To recognise ATAK as the caller (getPackagesForUid needs it visible). -->
     <queries>
         <package android:name="com.atakmap.app.civ" />
         <package android:name="com.atakmap.app.mil" />
@@ -47,10 +47,16 @@
             </intent-filter>
         </activity>
 
+        <!-- Exported for the plugin to bind (ACTION_BIND); every call is
+             checked to come from ATAK. -->
         <service
             android:name=".CaptureService"
-            android:exported="false"
-            android:foregroundServiceType="camera|microphone" />
+            android:exported="true"
+            android:foregroundServiceType="camera|microphone">
+            <intent-filter>
+                <action android:name="com.carlosgt.icung.capture.BIND" />
+            </intent-filter>
+        </service>
 
     </application>
 

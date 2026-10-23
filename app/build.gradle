@@ -107,6 +107,8 @@ android {
 
     buildFeatures {
         buildConfig = true
+        // ICaptureService: the link to the ICU NG Capture app
+        aidl = true
     }
 
     compileOptions {

@@ -2,18 +2,18 @@ package com.carlosgt.icung.capture;
 
 /**
  * Interface between this app and the ICU NG plugin inside ATAK. The plugin
- * keeps an identical copy (CaptureLink); change both together.
+ * keeps an identical copy of these constants (CaptureLink) and of the AIDL
+ * files; change both together.
  *
- * Plugin -> app: an activity launch of {@link #CONTROL_ACTIVITY} with
+ * Start/stop: an activity launch of {@link #CONTROL_ACTIVITY} with
  * {@link #ACTION_START} or {@link #ACTION_STOP}, made with
  * startActivityForResult so the app can check who is calling. An activity,
- * not a broadcast or service: Android only lets an app start a camera
- * foreground service while it is visible, and the brief transparent
- * activity is what makes it visible.
+ * not a service call: Android only lets an app start a camera foreground
+ * service while it is visible, and the brief transparent activity is what
+ * makes it visible.
  *
- * App -> plugin: {@link #ACTION_STATUS} broadcasts sent to ATAK's package
- * on every change and every {@link #HEARTBEAT_MS} while live, so a plugin
- * that starts after the stream (ATAK restarted) picks it up.
+ * Everything else - status, the pane preview, KLV - goes through
+ * {@link ICaptureService}, which the plugin binds with {@link #ACTION_BIND}.
  */
 public final class CaptureContract {
 
@@ -22,28 +22,27 @@ public final class CaptureContract {
 
     public static final String ACTION_START = PACKAGE + ".START";
     public static final String ACTION_STOP = PACKAGE + ".STOP";
-    public static final String ACTION_STATUS = PACKAGE + ".STATUS";
+    public static final String ACTION_BIND = PACKAGE + ".BIND";
 
     public static final String EXTRA_URL = "url";
     /** 0 RTSP, 1 RTSPS, 2 SRT - as the plugin's StreamSettings */
     public static final String EXTRA_PROTOCOL = "protocol";
-    /** 0 back, 1 front */
+    /** 0 back, 1 front, 2 USB */
     public static final String EXTRA_CAMERA = "camera";
     public static final String EXTRA_TRUST_ALL_CERTS = "trust_all_certs";
     public static final String EXTRA_SRT_PASSPHRASE = "srt_passphrase";
     /** 0 AES-128, 1 AES-192, 2 AES-256 */
     public static final String EXTRA_SRT_ENCRYPTION = "srt_encryption";
+    /** announce a KLV track (RTSP/RTSPS); the packets come via klv() */
+    public static final String EXTRA_KLV = "klv";
     /** display rotation in degrees, for the encoder orientation */
     public static final String EXTRA_ROTATION = "rotation";
 
-    /** IDLE, CONNECTING, STREAMING or ERROR */
-    public static final String EXTRA_STATE = "state";
-    /** user-facing text for ERROR / retries, may be absent */
-    public static final String EXTRA_MESSAGE = "message";
+    public static final int CAMERA_BACK = 0;
+    public static final int CAMERA_FRONT = 1;
+    public static final int CAMERA_USB = 2;
 
-    public static final long HEARTBEAT_MS = 5000;
-
-    /** ATAK packages allowed to control this app and told its status. */
+    /** ATAK packages allowed to control this app. */
     static final String[] ATAK_PACKAGES = { "com.atakmap.app.civ", "com.atakmap.app.mil" };
 
     private CaptureContract() {

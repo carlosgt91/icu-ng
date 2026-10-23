@@ -60,8 +60,7 @@ public class ControlActivity extends Activity {
         if (checkSelfPermission(Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
             startCapture();
         } else {
-            CaptureService.broadcastStatus(this, CaptureService.State.ERROR,
-                    getString(R.string.error_permission));
+            CaptureService.reportError(getString(R.string.error_permission));
             finish();
         }
     }

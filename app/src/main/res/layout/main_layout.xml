@@ -25,6 +25,14 @@
             android:layout_height="wrap_content"
             android:textColor="@color/status_neutral"
             android:textStyle="bold"
+            android:paddingBottom="2dp" />
+
+        <!-- Who streams: the ICU NG Capture app or the plugin itself. -->
+        <TextView
+            android:id="@+id/mode_text"
+            style="@style/IcuNgCaption"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:paddingBottom="4dp" />
 
         <LinearLayout

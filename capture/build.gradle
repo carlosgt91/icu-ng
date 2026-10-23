@@ -18,6 +18,10 @@ android {
         versionName '0.1'
     }
 
+    buildFeatures {
+        aidl = true
+    }
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -32,6 +36,8 @@ android {
 
 dependencies {
     implementation 'com.github.pedroSG94.RootEncoder:library:2.8.1'
+    // USB (UVC) cameras
+    implementation 'com.herohan:UVCAndroid:1.0.13'
 }
 
 // Same RTSP client as the plugin: RootEncoder's, plus the KLV track.
