@@ -28,6 +28,17 @@
     <string name="qr_scan_title">Apunta al QR del servidor de vídeo</string>
     <string name="qr_loaded">Configuración cargada del QR</string>
     <string name="qr_loaded_named">Configuración cargada del QR: %1$s</string>
+    <string name="qr_error_empty">El QR está vacío</string>
+    <string name="qr_error_not_url">El QR no contiene una URL válida</string>
+    <string name="qr_error_no_host">La URL del QR no tiene servidor</string>
+    <string name="qr_error_rtmp">ICU NG no emite por RTMP: genera el QR en RTSP o SRT</string>
+    <string name="qr_error_protocol">Protocolo no soportado: %1$s</string>
+    <string name="qr_error_srt_streamid">La URL SRT del QR no lleva streamid</string>
+    <string name="qr_error_srt_passphrase">El passphrase SRT del QR debe tener entre 10 y 79 caracteres</string>
+    <string name="qr_scan_no_camera">No hay cámara trasera disponible</string>
+    <string name="qr_scan_open_failed">No se pudo abrir la cámara</string>
+    <string name="qr_scan_open_failed_code">No se pudo abrir la cámara (error %1$d)</string>
+    <string name="qr_scan_config_failed">No se pudo configurar la cámara</string>
     <string name="qr_error_streaming">Detén la emisión antes de escanear un QR</string>
     <string name="status_idle">Detenido</string>
     <string name="status_connecting">Conectando…</string>

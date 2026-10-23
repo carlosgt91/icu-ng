@@ -352,7 +352,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         // The scanner needs the camera the pane preview is holding.
         final SurfaceView preview = previewView;
         streamController.detachPreview(preview);
-        QrScanDialog dialog = new QrScanDialog(atakContext,
+        QrScanDialog dialog = new QrScanDialog(atakContext, pluginContext,
                 pluginContext.getString(R.string.qr_scan_title), this::applyQr);
         dialog.setOnDismissListener(d -> {
             if (preview != null && preview == previewView
@@ -363,12 +363,32 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         dialog.show();
     }
 
+    private String qrErrorText(QrStreamUrl.InvalidQrException e) {
+        switch (e.reason) {
+            case EMPTY:
+                return pluginContext.getString(R.string.qr_error_empty);
+            case NO_HOST:
+                return pluginContext.getString(R.string.qr_error_no_host);
+            case RTMP:
+                return pluginContext.getString(R.string.qr_error_rtmp);
+            case UNSUPPORTED_PROTOCOL:
+                return pluginContext.getString(R.string.qr_error_protocol, e.detail);
+            case SRT_NO_STREAMID:
+                return pluginContext.getString(R.string.qr_error_srt_streamid);
+            case SRT_PASSPHRASE_LENGTH:
+                return pluginContext.getString(R.string.qr_error_srt_passphrase);
+            case NOT_A_URL:
+            default:
+                return pluginContext.getString(R.string.qr_error_not_url);
+        }
+    }
+
     private void applyQr(String text) {
         QrStreamUrl.Result qr;
         try {
             qr = QrStreamUrl.parse(text);
-        } catch (IllegalArgumentException e) {
-            setStatus(e.getMessage(), R.color.status_error);
+        } catch (QrStreamUrl.InvalidQrException e) {
+            setStatus(qrErrorText(e), R.color.status_error);
             return;
         }
         if (settings == null || urlInput == null) return; // pane closed meanwhile

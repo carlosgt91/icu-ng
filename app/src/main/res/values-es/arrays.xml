@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="protocol_entries">
+        <item>RTSP</item>
+        <item>RTSPS</item>
+        <item>SRT</item>
+    </string-array>
+
+    <string-array name="srt_encryption_entries">
+        <item>AES-128</item>
+        <item>AES-192</item>
+        <item>AES-256</item>
+    </string-array>
+
+    <string-array name="resolution_entries">
+        <item>480p</item>
+        <item>720p</item>
+        <item>1080p</item>
+    </string-array>
+
+    <string-array name="fps_entries">
+        <item>15 fps</item>
+        <item>24 fps</item>
+        <item>30 fps</item>
+    </string-array>
+
+    <string-array name="bitrate_entries">
+        <item>Auto</item>
+        <item>0,5 Mbps</item>
+        <item>1 Mbps</item>
+        <item>2 Mbps</item>
+        <item>4 Mbps</item>
+        <item>6 Mbps</item>
+    </string-array>
+
+    <string-array name="camera_entries">
+        <item>Trasera</item>
+        <item>Frontal</item>
+        <item>USB</item>
+    </string-array>
+</resources>

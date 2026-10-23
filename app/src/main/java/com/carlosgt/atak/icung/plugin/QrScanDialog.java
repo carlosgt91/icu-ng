@@ -61,6 +61,7 @@ public class QrScanDialog extends Dialog {
     }
 
     private final Callback callback;
+    private final Context pluginContext;
     private final MultiFormatReader reader = new MultiFormatReader();
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
 
@@ -73,9 +74,15 @@ public class QrScanDialog extends Dialog {
     private Surface previewSurface;
     private volatile boolean done;
 
-    public QrScanDialog(Context atakContext, String title, Callback callback) {
+    /**
+     * @param atakContext for the window (a plugin context cannot host one)
+     * @param pluginContext for the plugin's (translated) strings
+     */
+    public QrScanDialog(Context atakContext, Context pluginContext, String title,
+            Callback callback) {
         super(atakContext, android.R.style.Theme_Black_NoTitleBar_Fullscreen);
         this.callback = callback;
+        this.pluginContext = pluginContext;
         requestWindowFeature(Window.FEATURE_NO_TITLE);
 
         Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
@@ -135,7 +142,7 @@ public class QrScanDialog extends Dialog {
         try {
             String cameraId = backCameraId(manager);
             if (cameraId == null) {
-                fail("No hay cámara trasera disponible");
+                fail(pluginContext.getString(R.string.qr_scan_no_camera));
                 return;
             }
             cameraThread = new HandlerThread("IcuNgQrScan");
@@ -164,12 +171,12 @@ public class QrScanDialog extends Dialog {
                 public void onError(CameraDevice camera, int error) {
                     camera.close();
                     cameraDevice = null;
-                    fail("No se pudo abrir la cámara (error " + error + ")");
+                    fail(pluginContext.getString(R.string.qr_scan_open_failed_code, error));
                 }
             }, cameraHandler);
         } catch (CameraAccessException | SecurityException e) {
             Log.w(TAG, "openCamera", e);
-            fail("No se pudo abrir la cámara");
+            fail(pluginContext.getString(R.string.qr_scan_open_failed));
         }
     }
 
@@ -197,12 +204,12 @@ public class QrScanDialog extends Dialog {
 
                         @Override
                         public void onConfigureFailed(CameraCaptureSession s) {
-                            fail("No se pudo configurar la cámara");
+                            fail(pluginContext.getString(R.string.qr_scan_config_failed));
                         }
                     }, cameraHandler);
         } catch (CameraAccessException | IllegalStateException e) {
             Log.w(TAG, "createCaptureSession", e);
-            fail("No se pudo configurar la cámara");
+            fail(pluginContext.getString(R.string.qr_scan_config_failed));
         }
     }
 

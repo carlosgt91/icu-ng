@@ -51,24 +51,42 @@ public final class QrStreamUrl {
         }
     }
 
+    /** Why a QR was rejected; the plugin turns it into translated text. */
+    public enum Reason {
+        EMPTY, NOT_A_URL, NO_HOST, RTMP, UNSUPPORTED_PROTOCOL, SRT_NO_STREAMID,
+        SRT_PASSPHRASE_LENGTH
+    }
+
+    public static final class InvalidQrException extends IllegalArgumentException {
+        public final Reason reason;
+        /** e.g. the unsupported scheme; null if none */
+        public final String detail;
+
+        InvalidQrException(Reason reason, String detail) {
+            super(detail == null ? reason.name() : reason.name() + ": " + detail);
+            this.reason = reason;
+            this.detail = detail;
+        }
+    }
+
     private QrStreamUrl() {
     }
 
-    /** @throws IllegalArgumentException with a user-facing (Spanish) reason */
+    /** @throws InvalidQrException saying why the QR is not usable */
     public static Result parse(String raw) {
         if (raw == null || raw.trim().isEmpty()) {
-            throw new IllegalArgumentException("QR vacío");
+            throw new InvalidQrException(Reason.EMPTY, null);
         }
         String text = raw.trim();
         URI uri;
         try {
             uri = new URI(text);
         } catch (URISyntaxException e) {
-            throw new IllegalArgumentException("El QR no contiene una URL válida");
+            throw new InvalidQrException(Reason.NOT_A_URL, null);
         }
         String scheme = uri.getScheme() == null ? "" : uri.getScheme().toLowerCase();
         if (uri.getHost() == null || uri.getHost().isEmpty()) {
-            throw new IllegalArgumentException("La URL del QR no tiene host");
+            throw new InvalidQrException(Reason.NO_HOST, null);
         }
 
         switch (scheme) {
@@ -80,9 +98,9 @@ public final class QrStreamUrl {
                 return srt(uri);
             case "rtmp":
             case "rtmps":
-                throw new IllegalArgumentException("ICU NG no emite por RTMP: genera el QR en RTSP o SRT");
+                throw new InvalidQrException(Reason.RTMP, null);
             default:
-                throw new IllegalArgumentException("Protocolo no soportado: " + scheme);
+                throw new InvalidQrException(Reason.UNSUPPORTED_PROTOCOL, scheme);
         }
     }
 
@@ -126,10 +144,10 @@ public final class QrStreamUrl {
             }
         }
         if (streamId == null || streamId.isEmpty()) {
-            throw new IllegalArgumentException("La URL SRT del QR no lleva streamid");
+            throw new InvalidQrException(Reason.SRT_NO_STREAMID, null);
         }
         if (passphrase != null && (passphrase.length() < 10 || passphrase.length() > 79)) {
-            throw new IllegalArgumentException("El passphrase SRT del QR debe tener entre 10 y 79 caracteres");
+            throw new InvalidQrException(Reason.SRT_PASSPHRASE_LENGTH, null);
         }
 
         String[] parts = streamId.split(":", -1);
