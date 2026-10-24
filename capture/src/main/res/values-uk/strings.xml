@@ -8,5 +8,6 @@
     <string name="status_retrying">Немає підключення, повторна спроба…</string>
     <string name="error_camera">Помилка: не вдалося відкрити камеру</string>
     <string name="error_auth">Помилка автентифікації</string>
+    <string name="error_auth_missing">Сервер вимагає ім’я користувача та пароль, але в URL їх немає</string>
     <string name="error_permission">Помилка: ICU NG Capture не має дозволу на доступ до камери</string>
 </resources>

@@ -167,6 +167,17 @@ public class CaptureService extends Service implements ConnectChecker {
                         == b.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0);
     }
 
+    // true when the URL carries userinfo (user:password@host), the only place
+    // RootEncoder takes RTSP credentials from
+    private static boolean urlHasCredentials(String url) {
+        if (url == null) return false;
+        int start = url.indexOf("://");
+        if (start < 0) return false;
+        int end = start + 3;
+        while (end < url.length() && "/?#".indexOf(url.charAt(end)) < 0) end++;
+        return url.substring(start + 3, end).indexOf('@') >= 0;
+    }
+
     private static int camera(Intent i) {
         return i.getIntExtra(CaptureContract.EXTRA_CAMERA, CaptureContract.CAMERA_BACK);
     }
@@ -526,7 +537,12 @@ public class CaptureService extends Service implements ConnectChecker {
     @Override
     public void onAuthError() {
         StreamBase from = stream;
-        onMain(from, () -> finish(State.ERROR, getString(R.string.error_auth)));
+        onMain(from, () -> {
+            boolean missing = config != null && !urlHasCredentials(
+                    config.getStringExtra(CaptureContract.EXTRA_URL));
+            finish(State.ERROR, getString(missing
+                    ? R.string.error_auth_missing : R.string.error_auth));
+        });
     }
 
     @Override

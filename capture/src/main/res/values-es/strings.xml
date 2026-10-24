@@ -9,5 +9,6 @@
     <string name="status_retrying">Sin conexión, reintentando…</string>
     <string name="error_camera">Error: no se pudo abrir la cámara</string>
     <string name="error_auth">Error de autenticación</string>
+    <string name="error_auth_missing">El servidor pide usuario y contraseña y la URL no los lleva</string>
     <string name="error_permission">Error: ICU NG Capture no tiene permiso de cámara</string>
 </resources>

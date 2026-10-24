@@ -46,6 +46,7 @@
     <string name="status_disconnected">Disconnected</string>
     <string name="status_error_connection">Connection error</string>
     <string name="status_error_auth">Authentication error</string>
+    <string name="status_error_auth_missing">The server asks for a user and password, but the URL has none</string>
     <string name="mode_capture_app">Streaming via ICU NG Capture · continues with screen off</string>
     <string name="mode_plugin">Streaming via plugin · install ICU NG Capture to stream with screen off</string>
     <string name="status_error_capture_app">Error: could not open ICU NG Capture</string>

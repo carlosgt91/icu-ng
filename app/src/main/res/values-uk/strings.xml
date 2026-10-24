@@ -43,6 +43,7 @@
     <string name="status_disconnected">Відключено</string>
     <string name="status_error_connection">Помилка підключення</string>
     <string name="status_error_auth">Помилка автентифікації</string>
+    <string name="status_error_auth_missing">Сервер вимагає ім’я користувача та пароль, але в URL їх немає</string>
     <string name="mode_capture_app">Трансляція через ICU NG Capture · працює з вимкненим екраном</string>
     <string name="mode_plugin">Трансляція через плагін · встановіть ICU NG Capture для трансляції з вимкненим екраном</string>
     <string name="status_error_capture_app">Помилка: не вдалося відкрити ICU NG Capture</string>

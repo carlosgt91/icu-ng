@@ -43,6 +43,7 @@
     <string name="status_disconnected">Desligado</string>
     <string name="status_error_connection">Erro de ligação</string>
     <string name="status_error_auth">Erro de autenticação</string>
+    <string name="status_error_auth_missing">O servidor pede utilizador e palavra-passe, mas o URL não os inclui</string>
     <string name="mode_capture_app">Transmissão via ICU NG Capture · continua com o ecrã desligado</string>
     <string name="mode_plugin">Transmissão via plugin · instale o ICU NG Capture para transmitir com o ecrã desligado</string>
     <string name="status_error_capture_app">Erro: não foi possível abrir o ICU NG Capture</string>

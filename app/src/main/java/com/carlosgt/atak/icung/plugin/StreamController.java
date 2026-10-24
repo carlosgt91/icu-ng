@@ -812,8 +812,11 @@ public class StreamController implements ConnectChecker {
         Log.w(TAG, "Fallo de autenticacion reportado por RootEncoder");
         onMain(() -> {
             if (!isStreaming()) return;
+            boolean missing = activeSettings != null
+                    && !StreamSettings.urlHasCredentials(activeSettings.url);
             stopStreamOnly();
-            setState(State.ERROR, pluginContext.getString(R.string.status_error_auth));
+            setState(State.ERROR, pluginContext.getString(missing
+                    ? R.string.status_error_auth_missing : R.string.status_error_auth));
         });
     }
 

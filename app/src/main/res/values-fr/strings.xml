@@ -43,6 +43,7 @@
     <string name="status_disconnected">Déconnecté</string>
     <string name="status_error_connection">Erreur de connexion</string>
     <string name="status_error_auth">Erreur d\'authentification</string>
+    <string name="status_error_auth_missing">Le serveur demande un identifiant et un mot de passe, mais l\'URL n\'en contient pas</string>
     <string name="mode_capture_app">Diffusion via ICU NG Capture · continue avec l\'écran éteint</string>
     <string name="mode_plugin">Diffusion via le plugin · installez ICU NG Capture pour diffuser avec l\'écran éteint</string>
     <string name="status_error_capture_app">Erreur : impossible d\'ouvrir ICU NG Capture</string>

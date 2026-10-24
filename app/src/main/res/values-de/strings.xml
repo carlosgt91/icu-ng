@@ -43,6 +43,7 @@
     <string name="status_disconnected">Getrennt</string>
     <string name="status_error_connection">Verbindungsfehler</string>
     <string name="status_error_auth">Authentifizierungsfehler</string>
+    <string name="status_error_auth_missing">Der Server verlangt Benutzername und Passwort, die URL enthält keine</string>
     <string name="mode_capture_app">Stream über ICU NG Capture · läuft bei ausgeschaltetem Bildschirm weiter</string>
     <string name="mode_plugin">Stream über Plugin · ICU NG Capture installieren, um bei ausgeschaltetem Bildschirm zu streamen</string>
     <string name="status_error_capture_app">Fehler: ICU NG Capture konnte nicht geöffnet werden</string>

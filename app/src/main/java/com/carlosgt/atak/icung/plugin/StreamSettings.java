@@ -161,6 +161,17 @@ public final class StreamSettings {
         return scheme + "://" + rest;
     }
 
+    // true when the URL carries userinfo (user:password@host), the only place
+    // RootEncoder takes RTSP credentials from
+    static boolean urlHasCredentials(String url) {
+        if (url == null) return false;
+        int start = url.indexOf("://");
+        if (start < 0) return false;
+        int end = start + 3;
+        while (end < url.length() && "/?#".indexOf(url.charAt(end)) < 0) end++;
+        return url.substring(start + 3, end).indexOf('@') >= 0;
+    }
+
     private static SharedPreferences prefs(Context atakContext) {
         return PreferenceManager.getDefaultSharedPreferences(atakContext);
     }
