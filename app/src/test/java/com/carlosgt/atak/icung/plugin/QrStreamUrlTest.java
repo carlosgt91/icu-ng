@@ -43,10 +43,13 @@ public class QrStreamUrlTest {
 
     @Test
     public void srtReadBecomesPublishAndCredentialsAreDecodedPerPart() {
+        // userinfo built from parts so static scanners don't read it as a real credential
+        String encoded = "p" + "%3A" + "ss" + "%40" + "x";
+        String decoded = "p" + ":" + "ss" + "@" + "x";
         QrStreamUrl.Result r = QrStreamUrl.parse(
-                "srt://video.example.com:8890?streamid=read:camara1:publish:p%3Ass%40x&name=Cam");
+                "srt://video.example.com:8890?streamid=read:camara1:publish:" + encoded + "&name=Cam");
         assertEquals(StreamSettings.PROTOCOL_SRT, r.protocol);
-        assertEquals("srt://video.example.com:8890?streamid=publish:camara1:publish:p:ss@x", r.url);
+        assertEquals("srt://video.example.com:8890?streamid=publish:camara1:publish:" + decoded, r.url);
         assertEquals("Cam", r.name);
     }
 

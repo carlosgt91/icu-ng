@@ -16,3 +16,16 @@ Modified for ICU NG to publish a MISB ST 0601 KLV metadata track
   (no behaviour change).
 - `rtsp/RtspSender.kt`: sends KLV as RTP, timestamped with the video frame
   it rides on.
+
+## Static analysis (tak.gov Fortify)
+
+Fortify reports `utils/CryptoUtils.kt` as Weak Cryptographic Hash (HMAC-SHA1)
+and Insecure Mode of Operation (AES/ECB). Both are left unchanged on purpose:
+
+- They are what SRTP requires (RFC 3711: HMAC-SHA1-80 authentication, and
+  AES Counter Mode, which the class builds block by block on top of a raw AES
+  ECB primitive — ECB is never applied to the payload itself).
+- ICU NG never turns SRTP on, so this code does not run. RTSPS (TLS) and SRT
+  (AES) carry ICU NG's encrypted streams.
+
+Reopen if SRTP is ever enabled, or if a RootEncoder update changes this class.

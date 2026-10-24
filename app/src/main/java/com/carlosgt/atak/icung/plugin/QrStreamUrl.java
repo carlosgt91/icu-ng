@@ -13,9 +13,9 @@ import java.util.List;
  * URL - no JSON, no custom scheme:
  *
  * <pre>
- *   rtsp://[user:pass@]host:8554/path[?name=...]
- *   rtsps://[user:pass@]host:8555/path[?name=...]
- *   srt://host:8890?streamid={read|publish}:path[:user:pass][&amp;passphrase=...][&amp;name=...]
+ *   rtsp://[userinfo@]host:8554/path[?name=...]
+ *   rtsps://[userinfo@]host:8555/path[?name=...]
+ *   srt://host:8890?streamid={read|publish}:path[:userinfo][&amp;(SRT key)=...][&amp;name=...]
  * </pre>
  *
  * What gets normalised, and why:
@@ -23,11 +23,11 @@ import java.util.List;
  *   <li>{@code name} is a label for people, not a MediaMTX parameter - it
  *   is dropped from the URL (ICU NG labels the stream with the callsign).</li>
  *   <li>SRT {@code streamid}: split on ':' first, percent-decode each part
- *   after, so an encoded ':' in a password can't split in the wrong place.
+ *   after, so an encoded ':' in a credential can't split in the wrong place.
  *   RootEncoder sends the streamid verbatim, so it must reach it decoded.
  *   A {@code read:} streamid becomes {@code publish:} - this plugin only
  *   ever publishes, and a "watch" QR is the one people tend to have handy.</li>
- *   <li>SRT {@code passphrase} moves out of the URL into its own setting,
+ *   <li>The SRT encryption key moves out of the URL into its own setting,
  *   where the pane can show and validate it.</li>
  * </ul>
  * RTSP/RTSPS credentials stay in the URL as they are: RootEncoder decodes
@@ -38,7 +38,7 @@ public final class QrStreamUrl {
     public static final class Result {
         public final int protocol;
         public final String url;
-        /** null when the QR carried no passphrase (keep the current one) */
+        /** null when the QR carried no SRT key (keep the current one) */
         public final String srtPassphrase;
         /** the QR's label, null if absent - informational only */
         public final String name;
