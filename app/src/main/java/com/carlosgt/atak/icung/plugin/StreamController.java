@@ -249,15 +249,11 @@ public class StreamController implements ConnectChecker {
         setState(State.CONNECTING, null);
         stream.startStream(settings.url);
 
-        // RTSPS (protocol == 1) nunca se anuncia por CoT/IVideoConnectionManager:
-        // verificado con javap que ConnectionEntryBase.Protocol no tiene una
-        // constante RTSPS (solo RTSP/RTMP/RTMPS/SRT/...), y que Protocol.RTSP.toURL()
-        // siempre construye literalmente "rtsp://" - anunciar RTSPS como
-        // Protocol.RTSP le daria a otros ATAK una URL rota que su cliente de
-        // Video no podria abrir contra un servidor que exige TLS. El push RTSPS
-        // en si sigue funcionando igual - solo se deja de anunciar en el mapa.
-        connectionEntry = settings.protocol == StreamSettings.PROTOCOL_RTSPS
-                ? null : buildConnectionEntry(settings);
+        // Anunciar por CoT/IVideoConnectionManager:
+        // Cuando se emite por RTSPS (TLS hacia puerto 8555), se anuncia como RTSP plano
+        // (puerto 8554 de MediaMTX) para que los demas ATAK puedan reproducirlo directamente
+        // con su visor nativo (que no soporta TLS).
+        connectionEntry = buildConnectionEntry(settings);
         if (connectionEntry != null) {
             videoConnectionManager.addConnectionEntry(connectionEntry);
         }
@@ -287,8 +283,7 @@ public class StreamController implements ConnectChecker {
     private void beginRemote(StreamSettings settings) {
         remoteLive = true;
         activeSettings = settings;
-        connectionEntry = settings.protocol == StreamSettings.PROTOCOL_RTSPS
-                ? null : buildConnectionEntry(settings);
+        connectionEntry = buildConnectionEntry(settings);
         if (connectionEntry != null) {
             videoConnectionManager.addConnectionEntry(connectionEntry);
         }
@@ -625,23 +620,57 @@ public class StreamController implements ConnectChecker {
     }
 
     private ConnectionEntry buildConnectionEntry(StreamSettings settings) {
-        android.net.Uri parsed = android.net.Uri.parse(settings.url);
+        return buildConnectionEntry(settings, pluginContext.getPackageName(), streamAlias());
+    }
+
+    static ConnectionEntry buildConnectionEntry(StreamSettings settings, String packageName, String alias) {
+        java.net.URI uri;
+        try {
+            uri = new java.net.URI(settings.url);
+        } catch (java.net.URISyntaxException | NullPointerException e) {
+            return null;
+        }
+
         boolean srt = settings.protocol == StreamSettings.PROTOCOL_SRT;
+        boolean rtsps = settings.protocol == StreamSettings.PROTOCOL_RTSPS;
         ConnectionEntry.Protocol cotProtocol = srt
                 ? ConnectionEntry.Protocol.SRT
                 : ConnectionEntry.Protocol.RTSP;
 
-        String path = parsed.getQueryParameter("streamid");
+        String path = null;
+        if (uri.getRawQuery() != null) {
+            for (String pair : uri.getRawQuery().split("&")) {
+                int eq = pair.indexOf('=');
+                String key = eq >= 0 ? pair.substring(0, eq) : pair;
+                if ("streamid".equalsIgnoreCase(key) && eq >= 0) {
+                    path = pair.substring(eq + 1);
+                    break;
+                }
+            }
+        }
         if (path == null || path.isEmpty()) {
-            path = parsed.getPath();
+            path = uri.getPath();
         }
 
+        int port = uri.getPort();
+        if (rtsps) {
+            // MediaMTX escucha en 8555 para RTSPS (push TLS) y en 8554 para RTSP (reproduccion TCP).
+            // El visor de ATAK solo soporta RTSP plano (sin TLS). Al emitir por RTSPS en 8555 (o
+            // puerto por defecto), se anuncia RTSP en 8554 para que otros ATAK lo reproduzcan.
+            if (port == 8555 || port <= 0) {
+                port = 8554;
+            }
+        } else if (port <= 0) {
+            port = cotProtocol.getDefaultPort();
+        }
+
+        String host = uri.getHost();
         ConnectionEntry.Builder builder = new ConnectionEntry.Builder()
-                .setUID(pluginContext.getPackageName() + "." + System.currentTimeMillis())
-                .setAlias(streamAlias())
-                .setAddress(parsed.getHost())
-                .setPort(parsed.getPort() > 0 ? parsed.getPort() : cotProtocol.getDefaultPort())
-                .setPath(path)
+                .setUID(packageName + "." + System.currentTimeMillis())
+                .setAlias(alias)
+                .setAddress(host != null ? host : "")
+                .setPort(port)
+                .setPath(path != null ? path : "")
                 .setProtocol(cotProtocol)
                 .setSource(ConnectionEntry.Source.EXTERNAL);
         if (srt && !settings.srtPassphrase.isEmpty()) {
