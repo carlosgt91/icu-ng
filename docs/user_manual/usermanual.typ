@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "ICU NG",
-   plugin-version: "1.1",
+   plugin-version: "1.1.1",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
