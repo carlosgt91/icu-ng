@@ -42,6 +42,7 @@ class H264Packet(track: Int): BasePacket(
 
   init {
     channelIdentifier = track
+    setConstantFrameRate(30)
   }
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer) {

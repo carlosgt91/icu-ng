@@ -38,6 +38,18 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
   private var roc = 0
   protected val TAG = "BasePacket"
 
+  // Synthetic CFR Clock Quantizer state
+  private var cfrFps: Int = 0
+  private var baseRawNanos = -1L
+  private var baseRtpTicks = -1L
+  private var lastRawNanos = -1L
+  private var lastRtpTs = -1L
+  private var lastFrameSlot = -1L
+
+  fun setConstantFrameRate(fps: Int) {
+    this.cfrFps = fps
+  }
+
   fun setCryptoProperties(cryptoProperties: CryptoProperties) {
     cryptoUtils = CryptoUtils(cryptoProperties)
   }
@@ -50,6 +62,11 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
   open fun reset() {
     seq = 0
     ssrc = 0
+    baseRawNanos = -1L
+    baseRtpTicks = -1L
+    lastRawNanos = -1L
+    lastRtpTs = -1L
+    lastFrameSlot = -1L
   }
 
   fun setSSRC(ssrc: Long) {
@@ -70,9 +87,38 @@ abstract class BasePacket(private var clock: Long, private val payloadType: Int)
   }
 
   protected fun updateTimeStamp(buffer: ByteArray, timestamp: Long): Long {
-    val ts = (timestamp / 1000000000L) * clock + ((timestamp % 1000000000L) * clock) / 1000000000L
+    val ts = if (cfrFps > 0 && clock == RtpConstants.clockVideoFrequency) {
+      quantizeCfrTimestamp(timestamp)
+    } else {
+      (timestamp / 1000000000L) * clock + ((timestamp % 1000000000L) * clock) / 1000000000L
+    }
     buffer.setLong(ts, 4, 8)
     return ts
+  }
+
+  private fun quantizeCfrTimestamp(timestampNanos: Long): Long {
+    // If multiple packets (e.g. SPS, PPS, IDR slices or FU-A fragments) belong to the same frame:
+    if (timestampNanos == lastRawNanos && lastRtpTs != -1L) {
+      return lastRtpTs
+    }
+
+    val ticksPerFrame = clock / cfrFps
+    val rawTicks = (timestampNanos / 1000000000L) * clock + ((timestampNanos % 1000000000L) * clock) / 1000000000L
+
+    if (baseRawNanos == -1L || timestampNanos < baseRawNanos || (timestampNanos - lastRawNanos) > 2_000_000_000L) {
+      baseRawNanos = timestampNanos
+      baseRtpTicks = rawTicks
+      lastFrameSlot = 0L
+      lastRtpTs = baseRtpTicks
+    } else {
+      val deltaNanos = timestampNanos - baseRawNanos
+      val targetSlot = (deltaNanos * cfrFps + 500_000_000L) / 1_000_000_000L
+      val nextSlot = if (targetSlot <= lastFrameSlot) lastFrameSlot + 1 else targetSlot
+      lastFrameSlot = nextSlot
+      lastRtpTs = baseRtpTicks + (nextSlot * ticksPerFrame)
+    }
+    lastRawNanos = timestampNanos
+    return lastRtpTs
   }
 
   protected fun updateSeq(buffer: ByteArray) {
