@@ -6,6 +6,21 @@ plugins {
     id("com.android.application")
 }
 
+// Inherit version from the plugin (app/build.gradle) so ICU NG Capture
+// and the plugin ALWAYS share the exact same version automatically.
+def pluginBuildFile = file("${rootDir}/app/build.gradle")
+def capturedVersion = '1.1.5'
+if (pluginBuildFile.isFile()) {
+    def m = (pluginBuildFile.text =~ /PLUGIN_VERSION\s*=\s*["']([^"']+)["']/)
+    if (m.find()) {
+        capturedVersion = m.group(1)
+    }
+}
+def parseVersionCode = { String v ->
+    def p = (v.tokenize('.') + ['0', '0']).collect { it as int }
+    return p[0] * 10000 + p[1] * 100 + p[2]
+}
+
 android {
     namespace 'com.carlosgt.icung.capture'
     compileSdk 36
@@ -14,8 +29,15 @@ android {
         applicationId 'com.carlosgt.icung.capture'
         minSdk 26
         targetSdk 34
-        versionCode 10105
-        versionName '1.1.5'
+        versionCode parseVersionCode(capturedVersion)
+        versionName capturedVersion
+        setProperty("archivesBaseName", "ICU-NG-Capture-" + capturedVersion)
+    }
+
+    applicationVariants.all { variant ->
+        variant.outputs.all {
+            outputFileName = "ICU-NG-Capture-${capturedVersion}-${variant.buildType.name}.apk"
+        }
     }
 
     buildFeatures {
