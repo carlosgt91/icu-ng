@@ -3,6 +3,7 @@ package com.carlosgt.atak.icung.plugin;
 import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -10,7 +11,11 @@ import android.util.Log;
 import android.view.SurfaceView;
 import android.view.WindowManager;
 
+import com.atakmap.android.cot.CotMapComponent;
+import com.atakmap.android.ipc.AtakBroadcast;
 import com.atakmap.android.maps.MapView;
+import com.atakmap.comms.ReportingRate;
+import com.atakmap.coremap.cot.event.CotDetail;
 import com.pedro.common.ConnectChecker;
 import com.pedro.encoder.input.sources.audio.MicrophoneSource;
 import com.pedro.encoder.input.sources.video.Camera2Source;
@@ -256,6 +261,7 @@ public class StreamController implements ConnectChecker {
         connectionEntry = buildConnectionEntry(settings);
         if (connectionEntry != null) {
             videoConnectionManager.addConnectionEntry(connectionEntry);
+            publishCotDetail(connectionEntry);
         }
         sensorFovController.refresh(true, settings.camera);
     }
@@ -286,6 +292,7 @@ public class StreamController implements ConnectChecker {
         connectionEntry = buildConnectionEntry(settings);
         if (connectionEntry != null) {
             videoConnectionManager.addConnectionEntry(connectionEntry);
+            publishCotDetail(connectionEntry);
         }
         sensorFovController.refresh(true, settings.camera);
         startKlv(settings.camera);
@@ -300,6 +307,7 @@ public class StreamController implements ConnectChecker {
             videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
             connectionEntry = null;
         }
+        clearCotDetail();
         activeSettings = null;
         sensorFovController.refresh(false);
     }
@@ -476,13 +484,20 @@ public class StreamController implements ConnectChecker {
             return;
         }
         if (stream == null) return; // picked up from the settings on next build
-        stream.changeVideoSource(createVideoSource(camera));
+        try {
+            stream.changeVideoSource(createVideoSource(camera));
+        } catch (RuntimeException e) {
+            Log.e(TAG, "error cambiando camara", e);
+            failCamera();
+            return;
+        }
         if (isStreaming()) sensorFovController.refresh(true, camera);
         // The KLV track is already negotiated; just describe the new camera.
-        if (klvTelemetry != null) startKlv(camera);
+        if (isStreaming() && (activeSettings == null || activeSettings.klv)) startKlv(camera);
     }
 
     public void dispose() {
+        clearCotDetail();
         ((Application) atakContext.getApplicationContext())
                 .unregisterActivityLifecycleCallbacks(lifecycle);
         setKeepScreenOn(false);
@@ -612,6 +627,7 @@ public class StreamController implements ConnectChecker {
             videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
             connectionEntry = null;
         }
+        clearCotDetail();
         activeSettings = null;
         stopKlv();
         sensorFovController.refresh(false);
@@ -689,6 +705,69 @@ public class StreamController implements ConnectChecker {
         String callsign = MapView.getMapView().getDeviceCallsign();
         return callsign == null || callsign.isEmpty()
                 ? pluginContext.getString(R.string.app_name) : callsign;
+    }
+
+    public static CotDetail createCotDetail(ConnectionEntry entry) {
+        if (entry == null) return null;
+        CotDetail videoDetail = new CotDetail("__video");
+        String playbackUrl = SelfVideoDetailHandler.buildPlaybackUrl(entry);
+        videoDetail.setAttribute("url", playbackUrl);
+        if (entry.getUID() != null && !entry.getUID().isEmpty()) {
+            videoDetail.setAttribute("uid", entry.getUID());
+        }
+        if (entry.getAlias() != null && !entry.getAlias().isEmpty()) {
+            videoDetail.setAttribute("sensor", entry.getAlias());
+        }
+
+        CotDetail ceDetail = new CotDetail("ConnectionEntry");
+        ceDetail.setAttribute("address", entry.getAddress() != null ? entry.getAddress() : "");
+        ceDetail.setAttribute("port", String.valueOf(entry.getPort()));
+        ceDetail.setAttribute("path", entry.getPath() != null ? entry.getPath() : "");
+        String protoStr = (entry.getProtocol() == ConnectionEntry.Protocol.SRT) ? "srt" : "rtsp";
+        ceDetail.setAttribute("protocol", protoStr);
+        ceDetail.setAttribute("rtspReliable", "1");
+        if (entry.getAlias() != null && !entry.getAlias().isEmpty()) {
+            ceDetail.setAttribute("alias", entry.getAlias());
+        }
+        if (entry.getUID() != null && !entry.getUID().isEmpty()) {
+            ceDetail.setAttribute("uid", entry.getUID());
+        }
+        videoDetail.addChild(ceDetail);
+        return videoDetail;
+    }
+
+    private void publishCotDetail(ConnectionEntry entry) {
+        CotDetail detail = createCotDetail(entry);
+        if (detail == null) return;
+        try {
+            CotMapComponent cmc = CotMapComponent.getInstance();
+            if (cmc != null) {
+                cmc.addAdditionalDetail("__video", detail);
+            }
+            AtakBroadcast ab = AtakBroadcast.getInstance();
+            if (ab != null) {
+                ab.sendBroadcast(new Intent(ReportingRate.REPORT_LOCATION)
+                        .putExtra("reason", "ICU NG streaming started"));
+            }
+        } catch (Exception | LinkageError e) {
+            Log.w(TAG, "no se pudo registrar __video en CotMapComponent", e);
+        }
+    }
+
+    private void clearCotDetail() {
+        try {
+            CotMapComponent cmc = CotMapComponent.getInstance();
+            if (cmc != null) {
+                cmc.removeAdditionalDetail("__video");
+            }
+            AtakBroadcast ab = AtakBroadcast.getInstance();
+            if (ab != null) {
+                ab.sendBroadcast(new Intent(ReportingRate.REPORT_LOCATION)
+                        .putExtra("reason", "ICU NG streaming stopped"));
+            }
+        } catch (Exception | LinkageError e) {
+            Log.w(TAG, "no se pudo retirar __video de CotMapComponent", e);
+        }
     }
 
     private void setState(State newState, String message) {

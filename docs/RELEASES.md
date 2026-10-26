@@ -9,7 +9,8 @@ next version exists. A resubmission is always a new version.
 | 1.1   | — | 2026-10-24 | No return filed |
 | 1.1.1 | 101015080 | 2026-10-25 | **Build failed** (returned 2026-10-25) |
 | 1.1.2 | 101025080 | 2026-10-26 | Superceded before submission |
-| 1.1.3 | 101035080 | 2026-10-26 | Pending |
+| 1.1.3 | 101035080 | 2026-10-26 | Superceded before submission |
+| 1.1.4 | 101045080 | 2026-10-26 | Pending |
 
 ## 1.1.1 — rejected
 
@@ -52,3 +53,11 @@ Fortify also flagged two items (no APK, so they did not block on their own):
   of `<__video>`.
 - Fixes receiving ATAK clients showing disabled/unresponsive 'Play' (Reproducir)
   buttons on the map marker when streaming.
+
+## 1.1.4
+
+- Injects `<__video>` directly into ATAK's SA/PPLI beacon using `CotMapComponent.getInstance().addAdditionalDetail()`
+  and broadcasts `REPORT_LOCATION` on stream start/stop.
+  (In ATAK, `CotDetailManager` only handles external drawing layers and is never called for the self marker).
+- Guarantees immediate CoT broadcast with `<__video>` upon streaming without waiting for periodic location cycle.
+- Fixes KLV telemetry recovery when switching cameras mid-stream from USB to phone camera.

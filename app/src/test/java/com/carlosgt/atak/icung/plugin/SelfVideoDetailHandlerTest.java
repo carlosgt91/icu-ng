@@ -103,4 +103,33 @@ public class SelfVideoDetailHandlerTest {
         assertFalse(handled);
         assertEquals(0, rootDetail.childCount());
     }
+
+    @Test
+    public void createCotDetailBuildsVideoTagWithConnectionEntry() {
+        ConnectionEntry entry = new ConnectionEntry.Builder()
+                .setAddress("video.example.com")
+                .setPort(8554)
+                .setPath("/live/testcam")
+                .setProtocol(ConnectionEntry.Protocol.RTSP)
+                .setAlias("mycam")
+                .setUID("uid.123")
+                .build();
+
+        com.atakmap.coremap.cot.event.CotDetail videoDetail = StreamController.createCotDetail(entry);
+        assertNotNull(videoDetail);
+        assertEquals("__video", videoDetail.getElementName());
+        assertEquals("rtsp://video.example.com:8554/live/testcam?tcp", videoDetail.getAttribute("url"));
+        assertEquals("mycam", videoDetail.getAttribute("sensor"));
+        assertEquals("uid.123", videoDetail.getAttribute("uid"));
+
+        assertEquals(1, videoDetail.childCount());
+        com.atakmap.coremap.cot.event.CotDetail ceDetail = videoDetail.getChild(0);
+        assertNotNull(ceDetail);
+        assertEquals("ConnectionEntry", ceDetail.getElementName());
+        assertEquals("1", ceDetail.getAttribute("rtspReliable"));
+        assertEquals("video.example.com", ceDetail.getAttribute("address"));
+        assertEquals("8554", ceDetail.getAttribute("port"));
+        assertEquals("/live/testcam", ceDetail.getAttribute("path"));
+        assertEquals("rtsp", ceDetail.getAttribute("protocol"));
+    }
 }

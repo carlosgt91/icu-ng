@@ -188,6 +188,12 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         if (videoDetailHandler != null) {
             CotDetailManager.getInstance().unregisterHandler(videoDetailHandler);
         }
+        try {
+            com.atakmap.android.cot.CotMapComponent cmc = com.atakmap.android.cot.CotMapComponent.getInstance();
+            if (cmc != null) {
+                cmc.removeAdditionalDetail("__video");
+            }
+        } catch (Exception | LinkageError ignored) {}
         if (sensorFovController != null) {
             sensorFovController.stop();
         }
