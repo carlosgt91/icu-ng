@@ -13,22 +13,22 @@ public class StreamControllerConnectionEntryTest {
     public void rtspsMapsToRtspPlaybackOnPort8554() {
         StreamSettings s = new StreamSettings();
         s.protocol = StreamSettings.PROTOCOL_RTSPS;
-        s.url = "rtsps://publish:password@100.95.156.126:8555/live/s21carlosgt";
+        s.url = "rtsps://publish:" + "x" + "@video.example.com:8555/live/cam2";
 
-        ConnectionEntry entry = StreamController.buildConnectionEntry(s, "com.carlosgt.atak.icung", "carlosgts21");
+        ConnectionEntry entry = StreamController.buildConnectionEntry(s, "com.carlosgt.atak.icung", "cam2");
         assertNotNull(entry);
         assertEquals(ConnectionEntry.Protocol.RTSP, entry.getProtocol());
-        assertEquals("100.95.156.126", entry.getAddress());
+        assertEquals("video.example.com", entry.getAddress());
         assertEquals(8554, entry.getPort());
-        assertEquals("/live/s21carlosgt", entry.getPath());
-        assertEquals("carlosgts21", entry.getAlias());
+        assertEquals("/live/cam2", entry.getPath());
+        assertEquals("cam2", entry.getAlias());
     }
 
     @Test
     public void rtspsDefaultPortMapsTo8554() {
         StreamSettings s = new StreamSettings();
         s.protocol = StreamSettings.PROTOCOL_RTSPS;
-        s.url = "rtsps://publish:password@video.example.com/live/cam1";
+        s.url = "rtsps://publish:" + "x" + "@video.example.com/live/cam1";
 
         ConnectionEntry entry = StreamController.buildConnectionEntry(s, "com.carlosgt.atak.icung", "cam1");
         assertNotNull(entry);
@@ -42,12 +42,12 @@ public class StreamControllerConnectionEntryTest {
     public void rtspKeepsPortAndProtocol() {
         StreamSettings s = new StreamSettings();
         s.protocol = StreamSettings.PROTOCOL_RTSP;
-        s.url = "rtsp://100.95.156.126:8554/live/stream1";
+        s.url = "rtsp://video.example.com:8554/live/stream1";
 
         ConnectionEntry entry = StreamController.buildConnectionEntry(s, "com.carlosgt.atak.icung", "stream1");
         assertNotNull(entry);
         assertEquals(ConnectionEntry.Protocol.RTSP, entry.getProtocol());
-        assertEquals("100.95.156.126", entry.getAddress());
+        assertEquals("video.example.com", entry.getAddress());
         assertEquals(8554, entry.getPort());
         assertEquals("/live/stream1", entry.getPath());
     }

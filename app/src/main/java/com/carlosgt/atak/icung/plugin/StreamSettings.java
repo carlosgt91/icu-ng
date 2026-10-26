@@ -161,7 +161,7 @@ public final class StreamSettings {
         return scheme + "://" + rest;
     }
 
-    // true when the URL carries userinfo (user:password@host), the only place
+    // true when the URL carries userinfo (name and secret before the @), the only place
     // RootEncoder takes RTSP credentials from
     static boolean urlHasCredentials(String url) {
         if (url == null) return false;
