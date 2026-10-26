@@ -14,8 +14,8 @@ android {
         applicationId 'com.carlosgt.icung.capture'
         minSdk 26
         targetSdk 34
-        versionCode 10101
-        versionName '1.1.1'
+        versionCode 10105
+        versionName '1.1.5'
     }
 
     buildFeatures {
