@@ -10,7 +10,8 @@ next version exists. A resubmission is always a new version.
 | 1.1.1 | 101015080 | 2026-10-25 | **Build failed** (returned 2026-10-25) |
 | 1.1.2 | 101025080 | 2026-10-26 | Superceded before submission |
 | 1.1.3 | 101035080 | 2026-10-26 | Superceded before submission |
-| 1.1.4 | 101045080 | 2026-10-26 | Pending |
+| 1.1.4 | 101045080 | 2026-10-26 | Superceded |
+| 1.1.5 | 101055080 | 2026-10-26 | Pending |
 
 ## 1.1.1 — rejected
 
@@ -60,4 +61,10 @@ Fortify also flagged two items (no APK, so they did not block on their own):
   and broadcasts `REPORT_LOCATION` on stream start/stop.
   (In ATAK, `CotDetailManager` only handles external drawing layers and is never called for the self marker).
 - Guarantees immediate CoT broadcast with `<__video>` upon streaming without waiting for periodic location cycle.
+
+## 1.1.5
+
+- Adds dedicated Quality settings page with back navigation, hiding main controls for a cleaner pane interface.
+- Adds H.265 (HEVC) video codec selection alongside standard H.264 (AVC) to halve bandwidth usage on degraded/tactical radio links.
+- Adds 250 kbps ultra-low bitrate preset for narrow-band MANET/SATCOM environments.
 - Fixes KLV telemetry recovery when switching cameras mid-stream from USB to phone camera.
