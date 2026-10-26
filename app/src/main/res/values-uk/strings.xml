@@ -16,11 +16,15 @@
     <string name="srt_encryption_caption">Шифрування</string>
     <string name="camera_caption">Камера</string>
     <string name="quality_button">Якість</string>
+    <string name="back_button">← Назад</string>
+    <string name="quality_title">Налаштування якості</string>
+    <string name="codec_caption">Кодек</string>
     <string name="resolution_caption">Роздільна здатність</string>
+    <string name="fps_caption">FPS</string>
     <string name="bitrate_caption">Бітрейт</string>
     <string name="adaptive_bitrate_checkbox">Адаптивний бітрейт (знижується за слабкої мережі)</string>
     <string name="microphone_checkbox">Мікрофон</string>
-    <string name="quality_note">Роздільна здатність і fps застосовуються на початку трансляції; бітрейт і мікрофон — одразу.</string>
+    <string name="quality_note">Роздільна здатність, fps і кодек застосовуються на початку трансляції; бітрейт і мікрофон — одразу.</string>
     <string name="klv_checkbox">Надсилати телеметрію KLV (MISB 0601) · не для USB-камери</string>
     <string name="qr_scan_title">Наведіть на QR-код відеосервера</string>
     <string name="qr_loaded">Конфігурацію завантажено з QR</string>

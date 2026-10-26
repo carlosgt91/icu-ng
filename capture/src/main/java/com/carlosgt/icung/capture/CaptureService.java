@@ -19,6 +19,7 @@ import android.util.Log;
 import android.view.Surface;
 
 import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.encoder.input.sources.audio.MicrophoneSource;
 import com.pedro.encoder.input.sources.video.Camera2Source;
 import com.pedro.encoder.input.sources.video.VideoSource;
@@ -164,7 +165,9 @@ public class CaptureService extends Service implements ConnectChecker {
         String url = a.getStringExtra(CaptureContract.EXTRA_URL);
         return url != null && url.equals(b.getStringExtra(CaptureContract.EXTRA_URL))
                 && a.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0)
-                        == b.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0);
+                        == b.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0)
+                && a.getIntExtra(CaptureContract.EXTRA_VIDEO_CODEC, 0)
+                        == b.getIntExtra(CaptureContract.EXTRA_VIDEO_CODEC, 0);
     }
 
     // true when the URL carries userinfo (user:password@host), the only place
@@ -217,6 +220,12 @@ public class CaptureService extends Service implements ConnectChecker {
             stream = protocol == 2
                     ? new SrtStream(this, this, camera, microphone)
                     : new RtspStream(this, this, camera, microphone);
+            int codec = config.getIntExtra(CaptureContract.EXTRA_VIDEO_CODEC, CaptureContract.CODEC_H264);
+            if (codec == CaptureContract.CODEC_H265) {
+                stream.setVideoCodec(VideoCodec.H265);
+            } else {
+                stream.setVideoCodec(VideoCodec.H264);
+            }
             int bitrate = config.getIntExtra(CaptureContract.EXTRA_BITRATE, VIDEO_BITRATE);
             stream.prepareVideo(config.getIntExtra(CaptureContract.EXTRA_WIDTH, VIDEO_WIDTH),
                     config.getIntExtra(CaptureContract.EXTRA_HEIGHT, VIDEO_HEIGHT), bitrate,

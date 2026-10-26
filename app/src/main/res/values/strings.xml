@@ -18,11 +18,15 @@
     <string name="srt_encryption_caption">Encryption</string>
     <string name="camera_caption">Camera</string>
     <string name="quality_button">Quality</string>
+    <string name="back_button">← Back</string>
+    <string name="quality_title">Quality Settings</string>
+    <string name="codec_caption">Codec</string>
     <string name="resolution_caption">Resolution</string>
+    <string name="fps_caption">FPS</string>
     <string name="bitrate_caption">Bitrate</string>
     <string name="adaptive_bitrate_checkbox">Adaptive bitrate (reduces if network is constrained)</string>
     <string name="microphone_checkbox">Microphone</string>
-    <string name="quality_note">Resolution and fps apply when streaming starts; bitrate and microphone, immediately.</string>
+    <string name="quality_note">Resolution, fps and codec apply when streaming starts; bitrate and microphone, immediately.</string>
     <string name="klv_checkbox">Send KLV telemetry (MISB 0601) · not with USB camera</string>
     <string name="qr_button" translatable="false">QR</string>
     <string name="qr_scan_title">Point at the video server QR code</string>

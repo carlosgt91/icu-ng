@@ -14,6 +14,7 @@
 
     <string-array name="bitrate_entries">
         <item>Авто</item>
+        <item>250 кбіт/с</item>
         <item>0,5 Mbps</item>
         <item>1 Mbps</item>
         <item>2 Mbps</item>

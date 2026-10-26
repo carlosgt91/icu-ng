@@ -43,6 +43,7 @@ public class CaptureLink {
 
     private static final String EXTRA_URL = "url";
     private static final String EXTRA_PROTOCOL = "protocol";
+    private static final String EXTRA_VIDEO_CODEC = "video_codec";
     private static final String EXTRA_CAMERA = "camera";
     private static final String EXTRA_TRUST_ALL_CERTS = "trust_all_certs";
     private static final String EXTRA_SRT_PASSPHRASE = "srt_passphrase";
@@ -165,6 +166,7 @@ public class CaptureLink {
         Intent intent = command(ACTION_START)
                 .putExtra(EXTRA_URL, s.url)
                 .putExtra(EXTRA_PROTOCOL, s.protocol)
+                .putExtra(EXTRA_VIDEO_CODEC, s.codec)
                 .putExtra(EXTRA_CAMERA, s.camera)
                 .putExtra(EXTRA_TRUST_ALL_CERTS, s.trustAllCerts)
                 .putExtra(EXTRA_SRT_PASSPHRASE, s.srtPassphrase)

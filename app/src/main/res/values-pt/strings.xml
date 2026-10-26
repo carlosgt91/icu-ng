@@ -16,11 +16,15 @@
     <string name="srt_encryption_caption">Encriptação</string>
     <string name="camera_caption">Câmara</string>
     <string name="quality_button">Qualidade</string>
+    <string name="back_button">← Voltar</string>
+    <string name="quality_title">Definições de qualidade</string>
+    <string name="codec_caption">Codec</string>
     <string name="resolution_caption">Resolução</string>
+    <string name="fps_caption">FPS</string>
     <string name="bitrate_caption">Taxa de bits</string>
     <string name="adaptive_bitrate_checkbox">Taxa de bits adaptativa (reduz se a rede estiver congestionada)</string>
     <string name="microphone_checkbox">Microfone</string>
-    <string name="quality_note">A resolução e os fps aplicam-se ao iniciar a transmissão; a taxa de bits e o microfone, imediatamente.</string>
+    <string name="quality_note">A resolução, os fps e o codec aplicam-se ao iniciar a transmissão; a taxa de bits e o microfone, imediatamente.</string>
     <string name="klv_checkbox">Enviar telemetria KLV (MISB 0601) · não disponível com câmara USB</string>
     <string name="qr_scan_title">Aponte para o código QR do servidor de vídeo</string>
     <string name="qr_loaded">Configuração carregada a partir do QR</string>

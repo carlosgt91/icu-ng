@@ -11,8 +11,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent" />
 
-    <!-- Scrolls when the controls (quality submenu open) are taller than
-         the pane. -->
+    <!-- Scrolls when the controls are taller than the pane. -->
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -41,43 +40,12 @@
             android:layout_height="wrap_content"
             android:paddingBottom="4dp" />
 
+        <!-- PAGE 1: MAIN CONTROLS -->
         <LinearLayout
+            android:id="@+id/main_page"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center_vertical"
-                android:text="@string/camera_caption"
-                style="@style/IcuNgCaption" />
-
-            <Spinner
-                android:id="@+id/camera_spinner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                style="@style/IcuNgSpinner" />
-
-            <Button
-                android:id="@+id/quality_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/quality_button"
-                style="@style/IcuNgButton.Secondary" />
-
-        </LinearLayout>
-
-        <!-- Quality submenu, folded away until "Calidad" is tapped. -->
-        <LinearLayout
-            android:id="@+id/quality_section"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/auto_margin"
-            android:orientation="vertical"
-            android:visibility="gone">
+            android:orientation="vertical">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -88,6 +56,191 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_gravity="center_vertical"
+                    android:text="@string/camera_caption"
+                    style="@style/IcuNgCaption" />
+
+                <Spinner
+                    android:id="@+id/camera_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    style="@style/IcuNgSpinner" />
+
+                <Button
+                    android:id="@+id/quality_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/quality_button"
+                    style="@style/IcuNgButton.Secondary" />
+
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/auto_margin"
+                android:orientation="horizontal">
+
+                <Spinner
+                    android:id="@+id/protocol_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/IcuNgSpinner" />
+
+                <EditText
+                    android:id="@+id/rtsp_url_input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:inputType="textUri"
+                    android:hint="@string/url_hint"
+                    style="@style/IcuNgField" />
+
+                <Button
+                    android:id="@+id/qr_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/qr_button"
+                    style="@style/IcuNgButton.Secondary" />
+
+                <Button
+                    android:id="@+id/stream_toggle_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:text="@string/start_stream"
+                    style="@style/IcuNgButton.Primary" />
+
+            </LinearLayout>
+
+            <CheckBox
+                android:id="@+id/klv_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/auto_margin"
+                android:text="@string/klv_checkbox"
+                style="@style/IcuNgCheckBox" />
+
+            <CheckBox
+                android:id="@+id/trust_all_certs_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/auto_margin"
+                android:text="@string/trust_all_certs"
+                style="@style/IcuNgCheckBox"
+                android:visibility="gone" />
+
+            <LinearLayout
+                android:id="@+id/srt_encryption_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/auto_margin"
+                android:orientation="vertical"
+                android:visibility="gone">
+
+                <TextView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="@string/srt_passphrase_caption"
+                    style="@style/IcuNgCaption" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:orientation="horizontal">
+
+                    <EditText
+                        android:id="@+id/srt_passphrase_input"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:inputType="textPassword"
+                        android:hint="@string/srt_passphrase_hint"
+                        style="@style/IcuNgField" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:layout_gravity="center_vertical"
+                        android:text="@string/srt_encryption_caption"
+                        style="@style/IcuNgCaption" />
+
+                    <Spinner
+                        android:id="@+id/srt_encryption_spinner"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        style="@style/IcuNgSpinner" />
+
+                </LinearLayout>
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- PAGE 2: QUALITY SETTINGS (Opened via "Calidad", hides main controls) -->
+        <LinearLayout
+            android:id="@+id/quality_page"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <!-- Navigation header: Back button + Title -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Button
+                    android:id="@+id/quality_back_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/back_button"
+                    style="@style/IcuNgButton.Secondary" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:text="@string/quality_title"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
+
+            </LinearLayout>
+
+            <!-- Codec & Resolution row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="@dimen/auto_margin"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/codec_caption"
+                    style="@style/IcuNgCaption" />
+
+                <Spinner
+                    android:id="@+id/codec_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    style="@style/IcuNgSpinner" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
                     android:text="@string/resolution_caption"
                     style="@style/IcuNgCaption" />
 
@@ -95,20 +248,35 @@
                     android:id="@+id/resolution_spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="6dp"
                     style="@style/IcuNgSpinner" />
+
+            </LinearLayout>
+
+            <!-- FPS & Bitrate row -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/fps_caption"
+                    style="@style/IcuNgCaption" />
 
                 <Spinner
                     android:id="@+id/fps_spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="6dp"
                     style="@style/IcuNgSpinner" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
                     android:layout_marginStart="12dp"
                     android:text="@string/bitrate_caption"
                     style="@style/IcuNgCaption" />
@@ -117,7 +285,7 @@
                     android:id="@+id/bitrate_spinner"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
+                    android:layout_marginStart="6dp"
                     style="@style/IcuNgSpinner" />
 
             </LinearLayout>
@@ -126,6 +294,7 @@
                 android:id="@+id/adaptive_bitrate_checkbox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
                 android:text="@string/adaptive_bitrate_checkbox"
                 style="@style/IcuNgCheckBox" />
 
@@ -133,119 +302,16 @@
                 android:id="@+id/microphone_checkbox"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
                 android:text="@string/microphone_checkbox"
                 style="@style/IcuNgCheckBox" />
 
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
                 android:text="@string/quality_note"
                 style="@style/IcuNgCaption" />
-
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/auto_margin"
-            android:orientation="horizontal">
-
-            <Spinner
-                android:id="@+id/protocol_spinner"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                style="@style/IcuNgSpinner" />
-
-            <EditText
-                android:id="@+id/rtsp_url_input"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                android:inputType="textUri"
-                android:hint="@string/url_hint"
-                style="@style/IcuNgField" />
-
-            <Button
-                android:id="@+id/qr_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/qr_button"
-                style="@style/IcuNgButton.Secondary" />
-
-            <Button
-                android:id="@+id/stream_toggle_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
-                android:text="@string/start_stream"
-                style="@style/IcuNgButton.Primary" />
-
-        </LinearLayout>
-
-        <CheckBox
-            android:id="@+id/klv_checkbox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/auto_margin"
-            android:text="@string/klv_checkbox"
-            style="@style/IcuNgCheckBox" />
-
-        <CheckBox
-            android:id="@+id/trust_all_certs_checkbox"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/auto_margin"
-            android:text="@string/trust_all_certs"
-            style="@style/IcuNgCheckBox"
-            android:visibility="gone" />
-
-        <LinearLayout
-            android:id="@+id/srt_encryption_row"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="@dimen/auto_margin"
-            android:orientation="vertical"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="@string/srt_passphrase_caption"
-                style="@style/IcuNgCaption" />
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:orientation="horizontal">
-
-                <EditText
-                    android:id="@+id/srt_passphrase_input"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:inputType="textPassword"
-                    android:hint="@string/srt_passphrase_hint"
-                    style="@style/IcuNgField" />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_gravity="center_vertical"
-                    android:text="@string/srt_encryption_caption"
-                    style="@style/IcuNgCaption" />
-
-                <Spinner
-                    android:id="@+id/srt_encryption_spinner"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    style="@style/IcuNgSpinner" />
-
-            </LinearLayout>
 
         </LinearLayout>
 

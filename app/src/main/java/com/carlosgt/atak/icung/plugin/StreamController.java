@@ -17,6 +17,7 @@ import com.atakmap.android.maps.MapView;
 import com.atakmap.comms.ReportingRate;
 import com.atakmap.coremap.cot.event.CotDetail;
 import com.pedro.common.ConnectChecker;
+import com.pedro.common.VideoCodec;
 import com.pedro.encoder.input.sources.audio.MicrophoneSource;
 import com.pedro.encoder.input.sources.video.Camera2Source;
 import com.pedro.encoder.input.sources.video.VideoSource;
@@ -567,6 +568,11 @@ public class StreamController implements ConnectChecker {
                 : new RtspStream(pluginContext, this, videoSource, microphone);
         streamIsSrt = srt;
         streamEncoderKey = settings.encoderKey();
+        if (settings.codec == StreamSettings.CODEC_H265) {
+            stream.setVideoCodec(VideoCodec.H265);
+        } else {
+            stream.setVideoCodec(VideoCodec.H264);
+        }
         int rotation = CameraHelper.getCameraOrientation(atakContext);
         stream.prepareVideo(settings.videoWidth(), settings.videoHeight(),
                 settings.videoBitrate(), settings.fps(), 2, rotation);

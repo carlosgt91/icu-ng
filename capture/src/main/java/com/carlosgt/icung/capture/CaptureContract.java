@@ -27,6 +27,8 @@ public final class CaptureContract {
     public static final String EXTRA_URL = "url";
     /** 0 RTSP, 1 RTSPS, 2 SRT - as the plugin's StreamSettings */
     public static final String EXTRA_PROTOCOL = "protocol";
+    /** 0 H264, 1 H265 - as the plugin's StreamSettings */
+    public static final String EXTRA_VIDEO_CODEC = "video_codec";
     /** 0 back, 1 front, 2 USB */
     public static final String EXTRA_CAMERA = "camera";
     public static final String EXTRA_TRUST_ALL_CERTS = "trust_all_certs";
@@ -50,6 +52,9 @@ public final class CaptureContract {
     public static final int CAMERA_BACK = 0;
     public static final int CAMERA_FRONT = 1;
     public static final int CAMERA_USB = 2;
+
+    public static final int CODEC_H264 = 0;
+    public static final int CODEC_H265 = 1;
 
     /** ATAK packages allowed to control this app. */
     static final String[] ATAK_PACKAGES = { "com.atakmap.app.civ", "com.atakmap.app.mil" };

@@ -18,6 +18,10 @@ public final class StreamSettings {
     public static final int PROTOCOL_RTSPS = 1;
     public static final int PROTOCOL_SRT = 2;
 
+    // mismo orden que R.array.codec_entries
+    public static final int CODEC_H264 = 0;
+    public static final int CODEC_H265 = 1;
+
     // mismo orden que R.array.camera_entries
     public static final int CAMERA_BACK = 0;
     public static final int CAMERA_FRONT = 1;
@@ -28,7 +32,7 @@ public final class StreamSettings {
     // mismo orden que R.array.fps_entries
     static final int[] FPS_VALUES = { 15, 24, 30 };
     // mismo orden que R.array.bitrate_entries; 0 = automatico segun resolucion
-    static final int[] BITRATES_KBPS = { 0, 500, 1000, 2000, 4000, 6000 };
+    static final int[] BITRATES_KBPS = { 0, 250, 500, 1000, 2000, 4000, 6000 };
     private static final int[] AUTO_BITRATE_KBPS = { 1200, 2500, 4500 };
 
     static final EncryptionType[] SRT_ENCRYPTION_TYPES = {
@@ -36,6 +40,7 @@ public final class StreamSettings {
     };
 
     private static final String KEY_PROTOCOL = "icung.protocol";
+    private static final String KEY_CODEC = "icung.codec";
     private static final String KEY_URL = "icung.url";
     private static final String KEY_TRUST_ALL = "icung.trust_all_certs";
     private static final String KEY_SRT_PASSPHRASE = "icung.srt_passphrase";
@@ -53,6 +58,7 @@ public final class StreamSettings {
     private static final String DEFAULT_URL = "";
 
     public int protocol = PROTOCOL_RTSP;
+    public int codec = CODEC_H264;
     public String url = DEFAULT_URL;
     public boolean trustAllCerts;
     public String srtPassphrase = "";
@@ -72,6 +78,7 @@ public final class StreamSettings {
         SharedPreferences prefs = prefs(atakContext);
         StreamSettings s = new StreamSettings();
         s.protocol = clamp(prefs.getInt(KEY_PROTOCOL, PROTOCOL_RTSP), 0, 2);
+        s.codec = clamp(prefs.getInt(KEY_CODEC, CODEC_H264), 0, 1);
         s.url = prefs.getString(KEY_URL, DEFAULT_URL);
         s.trustAllCerts = prefs.getBoolean(KEY_TRUST_ALL, false);
         s.srtPassphrase = prefs.getString(KEY_SRT_PASSPHRASE, "");
@@ -90,6 +97,7 @@ public final class StreamSettings {
     public void save(Context atakContext) {
         prefs(atakContext).edit()
                 .putInt(KEY_PROTOCOL, protocol)
+                .putInt(KEY_CODEC, codec)
                 .putString(KEY_URL, url)
                 .putBoolean(KEY_TRUST_ALL, trustAllCerts)
                 .putString(KEY_SRT_PASSPHRASE, srtPassphrase)
@@ -124,7 +132,7 @@ public final class StreamSettings {
 
     /** What the encoder is built with: a change before starting needs a new stream. */
     String encoderKey() {
-        return videoWidth() + "x" + videoHeight() + "@" + fps() + "/" + videoBitrate();
+        return videoWidth() + "x" + videoHeight() + "@" + fps() + "/" + videoBitrate() + ":" + codec;
     }
 
     public EncryptionType srtEncryptionType() {

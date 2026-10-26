@@ -51,6 +51,10 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     View srtEncryptionRow;
     EditText srtPassphraseInput;
     Spinner srtEncryptionSpinner;
+    View mainPage;
+    View qualityPage;
+    Button qualityBackButton;
+    Spinner codecSpinner;
     Spinner resolutionSpinner;
     Spinner fpsSpinner;
     Spinner bitrateSpinner;
@@ -250,6 +254,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         srtPassphraseInput.setEnabled(enabled);
         srtEncryptionSpinner.setEnabled(enabled);
         // The encoder is built with these; bitrate and microphone stay live.
+        if (codecSpinner != null) codecSpinner.setEnabled(enabled);
         resolutionSpinner.setEnabled(enabled);
         fpsSpinner.setEnabled(enabled);
     }
@@ -265,6 +270,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         srtPassphraseInput.setText(s.srtPassphrase);
         srtEncryptionSpinner.setSelection(s.srtEncryptionIndex);
         cameraSpinner.setSelection(s.camera);
+        if (codecSpinner != null) codecSpinner.setSelection(s.codec);
         resolutionSpinner.setSelection(s.resolutionIndex);
         fpsSpinner.setSelection(s.fpsIndex);
         bitrateSpinner.setSelection(s.bitrateIndex);
@@ -294,6 +300,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         settings.srtPassphrase = srtPassphraseInput.getText().toString();
         settings.srtEncryptionIndex = srtEncryptionSpinner.getSelectedItemPosition();
         settings.camera = cameraSpinner.getSelectedItemPosition();
+        if (codecSpinner != null) settings.codec = codecSpinner.getSelectedItemPosition();
         settings.resolutionIndex = resolutionSpinner.getSelectedItemPosition();
         settings.fpsIndex = fpsSpinner.getSelectedItemPosition();
         settings.save(atakContext);
@@ -419,6 +426,10 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         urlInput = null;
         statusText = null;
         streamToggleButton = null;
+        mainPage = null;
+        qualityPage = null;
+        qualityBackButton = null;
+        codecSpinner = null;
     }
 
     private void showPane() {
@@ -439,15 +450,25 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             srtEncryptionRow = paneView.findViewById(R.id.srt_encryption_row);
             srtPassphraseInput = paneView.findViewById(R.id.srt_passphrase_input);
             srtEncryptionSpinner = paneView.findViewById(R.id.srt_encryption_spinner);
+            mainPage = paneView.findViewById(R.id.main_page);
+            qualityPage = paneView.findViewById(R.id.quality_page);
+            qualityBackButton = paneView.findViewById(R.id.quality_back_button);
+
+            paneView.findViewById(R.id.quality_button).setOnClickListener(v -> {
+                mainPage.setVisibility(View.GONE);
+                qualityPage.setVisibility(View.VISIBLE);
+            });
+            qualityBackButton.setOnClickListener(v -> {
+                qualityPage.setVisibility(View.GONE);
+                mainPage.setVisibility(View.VISIBLE);
+            });
+
+            codecSpinner = paneView.findViewById(R.id.codec_spinner);
             resolutionSpinner = paneView.findViewById(R.id.resolution_spinner);
             fpsSpinner = paneView.findViewById(R.id.fps_spinner);
             bitrateSpinner = paneView.findViewById(R.id.bitrate_spinner);
             adaptiveBitrateCheckbox = paneView.findViewById(R.id.adaptive_bitrate_checkbox);
             microphoneCheckbox = paneView.findViewById(R.id.microphone_checkbox);
-            View qualitySection = paneView.findViewById(R.id.quality_section);
-            paneView.findViewById(R.id.quality_button).setOnClickListener(v ->
-                    qualitySection.setVisibility(qualitySection.getVisibility() == View.VISIBLE
-                            ? View.GONE : View.VISIBLE));
             statusText = paneView.findViewById(R.id.status_text);
             ((TextView) paneView.findViewById(R.id.mode_text)).setText(
                     streamController.usesCaptureApp()
@@ -461,6 +482,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
 
             ArrayAdapter<CharSequence> cameraAdapter = spinnerAdapter(R.array.camera_entries);
             cameraSpinner.setAdapter(cameraAdapter);
+            codecSpinner.setAdapter(spinnerAdapter(R.array.codec_entries));
             resolutionSpinner.setAdapter(spinnerAdapter(R.array.resolution_entries));
             fpsSpinner.setAdapter(spinnerAdapter(R.array.fps_entries));
             bitrateSpinner.setAdapter(spinnerAdapter(R.array.bitrate_entries));
@@ -507,6 +529,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
                 }
             };
             srtEncryptionSpinner.setOnItemSelectedListener(saveOnSelect);
+            codecSpinner.setOnItemSelectedListener(saveOnSelect);
             resolutionSpinner.setOnItemSelectedListener(saveOnSelect);
             fpsSpinner.setOnItemSelectedListener(saveOnSelect);
             bitrateSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
