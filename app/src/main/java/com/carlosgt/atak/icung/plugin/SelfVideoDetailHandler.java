@@ -53,9 +53,38 @@ public class SelfVideoDetailHandler implements ICotDetailHandler2 {
         if (entry == null)
             return false;
 
-        CotDetail videoDetail = ConnectionEntryDetail.toCotDetail(entry);
+        CotDetail videoDetail = new CotDetail("__video");
+        String playbackUrl = buildPlaybackUrl(entry);
+        videoDetail.setAttribute("url", playbackUrl);
+        if (entry.getUID() != null && !entry.getUID().isEmpty()) {
+            videoDetail.setAttribute("uid", entry.getUID());
+        }
+        if (entry.getAlias() != null && !entry.getAlias().isEmpty()) {
+            videoDetail.setAttribute("sensor", entry.getAlias());
+        }
+
+        CotDetail ceDetail = ConnectionEntryDetail.toCotDetail(entry);
+        ceDetail.setAttribute("rtspReliable", "1");
+        videoDetail.addChild(ceDetail);
+
         detail.addChild(videoDetail);
         return true;
+    }
+
+    public static String buildPlaybackUrl(ConnectionEntry entry) {
+        if (entry == null)
+            return "";
+        String scheme = (entry.getProtocol() == ConnectionEntry.Protocol.SRT) ? "srt://" : "rtsp://";
+        String host = entry.getAddress() != null ? entry.getAddress() : "";
+        int port = entry.getPort();
+        String path = entry.getPath() != null ? entry.getPath() : "";
+        if (!path.isEmpty() && !path.startsWith("/")) {
+            path = "/" + path;
+        }
+        if (entry.getProtocol() == ConnectionEntry.Protocol.RTSP && !path.contains("tcp")) {
+            path += (path.contains("?") ? "&tcp" : "?tcp");
+        }
+        return scheme + host + (port > 0 ? ":" + port : "") + path;
     }
 
     @Override

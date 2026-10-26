@@ -8,7 +8,8 @@ next version exists. A resubmission is always a new version.
 | 1.0   | — | 2026-10-23 | Signed (2026-10-24) |
 | 1.1   | — | 2026-10-24 | No return filed |
 | 1.1.1 | 101015080 | 2026-10-25 | **Build failed** (returned 2026-10-25) |
-| 1.1.2 | 101025080 | 2026-10-26 | Pending |
+| 1.1.2 | 101025080 | 2026-10-26 | Superceded before submission |
+| 1.1.3 | 101035080 | 2026-10-26 | Pending |
 
 ## 1.1.1 — rejected
 
@@ -42,3 +43,12 @@ Fortify also flagged two items (no APK, so they did not block on their own):
 - The tests use `video.example.com` and build the userinfo without a literal
   password; the comment has been reworded.
 - Same functionality as 1.1.1.
+
+## 1.1.3
+
+- Wraps the CoT video announcement in `<__video>` with canonical `url` (`?tcp`),
+  `uid`, and `sensor` attributes, matching OpenTAK_ICU and UAS Tool.
+- Sets `rtspReliable = 1` in `ConnectionEntry` and builds `ConnectionEntry` as a child
+  of `<__video>`.
+- Fixes receiving ATAK clients showing disabled/unresponsive 'Play' (Reproducir)
+  buttons on the map marker when streaming.

@@ -673,6 +673,9 @@ public class StreamController implements ConnectChecker {
                 .setPath(path != null ? path : "")
                 .setProtocol(cotProtocol)
                 .setSource(ConnectionEntry.Source.EXTERNAL);
+        if (cotProtocol == ConnectionEntry.Protocol.RTSP) {
+            builder.setRtspReliable(1);
+        }
         if (srt && !settings.srtPassphrase.isEmpty()) {
             builder.setPassphrase(settings.srtPassphrase);
         }

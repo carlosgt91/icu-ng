@@ -22,6 +22,7 @@ public class StreamControllerConnectionEntryTest {
         assertEquals(8554, entry.getPort());
         assertEquals("/live/cam2", entry.getPath());
         assertEquals("cam2", entry.getAlias());
+        assertEquals(1, entry.getRtspReliable());
     }
 
     @Test
