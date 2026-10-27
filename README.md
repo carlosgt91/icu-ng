@@ -11,6 +11,14 @@ User manual: inside ATAK, Settings → Tool Preferences → Specific Tool
 Preferences → ICU NG (source: docs/user_manual/).
 
 _________________________________________________________________
+DOWNLOADS
+
+Pre-built APKs for the latest release (v1.1.5) are available on [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/latest):
+
+- 📦 **[ATAK Plugin — ICU NG v1.1.5](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.5/ATAK-Plugin-IcuNg-1.1.5-5.8.0-civ-release.apk)** (civRelease, signed for ATAK-CIV 5.8+)
+- 📱 **[Companion App — ICU NG Capture v1.1.5](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.5/ICU-NG-Capture-1.1.5-release.apk)** (Required for background & screen-off streaming)
+
+_________________________________________________________________
 PURPOSE AND CAPABILITIES
 
 ICU NG lets an operator stream what the device's camera sees without leaving
@@ -41,10 +49,10 @@ the plugin streams by itself, in the foreground only.
 _________________________________________________________________
 STATUS
 
-Version 1.0. Verified on ATAK-CIV 5.8.0.7 (developer build): emulator (Android
+Version 1.1.5. Verified on ATAK-CIV 5.8.0.7 (developer build): emulator (Android
 14) for every feature, including the civRelease build; field-tested on a
 Samsung tablet (Android 16) streaming over RTSP to a MediaMTX-based restreamer
-through a VPN. Not yet run on hardware: a USB (UVC) camera.
+through a VPN. Verified on hardware: internal cameras and external USB (UVC) cameras over USB OTG.
 
 Prepared for tak.gov third-party submission.
 

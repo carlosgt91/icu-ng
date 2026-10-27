@@ -12,6 +12,14 @@ Manual de usuario: dentro de ATAK, Ajustes → Preferencias de herramientas →
 Preferencias de herramientas específicas → ICU NG (fuente: docs/user_manual/).
 
 _________________________________________________________________
+DESCARGAS
+
+Los archivos APK precompilados de la última versión (v1.1.5) están disponibles en [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/latest):
+
+- 📦 **[Plugin ATAK — ICU NG v1.1.5](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.5/ATAK-Plugin-IcuNg-1.1.5-5.8.0-civ-release.apk)** (civRelease, firmado para ATAK-CIV 5.8+)
+- 📱 **[App Compañera — ICU NG Capture v1.1.5](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.5/ICU-NG-Capture-1.1.5-release.apk)** (Necesaria para emisión en segundo plano y con pantalla apagada)
+
+_________________________________________________________________
 PROPÓSITO Y CAPACIDADES
 
 ICU NG permite a un operador emitir lo que ve la cámara del dispositivo sin salir
@@ -46,11 +54,11 @@ app instalada el plugin emite por sí mismo, únicamente en primer plano.
 _________________________________________________________________
 ESTADO
 
-Versión 1.0. Verificado en ATAK-CIV 5.8.0.7 (compilación de desarrollador):
+Versión 1.1.5. Verificado en ATAK-CIV 5.8.0.7 (compilación de desarrollador):
 emulador (Android 14) para todas las funciones, incluida la compilación civRelease;
 probado en campo en una tablet Samsung (Android 16) emitiendo por RTSP hacia un
-retransmisor basado en MediaMTX a través de una VPN. Todavía no ejecutado en
-hardware: una cámara USB (UVC).
+retransmisor basado en MediaMTX a través de una VPN. Verificado en hardware real:
+cámaras internas y cámara externa USB (UVC) mediante USB OTG.
 
 Preparado para la entrega a terceros en tak.gov.
 
