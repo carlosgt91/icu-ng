@@ -56,7 +56,7 @@ Vorbereitet für die Einreichung durch Dritte auf tak.gov.
 _________________________________________________________________
 ANSPRECHPARTNER
 
-Carlos (carlosgt91)
+carlosgt91
 https://github.com/carlosgt91/icu-ng/issues
 
 _________________________________________________________________

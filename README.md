@@ -59,7 +59,7 @@ Prepared for tak.gov third-party submission.
 _________________________________________________________________
 POINT OF CONTACTS
 
-Carlos (carlosgt91)
+carlosgt91
 https://github.com/carlosgt91/icu-ng/issues
 
 _________________________________________________________________

@@ -56,7 +56,7 @@ Preparado para submissão de terceiros no tak.gov.
 _________________________________________________________________
 PONTOS DE CONTACTO
 
-Carlos (carlosgt91)
+carlosgt91
 https://github.com/carlosgt91/icu-ng/issues
 
 _________________________________________________________________
