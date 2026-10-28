@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "ICU NG",
-   plugin-version: "1.1.5",
+   plugin-version: "1.1.6",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
@@ -127,9 +127,11 @@ erneut und streamt automatisch weiter, sobald eine Verbindung besteht.
 - Auf Ihrer Markierung erscheint ein *Kegel*, der die Blickrichtung der Kamera anzeigt. Bei der
   Frontkamera zeigt er nach hinten.
 - *KLV (MISB ST 0601)*, einmal pro Sekunde: Ihre Position und Höhe, Ausrichtung
-  der Kamera (Richtung und Neigung über die Gerätesensoren), Sichtfeld und
-  der anvisierte Geländepunkt. Kompatible Betrachter (unter anderem ATAK selbst)
-  blenden dies über dem Video und auf der Karte ein.
+  der Kamera (Richtung und Neigung über die Gerätesensoren), Sichtfeld, der
+  anvisierte Geländepunkt und, wenn die Kamera nach unten zeigt, die vier
+  Bildecken auf dem Gelände. Kompatible Betrachter (unter anderem ATAK selbst)
+  blenden dies über dem Video und auf der Karte ein und können das Video auf die
+  Karte projizieren.
 - KLV wird über RTSP/RTSPS übertragen. Über SRT wird kein KLV gesendet.
 - Bei einer *USB-Kamera* wird kein KLV gesendet: Die Ausrichtung der Kamera ist unbekannt.
 ]

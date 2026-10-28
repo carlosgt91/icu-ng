@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "ICU NG",
-   plugin-version: "1.1.5",
+   plugin-version: "1.1.6",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
@@ -128,8 +128,10 @@ vuelve a emitir sola cuando hay conexión.
   apunta hacia atrás.
 - *KLV (MISB ST 0601)*, una vez por segundo: tu posición y altitud, hacia dónde
   apunta la cámara (rumbo e inclinación, de los sensores del dispositivo), su campo
-  de visión y el punto del terreno al que mira. Los visores compatibles (el propio
-  ATAK, entre otros) lo muestran sobre el vídeo y en el mapa.
+  de visión, el punto del terreno al que mira y, si la cámara mira hacia abajo, las
+  cuatro esquinas del encuadre sobre el terreno. Los visores compatibles (el propio
+  ATAK, entre otros) lo muestran sobre el vídeo y en el mapa, y pueden proyectar
+  ("planchar") el vídeo sobre el mapa.
 - El KLV va por RTSP/RTSPS. Por SRT no se envía.
 - Con *cámara USB* no se envía KLV: no se sabe hacia dónde apunta.
 ]

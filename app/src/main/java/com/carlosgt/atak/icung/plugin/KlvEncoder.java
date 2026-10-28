@@ -27,9 +27,14 @@ import java.nio.charset.StandardCharsets;
  *  23  Frame Center Latitude       int32   ±90           where the camera looks
  *  24  Frame Center Longitude      int32   ±180
  *  25  Frame Center Elevation      uint16  -900..19000 m (MSL)
+ * 26-33 Offset Corner Lat/Lon 1-4  int16   ±0.075        from the frame center
  *  65  UAS Datalink LS Version     uint8   17
+ * 82-89 Corner Lat/Lon 1-4 (Full)  int32   ±90 / ±180    same corners, absolute
  *   1  Checksum                    uint16  last, see checksum()
  * </pre>
+ * The corners (upper-left, upper-right, lower-right, lower-left of the
+ * image, see Footprint) are what lets a receiver drape the video on its
+ * map. Both forms are sent: older players only read the offset one.
  */
 public final class KlvEncoder {
 
@@ -39,6 +44,8 @@ public final class KlvEncoder {
     };
 
     private static final int LS_VERSION = 17;
+    // Range of tags 26-33, in degrees: about 8 km of latitude.
+    private static final double CORNER_OFFSET_RANGE = 0.075;
 
     public static final class Telemetry {
         public long timeMicros;
@@ -59,6 +66,9 @@ public final class KlvEncoder {
         public double frameCenterLon = Double.NaN;
         public double frameCenterMsl = Double.NaN;
         public double slantRange = Double.NaN;
+        /** frame corners on the ground, ST 0601 order; null if unknown (tags left out) */
+        public double[] cornerLat;
+        public double[] cornerLon;
     }
 
     private KlvEncoder() {
@@ -100,8 +110,22 @@ public final class KlvEncoder {
             if (!Double.isNaN(t.frameCenterMsl)) {
                 putItem(value, 25, uint(altitude(t.frameCenterMsl), 2));
             }
+            if (hasCorners(t) && cornersFitOffsets(t)) {
+                for (int i = 0; i < 4; i++) {
+                    putItem(value, 26 + 2 * i, uint(scaleSigned(t.cornerLat[i] - t.frameCenterLat,
+                            CORNER_OFFSET_RANGE, 0x7FFF), 2));
+                    putItem(value, 27 + 2 * i, uint(scaleSigned(lonOffset(t, i),
+                            CORNER_OFFSET_RANGE, 0x7FFF), 2));
+                }
+            }
         }
         putItem(value, 65, uint(LS_VERSION, 1));
+        if (hasCorners(t)) {
+            for (int i = 0; i < 4; i++) {
+                putItem(value, 82 + 2 * i, uint(scaleSigned(t.cornerLat[i], 90), 4));
+                putItem(value, 83 + 2 * i, uint(scaleSigned(t.cornerLon[i], 180), 4));
+            }
+        }
 
         // The checksum item's own tag and length are part of the summed
         // bytes; only its 2-byte value is not.
@@ -149,6 +173,27 @@ public final class KlvEncoder {
         return new double[] { Math.toDegrees(lat2), lonDeg2 };
     }
 
+    private static boolean hasCorners(Telemetry t) {
+        return t.cornerLat != null && t.cornerLon != null
+                && t.cornerLat.length == 4 && t.cornerLon.length == 4;
+    }
+
+    private static boolean cornersFitOffsets(Telemetry t) {
+        for (int i = 0; i < 4; i++) {
+            if (Math.abs(t.cornerLat[i] - t.frameCenterLat) > CORNER_OFFSET_RANGE) return false;
+            if (Math.abs(lonOffset(t, i)) > CORNER_OFFSET_RANGE) return false;
+        }
+        return true;
+    }
+
+    // Across the antimeridian the plain difference is off by 360.
+    private static double lonOffset(Telemetry t, int i) {
+        double d = t.cornerLon[i] - t.frameCenterLon;
+        if (d > 180) d -= 360;
+        if (d < -180) d += 360;
+        return d;
+    }
+
     // uint16 over -900..19000 m, shared by tags 15 and 25
     private static long altitude(double metresMsl) {
         return Math.round((clamp(metresMsl, -900, 19000) + 900) / 19900.0 * 0xFFFF);
@@ -192,10 +237,14 @@ public final class KlvEncoder {
         return cut;
     }
 
-    // Signed angle mapped onto the full int32 range minus the reserved
-    // 0x80000000 "error" value: ±range -> ±(2^31 - 1).
+    // Signed angle mapped onto the full int32 (or int16) range minus the
+    // reserved 0x80000000 (0x8000) "error" value: ±range -> ±(2^31 - 1).
     private static long scaleSigned(double v, double range) {
-        return Math.round(clamp(v, -range, range) / range * 0x7FFFFFFFL);
+        return scaleSigned(v, range, 0x7FFFFFFFL);
+    }
+
+    private static long scaleSigned(double v, double range, long max) {
+        return Math.round(clamp(v, -range, range) / range * max);
     }
 
     private static long scaleUnsigned(double v, double range, long max) {

@@ -37,7 +37,9 @@ verla desde ATAK.
 - MISB ST 0601 KLV sobre RTSP/RTSPS, una vez por segundo: posición y altitud
   del sensor, acimut y elevación de la cámara (sensor de vector de rotación),
   campo de visión, centro del encuadre en el terreno (datos de elevación de ATAK),
-  indicativo.
+  indicativo y, cuando la cámara mira hacia abajo, las cuatro esquinas del
+  encuadre sobre el terreno, para que los receptores puedan proyectar el vídeo
+  sobre su mapa.
 - Cono de campo de visión del sensor sobre el marcador propio durante la emisión.
 - Botón de emisión en el menú radial del marcador propio.
 

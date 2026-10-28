@@ -97,6 +97,59 @@ public class KlvEncoderTest {
     }
 
     @Test
+    public void cornerTagsRoundTrip() {
+        KlvEncoder.Telemetry t = sample();
+        t.frameCenterLat = 40.4170;
+        t.frameCenterLon = -3.7041;
+        t.cornerLat = new double[] { 40.4172, 40.4172, 40.4168, 40.4168 };
+        t.cornerLon = new double[] { -3.7044, -3.7038, -3.7038, -3.7044 };
+        byte[] p = KlvEncoder.encode(t);
+        assertEquals(KlvEncoder.checksum(p, p.length - 2),
+                ((p[p.length - 2] & 0xFF) << 8) | (p[p.length - 1] & 0xFF));
+        Map<Integer, byte[]> items = decode(p);
+        for (int i = 0; i < 4; i++) {
+            assertEquals(2, items.get(26 + 2 * i).length);
+            assertEquals(t.cornerLat[i] - t.frameCenterLat,
+                    signed(items.get(26 + 2 * i)) * 0.075 / 0x7FFF, 3e-6);
+            assertEquals(t.cornerLon[i] - t.frameCenterLon,
+                    signed(items.get(27 + 2 * i)) * 0.075 / 0x7FFF, 3e-6);
+            assertEquals(t.cornerLat[i], signed(items.get(82 + 2 * i)) * 90.0 / 0x7FFFFFFF, 1e-6);
+            assertEquals(t.cornerLon[i], signed(items.get(83 + 2 * i)) * 180.0 / 0x7FFFFFFF, 1e-6);
+        }
+    }
+
+    @Test
+    public void farCornersOnlyGoInFullForm() {
+        KlvEncoder.Telemetry t = sample();
+        t.frameCenterLat = 40.0;
+        t.frameCenterLon = -3.0;
+        t.cornerLat = new double[] { 40.1, 40.1, 39.9, 39.9 };
+        t.cornerLon = new double[] { -3.1, -2.9, -2.9, -3.1 };
+        Map<Integer, byte[]> items = decode(KlvEncoder.encode(t));
+        assertFalse(items.containsKey(26));
+        assertTrue(items.containsKey(82));
+    }
+
+    @Test
+    public void cornerOffsetsWrapAcrossTheAntimeridian() {
+        KlvEncoder.Telemetry t = sample();
+        t.frameCenterLat = 10.0;
+        t.frameCenterLon = 179.999;
+        t.cornerLat = new double[] { 10.001, 10.001, 9.999, 9.999 };
+        t.cornerLon = new double[] { 179.998, -179.999, -179.999, 179.998 };
+        Map<Integer, byte[]> items = decode(KlvEncoder.encode(t));
+        assertEquals(0.002, signed(items.get(29)) * 0.075 / 0x7FFF, 3e-6);
+        assertEquals(-0.001, signed(items.get(33)) * 0.075 / 0x7FFF, 3e-6);
+    }
+
+    @Test
+    public void noCornersWithoutFootprint() {
+        Map<Integer, byte[]> items = decode(KlvEncoder.encode(sample()));
+        for (int tag = 26; tag <= 33; tag++) assertFalse(items.containsKey(tag));
+        for (int tag = 82; tag <= 89; tag++) assertFalse(items.containsKey(tag));
+    }
+
+    @Test
     public void destinationMatchesKnownDistances() {
         // 1 km due north: +0.008993 deg latitude, same longitude
         double[] n = KlvEncoder.destination(40.0, -3.0, 0, 1000);
@@ -110,7 +163,9 @@ public class KlvEncoderTest {
 
     private static Map<Integer, byte[]> decode(byte[] p) {
         Map<Integer, byte[]> items = new LinkedHashMap<>();
-        int i = 17;
+        // BER length after the 16-byte key: short form, or 0x81/0x82 + bytes.
+        int first = p[16] & 0xFF;
+        int i = first < 128 ? 17 : 17 + (first & 0x7F);
         while (i < p.length) {
             int tag = p[i++] & 0xFF;
             int len = p[i++] & 0xFF;

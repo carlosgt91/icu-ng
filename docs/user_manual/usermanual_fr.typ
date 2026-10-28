@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "ICU NG",
-   plugin-version: "1.1.5",
+   plugin-version: "1.1.6",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
@@ -128,8 +128,10 @@ reprend automatiquement la diffusion dès le rétablissement de la connexion.
   avant, il pointe vers l'arrière.
 - *KLV (MISB ST 0601)*, une fois par seconde : votre position et altitude, direction
   de la caméra (cap et inclinaison, issus des capteurs de l'appareil), son champ
-  de vision et le point au sol visé. Les visionneuses compatibles (notamment ATAK
-  lui-même) l'affichent en surimpression sur la vidéo et sur la carte.
+  de vision, le point au sol visé et, quand la caméra regarde vers le bas, les
+  quatre coins du cadre au sol. Les visionneuses compatibles (notamment ATAK
+  lui-même) l'affichent en surimpression sur la vidéo et sur la carte, et peuvent
+  projeter la vidéo sur la carte.
 - Le KLV passe par RTSP/RTSPS. Par SRT, il n'est pas envoyé.
 - Avec une *caméra USB*, le KLV n'est pas envoyé : on ne sait pas vers où elle pointe.
 ]

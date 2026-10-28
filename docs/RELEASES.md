@@ -68,3 +68,11 @@ Fortify also flagged two items (no APK, so they did not block on their own):
 - Adds H.265 (HEVC) video codec selection alongside standard H.264 (AVC) to halve bandwidth usage on degraded/tactical radio links.
 - Adds 250 kbps ultra-low bitrate preset for narrow-band MANET/SATCOM environments.
 - Fixes KLV telemetry recovery when switching cameras mid-stream from USB to phone camera.
+
+## 1.1.6
+
+- KLV carries the frame's four ground corners (ST 0601 tags 26-33 as offsets
+  from the frame center, and tags 82-89 as full lat/lon), so a receiving ATAK
+  can drape the video on its map. Corners come from the phone's attitude and
+  the camera's field of view (`Footprint`); a corner ray that does not reach
+  the ground leaves the tags out.

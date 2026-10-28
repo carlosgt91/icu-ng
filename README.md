@@ -33,7 +33,9 @@ connection manager, so the rest of the team can watch it from ATAK.
   bitrate, adaptive bitrate, microphone).
 - MISB ST 0601 KLV over RTSP/RTSPS, once per second: sensor position and
   altitude, camera azimuth and elevation (rotation vector sensor), field of
-  view, frame center on the terrain (ATAK elevation data), callsign.
+  view, frame center on the terrain (ATAK elevation data), callsign, and the
+  frame's four corners on the ground when the camera looks down, so receivers
+  can drape the video on their map.
 - Sensor field-of-view cone on the self marker while streaming.
 - Stream button on the self marker's radial menu.
 

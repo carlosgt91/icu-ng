@@ -13,6 +13,8 @@ import android.os.Looper;
 import android.util.Log;
 import android.util.SizeF;
 
+import java.util.Arrays;
+
 import com.atakmap.android.maps.MapView;
 import com.atakmap.coremap.maps.conversion.EGM96;
 import com.atakmap.coremap.maps.coords.GeoPoint;
@@ -30,6 +32,13 @@ import com.pedro.rtsp.rtsp.klv.KlvMetadata;
  * device's -Z axis; that vector rotated into the world frame gives azimuth
  * and elevation in any phone orientation. The front camera looks the other
  * way. Not used for USB cameras (see StreamController.startKlv).
+ *
+ * The same rotation also gives the image's right and up directions, and
+ * from them the frame's four corners on the ground (see Footprint), which
+ * a receiving ATAK needs to drape the video on its map. Which device axes
+ * those are depends on how the stream was laid out: RootEncoder fixes the
+ * picture's orientation when the encoder is prepared, from the screen
+ * rotation then, and does not follow the phone afterwards.
  *
  * When the ICU NG Capture app streams, the packets are handed to it
  * instead (see {@link PacketSink}): the phone's position and attitude are
@@ -63,6 +72,9 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
     private final boolean frontCamera;
     private final double hfovDeg;
     private final double vfovDeg;
+    // Image right and up in the device frame (x, y, z): +1/-1 on one axis.
+    private final int[] imageRight;
+    private final int[] imageUp;
 
     private SensorManager sensorManager;
     private final float[] rotation = new float[9];
@@ -72,6 +84,12 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private double magneticAzimuth = Double.NaN;
     private double elevation = Double.NaN;
+    // Camera axis, image right and image up in the world frame (east,
+    // north, up; magnetic north); null until the first sensor event.
+    private double[] worldAxis;
+    private double[] worldRight;
+    private double[] worldUp;
+    private boolean cornersSent;
     private volatile KlvEncoder.Telemetry snapshot;
     private long lastSentMs;
     private PacketSink sink;
@@ -92,13 +110,48 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         }
     };
 
-    public KlvTelemetry(Context atakContext, int camera, String sensorName) {
+    /**
+     * @param streamRotation the rotation the encoder was prepared with
+     *        (RootEncoder's CameraHelper.getCameraOrientation: 90 portrait,
+     *        0 landscape, 270 and 180 the same upside down)
+     */
+    public KlvTelemetry(Context atakContext, int camera, String sensorName, int streamRotation) {
         this.atakContext = atakContext;
         this.sensorName = sensorName;
         this.frontCamera = camera == StreamSettings.CAMERA_FRONT;
+        boolean portrait = streamRotation == 90 || streamRotation == 270;
         double[] fov = cameraFov(atakContext, frontCamera);
-        this.hfovDeg = fov != null ? fov[0] : DEFAULT_HFOV;
-        this.vfovDeg = fov != null ? fov[1] : DEFAULT_VFOV;
+        double longFov = fov != null ? fov[0] : DEFAULT_HFOV;
+        double shortFov = fov != null ? fov[1] : DEFAULT_VFOV;
+        // A portrait stream has the sensor's long side vertical.
+        this.hfovDeg = portrait ? shortFov : longFov;
+        this.vfovDeg = portrait ? longFov : shortFov;
+        // Device axes: x to the right and y to the top of the phone held
+        // upright, z out of the screen. Turned counter-clockwise into
+        // landscape (rotation 0), the phone's right edge is the image's top.
+        switch (streamRotation) {
+            case 0:
+                imageUp = new int[] { 1, 0, 0 };
+                imageRight = new int[] { 0, -1, 0 };
+                break;
+            case 270:
+                imageUp = new int[] { 0, -1, 0 };
+                imageRight = new int[] { -1, 0, 0 };
+                break;
+            case 180:
+                imageUp = new int[] { -1, 0, 0 };
+                imageRight = new int[] { 0, 1, 0 };
+                break;
+            default:
+                imageUp = new int[] { 0, 1, 0 };
+                imageRight = new int[] { 1, 0, 0 };
+                break;
+        }
+        // The front camera faces the other way, so its picture (not
+        // mirrored in the stream) has right and left swapped.
+        if (frontCamera) {
+            for (int i = 0; i < 3; i++) imageRight[i] = -imageRight[i];
+        }
     }
 
     /** Packets go to the sink instead of this process's RTSP client. */
@@ -153,6 +206,21 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         double up = sign * rotation[8];
         magneticAzimuth = Math.toDegrees(Math.atan2(east, north));
         elevation = Math.toDegrees(Math.asin(Math.max(-1, Math.min(1, up))));
+        worldAxis = new double[] { east, north, up };
+        worldRight = toWorld(imageRight);
+        worldUp = toWorld(imageUp);
+    }
+
+    // Row-major rotation matrix: a device axis in the world frame is the
+    // matching column (sum, since only one component is non-zero).
+    private double[] toWorld(int[] device) {
+        double[] w = new double[3];
+        for (int row = 0; row < 3; row++) {
+            for (int col = 0; col < 3; col++) {
+                w[row] += rotation[3 * row + col] * device[col];
+            }
+        }
+        return w;
     }
 
     @Override
@@ -179,17 +247,52 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         t.callsign = MapView.getMapView().getDeviceCallsign();
         t.sensorName = sensorName;
         if (!Double.isNaN(t.azimuthDeg) && !Double.isNaN(elevation)) {
-            frameCenter(t, p, elevation);
+            double height = cameraHeight(p);
+            frameCenter(t, p, elevation, height);
+            if (worldAxis != null) {
+                corners(t, height, t.azimuthDeg - magneticAzimuth);
+            }
         }
         snapshot = t;
     }
 
     /**
-     * Where the camera axis meets the ground: from the camera's height over
-     * the terrain (ATAK's elevation data, or a handheld default) and how far
-     * below the horizon it points. ATAK shows this as the video's target.
+     * The frame's corners on the same flat ground as the frame center.
+     * None when any corner ray misses it within MAX_FRAME_CENTER_M - the
+     * camera held level, for one: then there is nothing to drape.
+     *
+     * ATAK (VideoMetadata.update, 5.8) keeps the last corners it got and
+     * moves them with the frame center while packets carry none, so just
+     * leaving them out would keep a stale drape on the receivers' maps.
+     * Once corners have been sent, a lost footprint is sent as all four
+     * on the frame center instead: a quad with no area, nothing drawn.
      */
-    private static void frameCenter(KlvEncoder.Telemetry t, GeoPoint p, double elevationDeg) {
+    private void corners(KlvEncoder.Telemetry t, double height, double declination) {
+        double[][] c = Footprint.corners(worldAxis, worldRight, worldUp,
+                hfovDeg, vfovDeg, height, MAX_FRAME_CENTER_M);
+        if (c == null) {
+            if (cornersSent) {
+                t.cornerLat = new double[4];
+                t.cornerLon = new double[4];
+                Arrays.fill(t.cornerLat, t.frameCenterLat);
+                Arrays.fill(t.cornerLon, t.frameCenterLon);
+            }
+            return;
+        }
+        cornersSent = true;
+        t.cornerLat = new double[4];
+        t.cornerLon = new double[4];
+        for (int i = 0; i < 4; i++) {
+            double[] ll = KlvEncoder.destination(t.latitude, t.longitude,
+                    c[i][0] + declination, c[i][1]);
+            t.cornerLat[i] = ll[0];
+            t.cornerLon[i] = ll[1];
+        }
+    }
+
+    // The camera's height over the terrain: ATAK's elevation data, or a
+    // handheld default.
+    private static double cameraHeight(GeoPoint p) {
         double groundHae = ElevationManager.getElevation(p.getLatitude(), p.getLongitude(), null);
         double height = HANDHELD_HEIGHT_M;
         if (p.isAltitudeValid() && !Double.isNaN(groundHae)) {
@@ -197,6 +300,16 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
             // GPS altitude is noisy; only trust a plausible height.
             if (h > 0.5 && h < 3000) height = h;
         }
+        return height;
+    }
+
+    /**
+     * Where the camera axis meets the ground: from the camera's height over
+     * the terrain and how far below the horizon it points. ATAK shows this
+     * as the video's target.
+     */
+    private static void frameCenter(KlvEncoder.Telemetry t, GeoPoint p, double elevationDeg,
+            double height) {
         double distance = elevationDeg < -0.5
                 ? Math.min(height / Math.tan(Math.toRadians(-elevationDeg)), MAX_FRAME_CENTER_M)
                 : MAX_FRAME_CENTER_M;

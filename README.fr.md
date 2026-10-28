@@ -29,7 +29,8 @@ reste de l'équipe de le visionner depuis ATAK.
 - KLV MISB ST 0601 sur RTSP/RTSPS, une fois par seconde : position et altitude
   du capteur, azimut et élévation de la caméra (capteur de vecteur de rotation),
   champ de vision, centre du cadre sur le terrain (données d'élévation ATAK),
-  indicatif.
+  indicatif et, quand la caméra regarde vers le bas, les quatre coins du cadre
+  au sol, pour que les récepteurs puissent projeter la vidéo sur leur carte.
 - Cône de champ de vision du capteur sur le marqueur propre pendant la diffusion.
 - Bouton de diffusion sur le menu radial du marqueur propre.
 

@@ -115,6 +115,9 @@ public class StreamController implements ConnectChecker {
     private ConnectionEntry connectionEntry;
     private StreamSettings activeSettings;
     private KlvTelemetry klvTelemetry;
+    // The rotation the running stream's picture was laid out with (local
+    // encoder or the Capture app), for the KLV frame corners.
+    private int streamRotation;
     private boolean atakStopped;
     private boolean cameraLostInBackground;
     private boolean reconnectOnForeground;
@@ -277,6 +280,7 @@ public class StreamController implements ConnectChecker {
         // from USB to a phone camera mid-stream still gets KLV.
         boolean klvTrack = settings.klv && settings.protocol != StreamSettings.PROTOCOL_SRT;
         int rotation = CameraHelper.getCameraOrientation(atakContext);
+        streamRotation = rotation;
         if (!captureLink.start(settings, klvTrack, rotation)) {
             setState(State.ERROR, pluginContext.getString(R.string.status_error_capture_app));
             return;
@@ -574,6 +578,7 @@ public class StreamController implements ConnectChecker {
             stream.setVideoCodec(VideoCodec.H264);
         }
         int rotation = CameraHelper.getCameraOrientation(atakContext);
+        streamRotation = rotation;
         stream.prepareVideo(settings.videoWidth(), settings.videoHeight(),
                 settings.videoBitrate(), settings.fps(), 2, rotation);
         stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE);
@@ -594,7 +599,8 @@ public class StreamController implements ConnectChecker {
                 || camera == StreamSettings.CAMERA_USB) return;
         String[] cameras = pluginContext.getResources().getStringArray(R.array.camera_entries);
         klvTelemetry = new KlvTelemetry(atakContext, camera,
-                pluginContext.getString(R.string.app_name) + " " + cameras[camera].toLowerCase());
+                pluginContext.getString(R.string.app_name) + " " + cameras[camera].toLowerCase(),
+                streamRotation);
         if (remoteLive) klvTelemetry.start(captureLink::sendKlv);
         else klvTelemetry.start();
     }

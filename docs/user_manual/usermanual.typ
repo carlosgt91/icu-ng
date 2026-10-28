@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "ICU NG",
-   plugin-version: "1.1.5",
+   plugin-version: "1.1.6",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
@@ -128,8 +128,9 @@ automatically resumes streaming once connected.
   camera, it points backwards.
 - *KLV (MISB ST 0601)*, once per second: your position and altitude, camera
   pointing direction (heading and pitch, from device sensors), field of view,
-  and the ground target point. Compatible viewers (including ATAK itself)
-  display this over the video and on the map.
+  the ground target point and, when the camera looks down, the four corners of
+  the frame on the ground. Compatible viewers (including ATAK itself) display
+  this over the video and on the map, and can drape the video on the map.
 - KLV is transmitted over RTSP/RTSPS. It is not sent over SRT.
 - With a *USB camera*, KLV is not sent: camera orientation is unknown.
 ]

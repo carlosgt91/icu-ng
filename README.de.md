@@ -28,7 +28,9 @@ direkt in ATAK ansehen kann.
   (Auflösung, fps, Bitrate, adaptive Bitrate, Mikrofon).
 - MISB ST 0601 KLV über RTSP/RTSPS, einmal pro Sekunde: Sensorposition und
   -höhe, Kamera-Azimut und -Elevation (Rotationsvektorsensor), Sichtfeld,
-  Bildmittelpunkt auf dem Gelände (ATAK-Höhendaten), Rufzeichen.
+  Bildmittelpunkt auf dem Gelände (ATAK-Höhendaten), Rufzeichen und, wenn die
+  Kamera nach unten zeigt, die vier Bildecken auf dem Gelände, damit Empfänger
+  das Video auf ihre Karte projizieren können.
 - Sichtfeldkegel des Sensors auf dem eigenen Marker während des Streamings.
 - Stream-Taste im Radialmenü des eigenen Markers.
 

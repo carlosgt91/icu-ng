@@ -3,7 +3,7 @@
 
 #show: userguide.with(
    plugin-name: "ICU NG",
-   plugin-version: "1.1.5",
+   plugin-version: "1.1.6",
    platform: "ATAK",
    platform-version: "5.8.0",
 )
@@ -128,8 +128,10 @@ volta a transmitir automaticamente assim que houver ligação.
   frontal aponta para trás.
 - *KLV (MISB ST 0601)*, uma vez por segundo: a sua posição e altitude, orientação
   da câmara (rumo e inclinação, a partir dos sensores do dispositivo), o seu campo
-  de visão e o ponto no terreno para onde está apontada. Os visualizadores compatíveis (o próprio
-  ATAK, entre outros) apresentam estes dados sobre o vídeo e no mapa.
+  de visão, o ponto no terreno para onde está apontada e, quando aponta para
+  baixo, os quatro cantos do enquadramento no terreno. Os visualizadores
+  compatíveis (o próprio ATAK, entre outros) apresentam estes dados sobre o vídeo
+  e no mapa, e podem projetar o vídeo no mapa.
 - O KLV é transmitido por RTSP/RTSPS. Por SRT não é enviado.
 - Com *câmara USB* não é enviado KLV: não se sabe para onde está apontada.
 ]

@@ -28,7 +28,9 @@ equipa possa visualizá-la a partir do ATAK.
   SRT, qualidade (resolução, fps, bitrate, bitrate adaptativo, microfone).
 - MISB ST 0601 KLV sobre RTSP/RTSPS, uma vez por segundo: posição e altitude do
   sensor, azimute e elevação da câmara (sensor de vetor de rotação), campo de
-  visão, centro do enquadramento no terreno (dados de elevação do ATAK), indicativo.
+  visão, centro do enquadramento no terreno (dados de elevação do ATAK), indicativo
+  e, quando a câmara aponta para baixo, os quatro cantos do enquadramento no
+  terreno, para que os recetores possam projetar o vídeo no seu mapa.
 - Cone de campo de visão do sensor no marcador próprio durante a transmissão.
 - Botão de transmissão no menu radial do marcador próprio.
 
