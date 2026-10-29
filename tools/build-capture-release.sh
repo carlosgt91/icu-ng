@@ -12,7 +12,7 @@ cd "$(dirname "$0")/.."
 SDK="${ATAK_SDK:-$(ls -d "$HOME"/atak-sdk/ATAK-CIV-* | sort -V | tail -1)}"
 export ANDROID_HOME="${ANDROID_HOME:-$HOME/android-sdk}"
 ./gradlew -q -Psdk.path="$SDK" -Ptakdev.plugin="$SDK/atak-gradle-takdev.jar" :capture:assembleRelease
-APK=capture/build/outputs/apk/release/capture-release.apk
+APK="$(ls capture/build/outputs/apk/release/*.apk | head -1)"
 APKSIGNER="$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)"
 "$APKSIGNER" verify --print-certs "$APK" | grep -E "DN|SHA-256" | head -2
 echo "$APK"
