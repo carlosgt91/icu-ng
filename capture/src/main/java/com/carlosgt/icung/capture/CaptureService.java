@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
+import android.media.MediaCodecInfo;
 import android.os.Binder;
 import android.os.Build;
 import android.os.Handler;
@@ -29,6 +30,7 @@ import com.pedro.library.srt.SrtStream;
 import com.pedro.library.util.BitrateAdapter;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.SrtStreamClient;
+import com.pedro.rtsp.rtsp.klv.FrameTiming;
 import com.pedro.rtsp.rtsp.klv.KlvMetadata;
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType;
 
@@ -199,6 +201,27 @@ public class CaptureService extends Service implements ConnectChecker {
         }
     }
 
+    /**
+     * Same encoder set-up as the plugin's StreamController.prepareVideo:
+     * H.264 Main if the encoder takes it, and a constant frame rate (the
+     * last picture repeated when the camera drops one).
+     */
+    private static void prepareVideo(StreamBase stream, boolean h264, int width, int height,
+            int bitrate, int fps, int rotation) {
+        boolean prepared = h264 && stream.prepareVideo(width, height, bitrate, fps, 2, rotation,
+                MediaCodecInfo.CodecProfileLevel.AVCProfileMain, avcLevel(height),
+                width, height, bitrate);
+        if (!prepared) stream.prepareVideo(width, height, bitrate, fps, 2, rotation);
+        stream.getGlInterface().setForceRender(true, fps);
+        stream.forceFpsLimit(true);
+    }
+
+    private static int avcLevel(int height) {
+        if (height <= 480) return MediaCodecInfo.CodecProfileLevel.AVCLevel3;
+        if (height <= 720) return MediaCodecInfo.CodecProfileLevel.AVCLevel31;
+        return MediaCodecInfo.CodecProfileLevel.AVCLevel4;
+    }
+
     private VideoSource createVideoSource(int camera) {
         if (camera == CaptureContract.CAMERA_USB) return new UsbCameraSource();
         Camera2Source source = new Camera2Source(this);
@@ -227,9 +250,10 @@ public class CaptureService extends Service implements ConnectChecker {
                 stream.setVideoCodec(VideoCodec.H264);
             }
             int bitrate = config.getIntExtra(CaptureContract.EXTRA_BITRATE, VIDEO_BITRATE);
-            stream.prepareVideo(config.getIntExtra(CaptureContract.EXTRA_WIDTH, VIDEO_WIDTH),
-                    config.getIntExtra(CaptureContract.EXTRA_HEIGHT, VIDEO_HEIGHT), bitrate,
-                    config.getIntExtra(CaptureContract.EXTRA_FPS, VIDEO_FPS), 2,
+            int fps = config.getIntExtra(CaptureContract.EXTRA_FPS, VIDEO_FPS);
+            prepareVideo(stream, codec != CaptureContract.CODEC_H265,
+                    config.getIntExtra(CaptureContract.EXTRA_WIDTH, VIDEO_WIDTH),
+                    config.getIntExtra(CaptureContract.EXTRA_HEIGHT, VIDEO_HEIGHT), bitrate, fps,
                     config.getIntExtra(CaptureContract.EXTRA_ROTATION, 0));
             stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE);
 
@@ -252,6 +276,9 @@ public class CaptureService extends Service implements ConnectChecker {
             boolean klv = protocol != 2
                     && config.getBooleanExtra(CaptureContract.EXTRA_KLV, false);
             KlvMetadata.setSupplier(klv ? klvSupplier : null);
+            // Read by the RTSP packetizers when they are built, on connect.
+            FrameTiming.setFps(fps);
+            FrameTiming.setPrecisionTimeStamps(klv);
 
             if (previewSurface != null && previewSurface.isValid()) {
                 stream.startPreview(previewSurface, previewWidth, previewHeight);

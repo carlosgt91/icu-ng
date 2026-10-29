@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets;
  * fixed to it, so the sensor-relative angles are zero except elevation):
  * <pre>
  *   2  Precision Time Stamp        uint64  µs since the Unix epoch
+ *   3  Mission ID                  string  operator's choice, left out if empty
  *   5  Platform Heading            uint16  0..360        camera azimuth (true)
  *  10  Platform Designation        string  ATAK callsign
  *  11  Image Source Sensor         string  e.g. "ICU NG trasera"
@@ -28,6 +29,7 @@ import java.nio.charset.StandardCharsets;
  *  24  Frame Center Longitude      int32   ±180
  *  25  Frame Center Elevation      uint16  -900..19000 m (MSL)
  * 26-33 Offset Corner Lat/Lon 1-4  int16   ±0.075        from the frame center
+ *  48  Security Local Set          set     MISB ST 0102, see security()
  *  65  UAS Datalink LS Version     uint8   17
  * 82-89 Corner Lat/Lon 1-4 (Full)  int32   ±90 / ±180    same corners, absolute
  *   1  Checksum                    uint16  last, see checksum()
@@ -45,6 +47,13 @@ public final class KlvEncoder {
 
     private static final int LS_VERSION = 17;
     // Range of tags 26-33, in degrees: about 8 km of latitude.
+    private static final int SECURITY_VERSION = 12;
+    // ST 0102 country coding method: GENC three letter (ESP, FRA...)
+    private static final int GENC_THREE_LETTER = 14;
+    /** ST 0102 tag 1 values, UNCLASSIFIED (1) to TOP SECRET (5) */
+    public static final int UNCLASSIFIED = 1;
+    public static final int TOP_SECRET = 5;
+
     private static final double CORNER_OFFSET_RANGE = 0.075;
 
     public static final class Telemetry {
@@ -69,6 +78,11 @@ public final class KlvEncoder {
         /** frame corners on the ground, ST 0601 order; null if unknown (tags left out) */
         public double[] cornerLat;
         public double[] cornerLon;
+        public String missionId;
+        /** ST 0102 classification, UNCLASSIFIED..TOP_SECRET */
+        public int classification = UNCLASSIFIED;
+        /** GENC three-letter code of the classifying (and object) country */
+        public String country;
     }
 
     private KlvEncoder() {
@@ -77,6 +91,9 @@ public final class KlvEncoder {
     public static byte[] encode(Telemetry t) {
         ByteArrayOutputStream value = new ByteArrayOutputStream();
         putItem(value, 2, uint(t.timeMicros, 8));
+        if (t.missionId != null && !t.missionId.isEmpty()) {
+            putItem(value, 3, utf8(t.missionId));
+        }
         if (!Double.isNaN(t.azimuthDeg)) {
             putItem(value, 5, uint(scaleUnsigned(normalize360(t.azimuthDeg), 360, 0xFFFFL), 2));
         }
@@ -119,6 +136,9 @@ public final class KlvEncoder {
                 }
             }
         }
+        if (t.country != null && !t.country.isEmpty()) {
+            putItem(value, 48, security(t));
+        }
         putItem(value, 65, uint(LS_VERSION, 1));
         if (hasCorners(t)) {
             for (int i = 0; i < 4; i++) {
@@ -147,10 +167,23 @@ public final class KlvEncoder {
     }
 
     /**
-     * ST 0601 checksum: a running 16-bit sum of every byte from the start
-     * of the key through the checksum item's length byte, even-indexed
-     * bytes weighted as the high byte of a big-endian word. Not a CRC.
+     * MISB ST 0102 Security Local Set, embedded as tag 48: the items it
+     * makes mandatory and nothing else. STANAG 4609 needs every stream
+     * marked; the object country (tag 13, UTF-16) is taken to be the
+     * classifying one - a handheld camera films where its operator is.
      */
+    static byte[] security(Telemetry t) {
+        ByteArrayOutputStream ls = new ByteArrayOutputStream();
+        int classification = Math.max(UNCLASSIFIED, Math.min(TOP_SECRET, t.classification));
+        putItem(ls, 1, uint(classification, 1));
+        putItem(ls, 2, uint(GENC_THREE_LETTER, 1));
+        putItem(ls, 3, utf8("//" + t.country));
+        putItem(ls, 12, uint(GENC_THREE_LETTER, 1));
+        putItem(ls, 13, t.country.getBytes(StandardCharsets.UTF_16BE));
+        putItem(ls, 22, uint(SECURITY_VERSION, 2));
+        return ls.toByteArray();
+    }
+
     /**
      * Point at the given true-north azimuth and ground distance from a start
      * point, on a sphere. Good to well under a metre over the few hundred
@@ -199,6 +232,11 @@ public final class KlvEncoder {
         return Math.round((clamp(metresMsl, -900, 19000) + 900) / 19900.0 * 0xFFFF);
     }
 
+    /**
+     * ST 0601 checksum: a running 16-bit sum of every byte from the start
+     * of the key through the checksum item's length byte, even-indexed
+     * bytes weighted as the high byte of a big-endian word. Not a CRC.
+     */
     static int checksum(byte[] data, int len) {
         int bcc = 0;
         for (int i = 0; i < len; i++) {

@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.app.Application;
 import android.content.Context;
 import android.content.Intent;
+import android.media.MediaCodecInfo;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
@@ -28,6 +29,7 @@ import com.pedro.library.srt.SrtStream;
 import com.pedro.library.util.BitrateAdapter;
 import com.pedro.library.util.streamclient.RtspStreamClient;
 import com.pedro.library.util.streamclient.SrtStreamClient;
+import com.pedro.rtsp.rtsp.klv.FrameTiming;
 
 import java.security.cert.X509Certificate;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -255,6 +257,10 @@ public class StreamController implements ConnectChecker {
         // Before startStream(): the RTSP client decides whether to announce
         // the KLV track when it connects, from whether a supplier is set.
         startKlv(settings.camera);
+        // Read by the RTSP packetizers when they are built, on connect.
+        FrameTiming.setFps(settings.fps());
+        FrameTiming.setPrecisionTimeStamps(settings.klv
+                && settings.protocol != StreamSettings.PROTOCOL_SRT);
         setState(State.CONNECTING, null);
         stream.startStream(settings.url);
 
@@ -579,14 +585,43 @@ public class StreamController implements ConnectChecker {
         }
         int rotation = CameraHelper.getCameraOrientation(atakContext);
         streamRotation = rotation;
-        stream.prepareVideo(settings.videoWidth(), settings.videoHeight(),
-                settings.videoBitrate(), settings.fps(), 2, rotation);
+        prepareVideo(stream, settings.codec == StreamSettings.CODEC_H264, settings.videoWidth(),
+                settings.videoHeight(), settings.videoBitrate(), settings.fps(), rotation);
         stream.prepareAudio(AUDIO_SAMPLE_RATE, true, AUDIO_BITRATE);
 
         if (preview != null) {
             previewSurface = preview;
             stream.startPreview(preview);
         }
+    }
+
+    /**
+     * Prepares the video encoder for a constant frame rate in a profile
+     * every TAK client decodes. Left to itself the phone's encoder picks
+     * H.264 High; Main (which Android encoders produce without B-frames)
+     * is what TAK clients play most reliably. If the encoder refuses Main
+     * it keeps its own choice. H.265 stays on the encoder's default, Main.
+     *
+     * The camera drops frames now and then (low light, a busy GPU); the
+     * GL pipeline then repeats the last picture instead, so the stream
+     * never has a gap, and caps the rate at fps. Receivers see one frame
+     * every 1/fps s - WinTAK fails on anything else.
+     */
+    static void prepareVideo(StreamBase stream, boolean h264, int width, int height,
+            int bitrate, int fps, int rotation) {
+        boolean prepared = h264 && stream.prepareVideo(width, height, bitrate, fps, 2, rotation,
+                MediaCodecInfo.CodecProfileLevel.AVCProfileMain, avcLevel(height),
+                width, height, bitrate);
+        if (!prepared) stream.prepareVideo(width, height, bitrate, fps, 2, rotation);
+        stream.getGlInterface().setForceRender(true, fps);
+        stream.forceFpsLimit(true);
+    }
+
+    // Lowest H.264 level that holds the frame size at 30 fps.
+    private static int avcLevel(int height) {
+        if (height <= 480) return MediaCodecInfo.CodecProfileLevel.AVCLevel3;
+        if (height <= 720) return MediaCodecInfo.CodecProfileLevel.AVCLevel31;
+        return MediaCodecInfo.CodecProfileLevel.AVCLevel4;
     }
 
     private void startKlv(int camera) {
@@ -601,6 +636,7 @@ public class StreamController implements ConnectChecker {
         klvTelemetry = new KlvTelemetry(atakContext, camera,
                 pluginContext.getString(R.string.app_name) + " " + cameras[camera].toLowerCase(),
                 streamRotation);
+        klvTelemetry.setMarking(s.classification(), s.country, s.missionId);
         if (remoteLive) klvTelemetry.start(captureLink::sendKlv);
         else klvTelemetry.start();
     }

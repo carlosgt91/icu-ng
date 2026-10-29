@@ -150,6 +150,36 @@ public class KlvEncoderTest {
     }
 
     @Test
+    public void securityAndMissionRoundTrip() {
+        KlvEncoder.Telemetry t = sample();
+        t.missionId = "EJERCICIO-3";
+        t.classification = 3;
+        t.country = "ESP";
+        byte[] p = KlvEncoder.encode(t);
+        Map<Integer, byte[]> items = decode(p);
+        assertEquals("EJERCICIO-3", new String(items.get(3), StandardCharsets.UTF_8));
+
+        Map<Integer, byte[]> security = decodeItems(items.get(48), 0);
+        assertEquals(3, unsigned(security.get(1)));
+        assertEquals(14, unsigned(security.get(2)));
+        assertEquals("//ESP", new String(security.get(3), StandardCharsets.UTF_8));
+        assertEquals(14, unsigned(security.get(12)));
+        assertEquals("ESP", new String(security.get(13), StandardCharsets.UTF_16BE));
+        assertEquals(12, unsigned(security.get(22)));
+
+        // still a valid packet: checksum over the larger body
+        int stored = ((p[p.length - 2] & 0xFF) << 8) | (p[p.length - 1] & 0xFF);
+        assertEquals(KlvEncoder.checksum(p, p.length - 2), stored);
+    }
+
+    @Test
+    public void noSecurityOrMissionWhenUnset() {
+        Map<Integer, byte[]> items = decode(KlvEncoder.encode(sample()));
+        assertFalse(items.containsKey(3));
+        assertFalse(items.containsKey(48));
+    }
+
+    @Test
     public void destinationMatchesKnownDistances() {
         // 1 km due north: +0.008993 deg latitude, same longitude
         double[] n = KlvEncoder.destination(40.0, -3.0, 0, 1000);
@@ -162,10 +192,13 @@ public class KlvEncoderTest {
     }
 
     private static Map<Integer, byte[]> decode(byte[] p) {
-        Map<Integer, byte[]> items = new LinkedHashMap<>();
         // BER length after the 16-byte key: short form, or 0x81/0x82 + bytes.
         int first = p[16] & 0xFF;
-        int i = first < 128 ? 17 : 17 + (first & 0x7F);
+        return decodeItems(p, first < 128 ? 17 : 17 + (first & 0x7F));
+    }
+
+    private static Map<Integer, byte[]> decodeItems(byte[] p, int i) {
+        Map<Integer, byte[]> items = new LinkedHashMap<>();
         while (i < p.length) {
             int tag = p[i++] & 0xFF;
             int len = p[i++] & 0xFF;

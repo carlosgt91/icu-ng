@@ -22,6 +22,7 @@ import com.pedro.common.getData
 import com.pedro.common.nal.NalReader
 import com.pedro.common.removeInfo
 import com.pedro.rtsp.rtsp.RtpFrame
+import com.pedro.rtsp.rtsp.klv.FrameTiming
 import com.pedro.rtsp.utils.RtpConstants
 import java.nio.ByteBuffer
 import kotlin.experimental.or
@@ -36,13 +37,17 @@ class H265Packet(track: Int): BasePacket(
   RtpConstants.payloadType + track
 ) {
 
+  // ICU NG: MISB ST 0604 time stamps, see FrameTiming
+  private val precisionTimeStamps = FrameTiming.precisionTimeStamps
+  private val clock = FrameTiming.Clock()
   private var sps: ByteBuffer? = null
   private var pps: ByteBuffer? = null
   private var vps: ByteBuffer? = null
 
   init {
     channelIdentifier = track
-    setConstantFrameRate(30)
+    // ICU NG: the stream's own fps (was a fixed 30)
+    setConstantFrameRate(FrameTiming.fps)
   }
 
   fun sendVideoInfo(sps: ByteBuffer, pps: ByteBuffer, vps: ByteBuffer) {
@@ -71,6 +76,13 @@ class H265Packet(track: Int): BasePacket(
         if (!nals.contains(pps)) nals.add(0, pps.duplicate())
         if (!nals.contains(sps)) nals.add(0, sps.duplicate())
         if (!nals.contains(vps)) nals.add(0, vps.duplicate())
+      }
+    }
+    if (precisionTimeStamps) {
+      // before the first slice: after any VPS/SPS/PPS, as an access unit orders them
+      val firstSlice = nals.indexOfFirst { ((it.get(it.position()).toInt() shr 1) and 0x3F) < 32 }
+      if (firstSlice >= 0) {
+        nals.add(firstSlice, FrameTiming.h265Sei(clock.utcMicros(mediaFrame.info.timestamp)))
       }
     }
     nals.forEachIndexed { index, data ->

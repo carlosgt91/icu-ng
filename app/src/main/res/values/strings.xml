@@ -27,7 +27,9 @@
     <string name="adaptive_bitrate_checkbox">Adaptive bitrate (reduces if network is constrained)</string>
     <string name="microphone_checkbox">Microphone</string>
     <string name="quality_note">Resolution, fps and codec apply when streaming starts; bitrate and microphone, immediately.</string>
-    <string name="klv_checkbox">Send KLV telemetry (MISB 0601) · not with USB camera</string>
+    <string name="klv_checkbox">Send KLV telemetry (MISB 0601 · STANAG 4609) · not with USB camera</string>
+    <string name="klv_country_hint">Country</string>
+    <string name="klv_mission_hint">Mission ID (optional)</string>
     <string name="qr_button" translatable="false">QR</string>
     <string name="qr_scan_title">Point at the video server QR code</string>
     <string name="qr_loaded">Configuration loaded from QR</string>
@@ -57,6 +59,7 @@
     <string name="status_error_camera">Error: could not open camera</string>
     <string name="status_error_scheme_format">Error: URL must start with %1$s://</string>
     <string name="status_error_srt_passphrase_length">Error: SRT passphrase must be between 10 and 79 characters</string>
+    <string name="status_error_klv_country">Error: the KLV country must be a three-letter code (GENC/ISO 3166, e.g. ESP)</string>
     <string name="status_error_change_protocol_while_streaming">Error: stop streaming before switching to/from SRT</string>
 
     <string name="url_hint">rtsp://host:port/stream</string>

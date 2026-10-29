@@ -4,6 +4,8 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
+import java.util.Locale;
+
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType;
 
 /**
@@ -52,6 +54,9 @@ public final class StreamSettings {
     private static final String KEY_BITRATE = "icung.bitrate";
     private static final String KEY_ADAPTIVE = "icung.adaptive_bitrate";
     private static final String KEY_MICROPHONE = "icung.microphone";
+    private static final String KEY_CLASSIFICATION = "icung.klv_classification";
+    private static final String KEY_COUNTRY = "icung.klv_country";
+    private static final String KEY_MISSION = "icung.klv_mission";
 
     // Empty until the operator types one or reads a QR: there is no server
     // address that could be right by default.
@@ -73,6 +78,11 @@ public final class StreamSettings {
     public boolean adaptiveBitrate = true;
     /** false sends silence: the audio track stays, so it can be turned back on live */
     public boolean microphone = true;
+    /** STANAG 4609 marking in the KLV: index into R.array.classification_entries */
+    public int classificationIndex;
+    /** GENC three-letter code of the classifying country */
+    public String country = "";
+    public String missionId = "";
 
     public static StreamSettings load(Context atakContext) {
         SharedPreferences prefs = prefs(atakContext);
@@ -91,6 +101,10 @@ public final class StreamSettings {
         s.bitrateIndex = clamp(prefs.getInt(KEY_BITRATE, 0), 0, BITRATES_KBPS.length - 1);
         s.adaptiveBitrate = prefs.getBoolean(KEY_ADAPTIVE, true);
         s.microphone = prefs.getBoolean(KEY_MICROPHONE, true);
+        s.classificationIndex = clamp(prefs.getInt(KEY_CLASSIFICATION, 0), 0,
+                KlvEncoder.TOP_SECRET - KlvEncoder.UNCLASSIFIED);
+        s.country = prefs.getString(KEY_COUNTRY, defaultCountry());
+        s.missionId = prefs.getString(KEY_MISSION, "");
         return s;
     }
 
@@ -109,6 +123,9 @@ public final class StreamSettings {
                 .putInt(KEY_BITRATE, bitrateIndex)
                 .putBoolean(KEY_ADAPTIVE, adaptiveBitrate)
                 .putBoolean(KEY_MICROPHONE, microphone)
+                .putInt(KEY_CLASSIFICATION, classificationIndex)
+                .putString(KEY_COUNTRY, country)
+                .putString(KEY_MISSION, missionId)
                 .apply();
     }
 
@@ -135,6 +152,25 @@ public final class StreamSettings {
         return videoWidth() + "x" + videoHeight() + "@" + fps() + "/" + videoBitrate() + ":" + codec;
     }
 
+    /** ST 0102 classification value for the KLV security set */
+    public int classification() {
+        return KlvEncoder.UNCLASSIFIED + classificationIndex;
+    }
+
+    // GENC three-letter codes match ISO 3166 alpha-3 for nearly every
+    // country, so the phone's region is a sensible first value.
+    private static String defaultCountry() {
+        try {
+            return Locale.getDefault().getISO3Country().toUpperCase(Locale.ROOT);
+        } catch (RuntimeException e) {
+            return "";
+        }
+    }
+
+    static boolean isCountryCode(String code) {
+        return code != null && code.matches("[A-Z]{3}");
+    }
+
     public EncryptionType srtEncryptionType() {
         return SRT_ENCRYPTION_TYPES[srtEncryptionIndex];
     }
@@ -151,6 +187,9 @@ public final class StreamSettings {
         if (protocol == PROTOCOL_SRT && !srtPassphrase.isEmpty()
                 && (srtPassphrase.length() < 10 || srtPassphrase.length() > 79)) {
             return R.string.status_error_srt_passphrase_length;
+        }
+        if (klv && protocol != PROTOCOL_SRT && !isCountryCode(country)) {
+            return R.string.status_error_klv_country;
         }
         return null;
     }

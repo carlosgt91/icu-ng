@@ -25,7 +25,9 @@
     <string name="adaptive_bitrate_checkbox">Débit adaptatif (diminue si le réseau est limité)</string>
     <string name="microphone_checkbox">Microphone</string>
     <string name="quality_note">La résolution, les fps et le codec s\'appliquent au lancement de la diffusion ; le débit et le microphone, immédiatement.</string>
-    <string name="klv_checkbox">Envoyer la télémétrie KLV (MISB 0601) · non disponible avec une caméra USB</string>
+    <string name="klv_checkbox">Envoyer la télémétrie KLV (MISB 0601 · STANAG 4609) · non disponible avec une caméra USB</string>
+    <string name="klv_country_hint">Pays</string>
+    <string name="klv_mission_hint">ID de mission (facultatif)</string>
     <string name="qr_scan_title">Pointez vers le code QR du serveur vidéo</string>
     <string name="qr_loaded">Configuration chargée depuis le code QR</string>
     <string name="qr_loaded_named">Configuration chargée depuis le code QR : %1$s</string>
@@ -54,6 +56,7 @@
     <string name="status_error_camera">Erreur : impossible d\'ouvrir la caméra</string>
     <string name="status_error_scheme_format">Erreur : l\'URL doit commencer par %1$s://</string>
     <string name="status_error_srt_passphrase_length">Erreur : la phrase de passe SRT doit comporter entre 10 et 79 caractères</string>
+    <string name="status_error_klv_country">Erreur : le pays du KLV doit être un code à trois lettres (GENC/ISO 3166, p. ex. FRA)</string>
     <string name="status_error_change_protocol_while_streaming">Erreur : arrêtez la diffusion avant de basculer vers/depuis SRT</string>
 
     <string name="url_hint">rtsp://hôte:port/flux</string>

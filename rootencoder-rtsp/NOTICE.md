@@ -16,6 +16,13 @@ Modified for ICU NG to publish a MISB ST 0601 KLV metadata track
   (no behaviour change).
 - `rtsp/RtspSender.kt`: sends KLV as RTP, timestamped with the video frame
   it rides on.
+- `rtsp/klv/FrameTiming.kt` (new): the stream's fps and MISB ST 0604
+  Precision Time Stamp SEI messages (STANAG 4609).
+- `rtp/packets/BasePacket.kt`: RTP timestamps snapped to a constant frame
+  rate grid (WinTAK fails on variable intervals).
+- `rtp/packets/H264Packet.kt`, `H265Packet.kt`: that grid at the stream's
+  fps (`FrameTiming.fps`, was a fixed 30), and an ST 0604 SEI before the
+  first slice of every frame when `FrameTiming.precisionTimeStamps` is set.
 
 ## Static analysis (tak.gov Fortify)
 

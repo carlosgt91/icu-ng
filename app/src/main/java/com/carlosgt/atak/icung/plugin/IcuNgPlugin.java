@@ -32,6 +32,8 @@ import com.atakmap.android.cot.detail.CotDetailManager;
 import com.atakmap.android.maps.MapView;
 import com.atakmap.android.video.manager.VideoManager;
 
+import java.util.Locale;
+
 public class IcuNgPlugin implements IPlugin, StreamController.Listener {
 
     IServiceController serviceController;
@@ -48,6 +50,10 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     Spinner cameraSpinner;
     CheckBox trustAllCertsCheckbox;
     CheckBox klvCheckbox;
+    View klvMarkingRow;
+    Spinner klvClassificationSpinner;
+    EditText klvCountryInput;
+    EditText klvMissionInput;
     View srtEncryptionRow;
     EditText srtPassphraseInput;
     Spinner srtEncryptionSpinner;
@@ -251,6 +257,9 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         qrButton.setEnabled(enabled);
         trustAllCertsCheckbox.setEnabled(enabled);
         klvCheckbox.setEnabled(enabled);
+        klvClassificationSpinner.setEnabled(enabled);
+        klvCountryInput.setEnabled(enabled);
+        klvMissionInput.setEnabled(enabled);
         srtPassphraseInput.setEnabled(enabled);
         srtEncryptionSpinner.setEnabled(enabled);
         // The encoder is built with these; bitrate and microphone stay live.
@@ -267,6 +276,9 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         urlInput.setText(s.url);
         trustAllCertsCheckbox.setChecked(s.trustAllCerts);
         klvCheckbox.setChecked(s.klv);
+        klvClassificationSpinner.setSelection(s.classificationIndex);
+        klvCountryInput.setText(s.country);
+        klvMissionInput.setText(s.missionId);
         srtPassphraseInput.setText(s.srtPassphrase);
         srtEncryptionSpinner.setSelection(s.srtEncryptionIndex);
         cameraSpinner.setSelection(s.camera);
@@ -287,6 +299,12 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         // KLV is only implemented on the RTSP client
         klvCheckbox.setVisibility(
                 protocol == StreamSettings.PROTOCOL_SRT ? View.GONE : View.VISIBLE);
+        updateKlvMarkingRow();
+    }
+
+    private void updateKlvMarkingRow() {
+        klvMarkingRow.setVisibility(klvCheckbox.getVisibility() == View.VISIBLE
+                && klvCheckbox.isChecked() ? View.VISIBLE : View.GONE);
     }
 
     // Every edit in the pane is written straight to the persisted settings,
@@ -297,6 +315,9 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         settings.url = urlInput.getText().toString().trim();
         settings.trustAllCerts = trustAllCertsCheckbox.isChecked();
         settings.klv = klvCheckbox.isChecked();
+        settings.classificationIndex = klvClassificationSpinner.getSelectedItemPosition();
+        settings.country = klvCountryInput.getText().toString().trim().toUpperCase(Locale.ROOT);
+        settings.missionId = klvMissionInput.getText().toString().trim();
         settings.srtPassphrase = srtPassphraseInput.getText().toString();
         settings.srtEncryptionIndex = srtEncryptionSpinner.getSelectedItemPosition();
         settings.camera = cameraSpinner.getSelectedItemPosition();
@@ -447,6 +468,10 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             cameraSpinner = paneView.findViewById(R.id.camera_spinner);
             trustAllCertsCheckbox = paneView.findViewById(R.id.trust_all_certs_checkbox);
             klvCheckbox = paneView.findViewById(R.id.klv_checkbox);
+            klvMarkingRow = paneView.findViewById(R.id.klv_marking_row);
+            klvClassificationSpinner = paneView.findViewById(R.id.klv_classification_spinner);
+            klvCountryInput = paneView.findViewById(R.id.klv_country_input);
+            klvMissionInput = paneView.findViewById(R.id.klv_mission_input);
             srtEncryptionRow = paneView.findViewById(R.id.srt_encryption_row);
             srtPassphraseInput = paneView.findViewById(R.id.srt_passphrase_input);
             srtEncryptionSpinner = paneView.findViewById(R.id.srt_encryption_spinner);
@@ -479,6 +504,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
 
             ArrayAdapter<CharSequence> encryptionAdapter = spinnerAdapter(R.array.srt_encryption_entries);
             srtEncryptionSpinner.setAdapter(encryptionAdapter);
+            klvClassificationSpinner.setAdapter(spinnerAdapter(R.array.classification_entries));
 
             ArrayAdapter<CharSequence> cameraAdapter = spinnerAdapter(R.array.camera_entries);
             cameraSpinner.setAdapter(cameraAdapter);
@@ -529,6 +555,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
                 }
             };
             srtEncryptionSpinner.setOnItemSelectedListener(saveOnSelect);
+            klvClassificationSpinner.setOnItemSelectedListener(saveOnSelect);
             codecSpinner.setOnItemSelectedListener(saveOnSelect);
             resolutionSpinner.setOnItemSelectedListener(saveOnSelect);
             fpsSpinner.setOnItemSelectedListener(saveOnSelect);
@@ -561,8 +588,13 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             };
             urlInput.addTextChangedListener(saveOnEdit);
             srtPassphraseInput.addTextChangedListener(saveOnEdit);
+            klvCountryInput.addTextChangedListener(saveOnEdit);
+            klvMissionInput.addTextChangedListener(saveOnEdit);
             trustAllCertsCheckbox.setOnCheckedChangeListener((b, checked) -> saveInputs());
-            klvCheckbox.setOnCheckedChangeListener((b, checked) -> saveInputs());
+            klvCheckbox.setOnCheckedChangeListener((b, checked) -> {
+                updateKlvMarkingRow();
+                saveInputs();
+            });
 
             qrButton.setOnClickListener(v -> scanQr());
 

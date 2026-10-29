@@ -12,6 +12,8 @@ next version exists. A resubmission is always a new version.
 | 1.1.3 | 101035080 | 2026-10-26 | Superceded before submission |
 | 1.1.4 | 101045080 | 2026-10-26 | Superceded |
 | 1.1.5 | 101055080 | 2026-10-26 | Pending |
+| 1.1.6 | 101065080 | 2026-10-28 | Signed (2026-10-28) |
+| 1.1.7 | 101075080 | — | Not yet submitted |
 
 ## 1.1.1 — rejected
 
@@ -76,3 +78,29 @@ Fortify also flagged two items (no APK, so they did not block on their own):
   can drape the video on its map. Corners come from the phone's attitude and
   the camera's field of view (`Footprint`); a corner ray that does not reach
   the ground leaves the tags out.
+
+## 1.1.7
+
+STANAG 4609 (MISB) compliance, and the three problems tak-video-restreamer's
+stream check reported on 1.1.6 (VFR, H.264 High, KLV codec "unknown").
+
+- KLV carries the MISB ST 0102 Security Local Set (tag 48: classification,
+  GENC three-letter classifying/object country, version 12) and an optional
+  Mission ID (tag 3). Classification, country and mission are set under the
+  KLV checkbox; the country defaults to the phone's region and must be three
+  letters for a stream with KLV to start.
+- Every H.264/H.265 frame carries a MISB ST 0604 Precision Time Stamp
+  (`MISPmicrosectime` user-data SEI) when KLV is on, so receivers can match
+  picture and metadata.
+- Constant frame rate: the GL pipeline repeats the last picture when the
+  camera drops one (`setForceRender`) and caps the rate (`forceFpsLimit`);
+  the RTP CFR grid now uses the chosen fps instead of a fixed 30 (15/24 fps
+  streams were snapped to a 30 fps grid and looked variable).
+- H.264 is encoded in Main profile (level by resolution) instead of the
+  encoder's default High; if an encoder refuses it, its own choice is kept.
+- Same encoder changes in ICU NG Capture.
+- The restreamer's "KLV track not tagged as KLV (codec: unknown)" is ffmpeg
+  not mapping RFC 6597 `smpte336m` back to its KLV codec; nothing to change
+  in the publisher.
+- Not tested on a device before submission: verify with the restreamer's
+  stream check and a KLV validator (jMISB) on the returned build.

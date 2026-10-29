@@ -93,6 +93,9 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
     private volatile KlvEncoder.Telemetry snapshot;
     private long lastSentMs;
     private PacketSink sink;
+    private int classification = KlvEncoder.UNCLASSIFIED;
+    private String country;
+    private String missionId;
 
     // Position is sampled on this tick (main thread) rather than from the
     // sensor callback, so KLV keeps flowing on devices with no attitude
@@ -152,6 +155,13 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         if (frontCamera) {
             for (int i = 0; i < 3; i++) imageRight[i] = -imageRight[i];
         }
+    }
+
+    /** STANAG 4609 marking carried in every packet (ST 0102 set and mission). */
+    public void setMarking(int classification, String country, String missionId) {
+        this.classification = classification;
+        this.country = country;
+        this.missionId = missionId;
     }
 
     /** Packets go to the sink instead of this process's RTSP client. */
@@ -246,6 +256,9 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         t.vfovDeg = vfovDeg;
         t.callsign = MapView.getMapView().getDeviceCallsign();
         t.sensorName = sensorName;
+        t.classification = classification;
+        t.country = country;
+        t.missionId = missionId;
         if (!Double.isNaN(t.azimuthDeg) && !Double.isNaN(elevation)) {
             double height = cameraHeight(p);
             frameCenter(t, p, elevation, height);

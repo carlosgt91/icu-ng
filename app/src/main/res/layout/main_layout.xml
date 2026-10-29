@@ -124,6 +124,44 @@
                 android:text="@string/klv_checkbox"
                 style="@style/IcuNgCheckBox" />
 
+            <!-- STANAG 4609 marking carried in the KLV -->
+            <LinearLayout
+                android:id="@+id/klv_marking_row"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Spinner
+                    android:id="@+id/klv_classification_spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    style="@style/IcuNgSpinner" />
+
+                <EditText
+                    android:id="@+id/klv_country_input"
+                    android:layout_width="64dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:inputType="textCapCharacters|textNoSuggestions"
+                    android:maxLength="3"
+                    android:hint="@string/klv_country_hint"
+                    style="@style/IcuNgField" />
+
+                <EditText
+                    android:id="@+id/klv_mission_input"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:layout_marginStart="8dp"
+                    android:inputType="text|textNoSuggestions"
+                    android:maxLength="64"
+                    android:hint="@string/klv_mission_hint"
+                    style="@style/IcuNgField" />
+
+            </LinearLayout>
+
             <CheckBox
                 android:id="@+id/trust_all_certs_checkbox"
                 android:layout_width="match_parent"

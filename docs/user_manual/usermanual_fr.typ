@@ -78,7 +78,7 @@ s'éteint.
 - *Protocole et URL* du serveur : `rtsp://`, `rtsps://` ou `srt://`.
 - *QR* : lit l'URL du serveur à partir d'un code QR.
 - *Diffuser / Arrêter*.
-- *KLV* : envoie la télémétrie avec la vidéo.
+- *KLV* : envoie la télémétrie avec la vidéo. En dessous : classification, pays (trois lettres, p. ex. FRA) et ID de mission facultatif, inclus dans chaque paquet.
 
 Tout est enregistré instantanément : le bouton REC diffuse avec les paramètres affichés sur le panneau.
 ]
@@ -134,6 +134,7 @@ reprend automatiquement la diffusion dès le rétablissement de la connexion.
   projeter la vidéo sur la carte.
 - Le KLV passe par RTSP/RTSPS. Par SRT, il n'est pas envoyé.
 - Avec une *caméra USB*, le KLV n'est pas envoyé : on ne sait pas vers où elle pointe.
+- *STANAG 4609* : chaque paquet KLV porte le marquage de sécurité (MISB ST 0102 : classification et pays) et l'ID de mission, et chaque image son heure UTC (MISB ST 0604), pour que le récepteur associe image et télémétrie.
 ]
 
 #tak-slide[
