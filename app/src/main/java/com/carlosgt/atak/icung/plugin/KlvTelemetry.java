@@ -57,6 +57,15 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         void onKlvPacket(byte[] packet);
     }
 
+    /**
+     * Where the camera points, once per second on the main thread, for the
+     * map's sensor cone: azimuth in degrees true, horizontal field of view
+     * in degrees, and the ground distance to the frame center in meters.
+     */
+    public interface PointingListener {
+        void onPointing(double azimuthTrueDeg, double hfovDeg, double groundRangeM);
+    }
+
     private static final long INTERVAL_MS = 1000;
     private static final double DEFAULT_HFOV = 60;
     private static final double DEFAULT_VFOV = 45;
@@ -84,6 +93,8 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
     private final Handler mainHandler = new Handler(Looper.getMainLooper());
     private double magneticAzimuth = Double.NaN;
     private double elevation = Double.NaN;
+    private double roll = Double.NaN;
+    private final byte[] miisCoreId;
     // Camera axis, image right and image up in the world frame (east,
     // north, up; magnetic north); null until the first sensor event.
     private double[] worldAxis;
@@ -93,6 +104,8 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
     private volatile KlvEncoder.Telemetry snapshot;
     private long lastSentMs;
     private PacketSink sink;
+    private PointingListener pointingListener;
+    private double groundRange = Double.NaN;
     private int classification = KlvEncoder.UNCLASSIFIED;
     private String country;
     private String missionId;
@@ -108,6 +121,10 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
             if (sink != null && t != null) {
                 t.timeMicros = System.currentTimeMillis() * 1000L;
                 sink.onKlvPacket(KlvEncoder.encode(t));
+            }
+            if (pointingListener != null && t != null && !Double.isNaN(t.azimuthDeg)
+                    && !Double.isNaN(groundRange)) {
+                pointingListener.onPointing(t.azimuthDeg, hfovDeg, groundRange);
             }
             mainHandler.postDelayed(this, INTERVAL_MS);
         }
@@ -155,6 +172,8 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         if (frontCamera) {
             for (int i = 0; i < 3; i++) imageRight[i] = -imageRight[i];
         }
+        this.miisCoreId = KlvEncoder.miisCoreId(
+                MapView.getMapView().getSelfMarker().getUID(), sensorName);
     }
 
     /** STANAG 4609 marking carried in every packet (ST 0102 set and mission). */
@@ -162,6 +181,11 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         this.classification = classification;
         this.country = country;
         this.missionId = missionId;
+    }
+
+    /** Set before start(). */
+    public void setPointingListener(PointingListener listener) {
+        this.pointingListener = listener;
     }
 
     /** Packets go to the sink instead of this process's RTSP client. */
@@ -219,6 +243,12 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         worldAxis = new double[] { east, north, up };
         worldRight = toWorld(imageRight);
         worldUp = toWorld(imageUp);
+        // Twist of the picture about the camera axis: 0 with the image's
+        // right edge level, positive turning clockwise seen from behind
+        // (the right edge dips). Undefined looking straight up or down.
+        double rz = worldRight[2];
+        double uz = worldUp[2];
+        roll = Math.hypot(rz, uz) < 0.1 ? Double.NaN : Math.toDegrees(Math.atan2(-rz, uz));
     }
 
     // Row-major rotation matrix: a device axis in the world frame is the
@@ -259,9 +289,13 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         t.classification = classification;
         t.country = country;
         t.missionId = missionId;
+        t.rollDeg = roll;
+        t.miisCoreId = miisCoreId;
+        groundRange = Double.NaN;
         if (!Double.isNaN(t.azimuthDeg) && !Double.isNaN(elevation)) {
             double height = cameraHeight(p);
-            frameCenter(t, p, elevation, height);
+            groundRange = frameCenter(t, p, elevation, height);
+            t.targetWidthM = 2 * t.slantRange * Math.tan(Math.toRadians(hfovDeg / 2));
             if (worldAxis != null) {
                 corners(t, height, t.azimuthDeg - magneticAzimuth);
             }
@@ -319,9 +353,9 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
     /**
      * Where the camera axis meets the ground: from the camera's height over
      * the terrain and how far below the horizon it points. ATAK shows this
-     * as the video's target.
+     * as the video's target. Returns its ground distance from the camera.
      */
-    private static void frameCenter(KlvEncoder.Telemetry t, GeoPoint p, double elevationDeg,
+    private static double frameCenter(KlvEncoder.Telemetry t, GeoPoint p, double elevationDeg,
             double height) {
         double distance = elevationDeg < -0.5
                 ? Math.min(height / Math.tan(Math.toRadians(-elevationDeg)), MAX_FRAME_CENTER_M)
@@ -336,6 +370,7 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         } else if (!Double.isNaN(t.altitudeMsl)) {
             t.frameCenterMsl = t.altitudeMsl - height;
         }
+        return distance;
     }
 
     // Magnetic -> true north. Recomputed every 10 min; it barely moves.

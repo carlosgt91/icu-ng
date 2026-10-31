@@ -637,6 +637,7 @@ public class StreamController implements ConnectChecker {
                 pluginContext.getString(R.string.app_name) + " " + cameras[camera].toLowerCase(),
                 streamRotation);
         klvTelemetry.setMarking(s.classification(), s.country, s.missionId);
+        klvTelemetry.setPointingListener(sensorFovController);
         if (remoteLive) klvTelemetry.start(captureLink::sendKlv);
         else klvTelemetry.start();
     }

@@ -124,8 +124,10 @@ automatically resumes streaming once connected.
 - While streaming (RTSP or SRT), other ATAK users see your video in their
   *Video* list, with your *callsign* as the name. RTSPS is not announced: ATAK
   does not support opening that type of link.
-- A *cone* appears on your marker showing where the camera is pointing. With the front
-  camera, it points backwards.
+- A *cone* appears on your marker showing where the camera is pointing: as wide as
+  its field of view and as long as the distance to the point it looks at. Other ATAK
+  users see it too. Without KLV (SRT, USB camera or KLV off) it follows your direction
+  of travel instead; with the front camera, it points backwards.
 - *KLV (MISB ST 0601)*, once per second: your position and altitude, camera
   pointing direction (heading and pitch, from device sensors), field of view,
   the ground target point and, when the camera looks down, the four corners of
@@ -133,7 +135,7 @@ automatically resumes streaming once connected.
   this over the video and on the map, and can drape the video on the map.
 - KLV is transmitted over RTSP/RTSPS. It is not sent over SRT.
 - With a *USB camera*, KLV is not sent: camera orientation is unknown.
-- *STANAG 4609*: every KLV packet carries the security marking (MISB ST 0102: classification and country) and the mission ID, and every video frame its UTC time (MISB ST 0604), so receivers can match picture and telemetry.
+- *STANAG 4609*: the KLV carries the full MISB ST 0902 minimum metadata set, including the security marking (MISB ST 0102: classification and country), the mission ID and a stable identifier for the camera and the phone (MISB ST 1204), and every video frame carries its UTC time (MISB ST 0604), so receivers can match picture and telemetry.
 ]
 
 #tak-slide[

@@ -124,8 +124,10 @@ reprend automatiquement la diffusion dès le rétablissement de la connexion.
 - Pendant la diffusion (RTSP ou SRT), les autres utilisateurs d'ATAK voient votre vidéo dans le
   *Lecteur vidéo*, avec votre *callsign* comme nom. RTSPS n'est pas annoncé : ATAK ne
   sait pas ouvrir ce type de lien.
-- Un *cône* apparaît sur votre marqueur indiquant la direction visée par la caméra. Avec la caméra
-  avant, il pointe vers l'arrière.
+- Un *cône* apparaît sur votre marqueur indiquant la direction visée par la caméra : aussi large
+  que son champ de vision et aussi long que la distance au point visé. Les autres
+  utilisateurs d'ATAK le voient aussi. Sans KLV (SRT, caméra USB ou KLV désactivé), il
+  suit votre direction de déplacement ; avec la caméra avant, il pointe vers l'arrière.
 - *KLV (MISB ST 0601)*, une fois par seconde : votre position et altitude, direction
   de la caméra (cap et inclinaison, issus des capteurs de l'appareil), son champ
   de vision, le point au sol visé et, quand la caméra regarde vers le bas, les
@@ -134,6 +136,7 @@ reprend automatiquement la diffusion dès le rétablissement de la connexion.
   projeter la vidéo sur la carte.
 - Le KLV passe par RTSP/RTSPS. Par SRT, il n'est pas envoyé.
 - Avec une *caméra USB*, le KLV n'est pas envoyé : on ne sait pas vers où elle pointe.
+- *STANAG 4609* : le KLV contient l'ensemble minimal complet de métadonnées MISB ST 0902, dont le marquage de sécurité (MISB ST 0102 : classification et pays), l'identifiant de mission et un identifiant stable de la caméra et du téléphone (MISB ST 1204), et chaque image vidéo porte son heure UTC (MISB ST 0604), pour que les récepteurs puissent associer image et télémétrie.
 - *STANAG 4609* : chaque paquet KLV porte le marquage de sécurité (MISB ST 0102 : classification et pays) et l'ID de mission, et chaque image son heure UTC (MISB ST 0604), pour que le récepteur associe image et télémétrie.
 ]
 

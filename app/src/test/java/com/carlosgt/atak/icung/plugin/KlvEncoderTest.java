@@ -191,6 +191,40 @@ public class KlvEncoderTest {
         assertEquals(40.0, e[0], 1e-4);
     }
 
+    @Test
+    public void st0902MinimumSetItemsRoundTrip() {
+        KlvEncoder.Telemetry t = sample();
+        t.rollDeg = -10;
+        t.targetWidthM = 87.5;
+        t.miisCoreId = KlvEncoder.miisCoreId("ANDROID-abc", "ICU NG trasera");
+        byte[] p = KlvEncoder.encode(t);
+        assertEquals(KlvEncoder.checksum(p, p.length - 2),
+                ((p[p.length - 2] & 0xFF) << 8) | (p[p.length - 1] & 0xFF));
+        Map<Integer, byte[]> items = decode(p);
+        assertEquals(0, signed(items.get(6)));
+        assertEquals(0, signed(items.get(7)));
+        assertEquals(350.0, unsigned(items.get(20)) * 360.0 / 0xFFFFFFFFL, 1e-6);
+        assertEquals(87.5, unsigned(items.get(22)) * 10_000.0 / 0xFFFF, 0.1);
+        assertArrayEquals(t.miisCoreId, items.get(94));
+    }
+
+    @Test
+    public void miisCoreIdIsStableVirtualSensorAndPlatform() {
+        byte[] id = KlvEncoder.miisCoreId("ANDROID-abc", "ICU NG trasera");
+        assertEquals(34, id.length);
+        assertEquals(1, id[0]);
+        // usage: virtual (2) sensor << 5 | virtual platform << 3, no window/minor
+        assertEquals((2 << 5) | (2 << 3), id[1] & 0xFF);
+        assertArrayEquals(id, KlvEncoder.miisCoreId("ANDROID-abc", "ICU NG trasera"));
+        // another camera on the same phone: new sensor, same platform
+        byte[] front = KlvEncoder.miisCoreId("ANDROID-abc", "ICU NG frontal");
+        assertFalse(Arrays.equals(Arrays.copyOfRange(id, 2, 18), Arrays.copyOfRange(front, 2, 18)));
+        assertArrayEquals(Arrays.copyOfRange(id, 18, 34), Arrays.copyOfRange(front, 18, 34));
+        // RFC 4122 version 5, variant 10
+        assertEquals(0x50, id[2 + 6] & 0xF0);
+        assertEquals(0x80, id[2 + 8] & 0xC0);
+    }
+
     private static Map<Integer, byte[]> decode(byte[] p) {
         // BER length after the 16-byte key: short form, or 0x81/0x82 + bytes.
         int first = p[16] & 0xFF;

@@ -124,8 +124,10 @@ erneut und streamt automatisch weiter, sobald eine Verbindung besteht.
 - Während des Streamings (RTSP oder SRT) sehen andere ATAK-Benutzer Ihr Video in ihrer
   *Video*-Liste mit Ihrem *callsign* als Namen. RTSPS wird nicht angekündigt: ATAK
   kann diese Art von Verknüpfung nicht öffnen.
-- Auf Ihrer Markierung erscheint ein *Kegel*, der die Blickrichtung der Kamera anzeigt. Bei der
-  Frontkamera zeigt er nach hinten.
+- Auf Ihrer Markierung erscheint ein *Kegel*, der die Blickrichtung der Kamera anzeigt: so breit
+  wie ihr Sichtfeld und so lang wie die Entfernung zum anvisierten Punkt. Andere
+  ATAK-Benutzer sehen ihn ebenfalls. Ohne KLV (SRT, USB-Kamera oder KLV aus) folgt er
+  Ihrer Bewegungsrichtung; bei der Frontkamera zeigt er nach hinten.
 - *KLV (MISB ST 0601)*, einmal pro Sekunde: Ihre Position und Höhe, Ausrichtung
   der Kamera (Richtung und Neigung über die Gerätesensoren), Sichtfeld, der
   anvisierte Geländepunkt und, wenn die Kamera nach unten zeigt, die vier
@@ -134,6 +136,7 @@ erneut und streamt automatisch weiter, sobald eine Verbindung besteht.
   Karte projizieren.
 - KLV wird über RTSP/RTSPS übertragen. Über SRT wird kein KLV gesendet.
 - Bei einer *USB-Kamera* wird kein KLV gesendet: Die Ausrichtung der Kamera ist unbekannt.
+- *STANAG 4609*: Das KLV enthält den vollständigen Mindestmetadatensatz nach MISB ST 0902, darunter die Sicherheitskennzeichnung (MISB ST 0102: Einstufung und Land), die Missions-ID und eine feste Kennung von Kamera und Telefon (MISB ST 1204), und jedes Videobild trägt seine UTC-Zeit (MISB ST 0604), damit Empfänger Bild und Telemetrie zuordnen können.
 - *STANAG 4609*: Jedes KLV-Paket trägt die Sicherheitskennzeichnung (MISB ST 0102: Klassifizierung und Land) und die Missions-ID, jedes Videobild seine UTC-Zeit (MISB ST 0604), damit Empfänger Bild und Telemetrie zuordnen können.
 ]
 

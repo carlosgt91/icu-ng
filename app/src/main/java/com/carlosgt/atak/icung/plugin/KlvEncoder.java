@@ -8,12 +8,16 @@ import java.nio.charset.StandardCharsets;
  * camera's telemetry. Pure Java and stateless, so it is unit-tested on the
  * JVM.
  *
- * Mapping for a phone (the "platform" is the phone, the "sensor" its camera,
- * fixed to it, so the sensor-relative angles are zero except elevation):
+ * Mapping for a handheld phone: the "platform" is the operator, taken as
+ * level and facing where the camera points; the "sensor" is the phone's
+ * camera, so its pitch and twist are the sensor-relative angles. Every
+ * item of the MISB ST 0902 minimum set (MISMMS) is sent:
  * <pre>
  *   2  Precision Time Stamp        uint64  µs since the Unix epoch
  *   3  Mission ID                  string  operator's choice, left out if empty
  *   5  Platform Heading            uint16  0..360        camera azimuth (true)
+ *   6  Platform Pitch              int16   ±20           always 0 (operator level)
+ *   7  Platform Roll               int16   ±50           always 0
  *  10  Platform Designation        string  ATAK callsign
  *  11  Image Source Sensor         string  e.g. "ICU NG trasera"
  *  12  Image Coordinate System     string  "WGS-84"
@@ -24,7 +28,9 @@ import java.nio.charset.StandardCharsets;
  *  17  Sensor Vertical FOV         uint16  0..180
  *  18  Sensor Relative Azimuth     uint32  0..360        always 0
  *  19  Sensor Relative Elevation   int32   ±180          camera pitch
+ *  20  Sensor Relative Roll        uint32  0..360        image twist, clockwise from behind
  *  21  Slant Range                 uint32  0..5e6 m      sensor to frame center
+ *  22  Target Width                uint16  0..10000 m    frame width at the frame center
  *  23  Frame Center Latitude       int32   ±90           where the camera looks
  *  24  Frame Center Longitude      int32   ±180
  *  25  Frame Center Elevation      uint16  -900..19000 m (MSL)
@@ -32,6 +38,7 @@ import java.nio.charset.StandardCharsets;
  *  48  Security Local Set          set     MISB ST 0102, see security()
  *  65  UAS Datalink LS Version     uint8   17
  * 82-89 Corner Lat/Lon 1-4 (Full)  int32   ±90 / ±180    same corners, absolute
+ *  94  MIIS Core Identifier        bytes   MISB ST 1204, see miisCoreId()
  *   1  Checksum                    uint16  last, see checksum()
  * </pre>
  * The corners (upper-left, upper-right, lower-right, lower-left of the
@@ -83,6 +90,12 @@ public final class KlvEncoder {
         public int classification = UNCLASSIFIED;
         /** GENC three-letter code of the classifying (and object) country */
         public String country;
+        /** image twist about the camera axis, clockwise seen from behind; NaN if unknown */
+        public double rollDeg = Double.NaN;
+        /** width of the frame on the ground at the frame center; NaN if unknown */
+        public double targetWidthM = Double.NaN;
+        /** MISB ST 1204 MIIS Core Identifier, see miisCoreId(); null to leave out */
+        public byte[] miisCoreId;
     }
 
     private KlvEncoder() {
@@ -97,6 +110,8 @@ public final class KlvEncoder {
         if (!Double.isNaN(t.azimuthDeg)) {
             putItem(value, 5, uint(scaleUnsigned(normalize360(t.azimuthDeg), 360, 0xFFFFL), 2));
         }
+        putItem(value, 6, uint(0, 2));
+        putItem(value, 7, uint(0, 2));
         if (t.callsign != null && !t.callsign.isEmpty()) {
             putItem(value, 10, utf8(t.callsign));
         }
@@ -115,9 +130,16 @@ public final class KlvEncoder {
         if (!Double.isNaN(t.elevationDeg)) {
             putItem(value, 19, uint(scaleSigned(t.elevationDeg, 180), 4));
         }
+        if (!Double.isNaN(t.rollDeg)) {
+            putItem(value, 20, uint(scaleUnsigned(normalize360(t.rollDeg), 360, 0xFFFFFFFFL), 4));
+        }
         if (!Double.isNaN(t.slantRange)) {
             putItem(value, 21, uint(scaleUnsigned(clamp(t.slantRange, 0, 5_000_000),
                     5_000_000, 0xFFFFFFFFL), 4));
+        }
+        if (!Double.isNaN(t.targetWidthM)) {
+            putItem(value, 22, uint(scaleUnsigned(clamp(t.targetWidthM, 0, 10_000),
+                    10_000, 0xFFFFL), 2));
         }
         // ATAK's player fills its "TGT" line (and the target on the map)
         // from the frame center; without it only the sensor is known.
@@ -145,6 +167,9 @@ public final class KlvEncoder {
                 putItem(value, 82 + 2 * i, uint(scaleSigned(t.cornerLat[i], 90), 4));
                 putItem(value, 83 + 2 * i, uint(scaleSigned(t.cornerLon[i], 180), 4));
             }
+        }
+        if (t.miisCoreId != null) {
+            putItem(value, 94, t.miisCoreId);
         }
 
         // The checksum item's own tag and length are part of the summed
@@ -182,6 +207,45 @@ public final class KlvEncoder {
         putItem(ls, 13, t.country.getBytes(StandardCharsets.UTF_16BE));
         putItem(ls, 22, uint(SECURITY_VERSION, 2));
         return ls.toByteArray();
+    }
+
+    /**
+     * MISB ST 1204 MIIS Core Identifier in its binary form: version 1, the
+     * usage byte (sensor and platform ID types, no window or minor ID),
+     * then the sensor and platform UUIDs. Both are "virtual" IDs (type 2):
+     * generated, not read from hardware, but stable - name-based (version
+     * 5) UUIDs of the ATAK device UID, the platform, and of that UID plus
+     * the camera, the sensor - so the same phone and camera always carry
+     * the same identifier.
+     */
+    public static byte[] miisCoreId(String deviceUid, String cameraName) {
+        final int virtual = 2;
+        byte[] out = new byte[34];
+        out[0] = 1;
+        out[1] = (byte) ((virtual << 5) | (virtual << 3));
+        System.arraycopy(nameUuid("icung-sensor:" + deviceUid + ":" + cameraName), 0, out, 2, 16);
+        System.arraycopy(nameUuid("icung-platform:" + deviceUid), 0, out, 18, 16);
+        return out;
+    }
+
+    // RFC 4122 version 5 (SHA-1, name-based) UUID bytes in the URL namespace.
+    static byte[] nameUuid(String name) {
+        final byte[] urlNamespace = {
+                0x6b, (byte) 0xa7, (byte) 0xb8, 0x11, (byte) 0x9d, (byte) 0xad, 0x11, (byte) 0xd1,
+                (byte) 0x80, (byte) 0xb4, 0x00, (byte) 0xc0, 0x4f, (byte) 0xd4, 0x30, (byte) 0xc8 };
+        try {
+            java.security.MessageDigest sha1 = java.security.MessageDigest.getInstance("SHA-1");
+            sha1.update(urlNamespace);
+            sha1.update(name.getBytes(StandardCharsets.UTF_8));
+            byte[] h = sha1.digest();
+            byte[] uuid = new byte[16];
+            System.arraycopy(h, 0, uuid, 0, 16);
+            uuid[6] = (byte) ((uuid[6] & 0x0F) | 0x50);
+            uuid[8] = (byte) ((uuid[8] & 0x3F) | 0x80);
+            return uuid;
+        } catch (java.security.NoSuchAlgorithmException e) {
+            throw new IllegalStateException(e);
+        }
     }
 
     /**
