@@ -1,143 +1,163 @@
-[English](README.md) | [Español](README.es.md) | [Deutsch](README.de.md) | [Українська](README.uk.md) | [Français](README.fr.md) | [Português](README.pt.md)
+<div align="center">
 
-Plugin ATAK — ICU NG
+# Plugin ATAK — ICU NG (Next Generation)
 
-Streaming de cámara para ATAK: vídeo y audio desde las cámaras del dispositivo
-(trasera, frontal o USB/UVC) a un servidor de vídeo RTSP, RTSPS o SRT, con
-telemetría KLV MISB ST 0601, anunciado en el mapa para que otros usuarios de
-ATAK puedan abrirlo desde su lista de Vídeo. Un sustituto de TAK ICU integrado
-dentro de ATAK.
+[![ATAK-CIV](https://img.shields.io/badge/ATAK--CIV-5.8%2B-blue.svg)](https://tak.gov)
+[![Estándares](https://img.shields.io/badge/Estándares-MISB%20ST%200601%20%7C%20ST%200902%20%7C%20STANAG%204609-success.svg)](https://gwg.nga.mil/)
+[![Protocolos](https://img.shields.io/badge/Protocolos-RTSP%20%7C%20RTSPS%20%7C%20SRT-orange.svg)](#seguridad-y-normativa-ato)
+[![Versión](https://img.shields.io/badge/Versión-v1.1.9-brightgreen.svg)](https://github.com/carlosgt91/icu-ng/releases/tag/v1.1.9)
+[![Licencia](https://img.shields.io/badge/Licencia-Apache%202.0-lightgrey.svg)](LICENSE)
 
-Manual de usuario: dentro de ATAK, Ajustes → Preferencias de herramientas →
-Preferencias de herramientas específicas → ICU NG (fuente: docs/user_manual/).
+**Plugin profesional de streaming de vídeo táctico de baja latencia para ATAK-CIV.**  
+*Emisión nativa de cámara con metadatos STANAG 4609 / KLV MISB, huella dinámica de cono de sensor (FOV) en mapa y soporte de captura en segundo plano.*
 
-_________________________________________________________________
-DESCARGAS
+---
 
-Los archivos APK precompilados de la última versión (v1.1.5) están disponibles en [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/latest):
+[English](README.md) • [Español](README.es.md) • [Deutsch](README.de.md) • [Українська](README.uk.md) • [Français](README.fr.md) • [Português](README.pt.md)
 
-- 📦 **[Plugin ATAK — ICU NG v1.1.5](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.5/ATAK-Plugin-IcuNg-1.1.5-5.8.0-civ-release.apk)** (civRelease, firmado para ATAK-CIV 5.8+)
-- 📱 **[App Compañera — ICU NG Capture v1.1.5](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.5/ICU-NG-Capture-1.1.5-release.apk)** (Necesaria para emisión en segundo plano y con pantalla apagada)
+</div>
 
-_________________________________________________________________
-PROPÓSITO Y CAPACIDADES
+---
 
-ICU NG permite a un operador emitir lo que ve la cámara del dispositivo sin salir
-de ATAK y sin tener que configurar la emisión a mano en otra aplicación cada vez.
-La emisión lleva como nombre el indicativo del operador y se anuncia a través del
-gestor de conexiones de vídeo de ATAK, de modo que el resto del equipo puede
-verla desde ATAK.
+## 📌 Descripción General
 
-- Botón REC en el mapa: toque para iniciar/detener con los ajustes guardados,
-  pulsación larga para el panel de ajustes, pulsación larga y arrastrar para
-  moverlo a lo largo del borde derecho.
-- Panel de ajustes con vista previa en directo: cámara, protocolo, URL del
-  servidor (escrita o leída de un código QR), passphrase y cifrado SRT, calidad
-  (resolución, fps, bitrate, bitrate adaptativo, micrófono).
-- MISB ST 0601 KLV sobre RTSP/RTSPS, una vez por segundo: posición y altitud
-  del sensor, acimut y elevación de la cámara (sensor de vector de rotación),
-  campo de visión, centro del encuadre en el terreno (datos de elevación de ATAK),
-  indicativo y, cuando la cámara mira hacia abajo, las cuatro esquinas del
-  encuadre sobre el terreno, para que los receptores puedan proyectar el vídeo
-  sobre su mapa.
-- Cono de campo de visión del sensor sobre el marcador propio durante la emisión.
-- Botón de emisión en el menú radial del marcador propio.
+**ICU NG** es un sustituto moderno y directo para la herramienta heredada *TAK ICU*, integrado de forma nativa dentro de ATAK como plugin de primer nivel. Permite al combatiente/operador en el terreno emitir vídeo y audio en tiempo real desde las cámaras integradas (trasera/frontal) o fuentes externas USB (UVC) directamente hacia servidores de vídeo **RTSP, RTSPS (TLS) o SRT**.
 
-Emisión en segundo plano. Un plugin se ejecuta dentro del proceso de ATAK, y el
-único servicio en primer plano de ATAK es de tipo "location", por lo que Android
-detiene el acceso a la cámara del plugin cuando la pantalla se apaga. Para
-continuar emitiendo con la pantalla apagada, la captura de cámara puede realizarse
-mediante una app complementaria opcional, ICU NG Capture (capture/ en el
-repositorio de código fuente; una app Android estándar, que no forma parte de
-esta entrega), que mantiene un servicio en primer plano de cámara/micrófono. El
-plugin sigue siendo la interfaz de usuario completa y controla la app; sin la
-app instalada el plugin emite por sí mismo, únicamente en primer plano.
+Las emisiones se etiquetan con el indicativo (*callsign*) del operador y se anuncian de forma automática a través del gestor de conexiones de vídeo de ATAK (`<__video>` CoT). La huella activa de la cámara se dibuja dinámicamente sobre el mapa de los miembros del equipo, incluyendo el cono de visión del sensor y la proyección de esquinas de vídeo sobre el terreno.
 
-_________________________________________________________________
-ESTADO
+```
+       [ Cámara del Terminal / USB UVC ]
+                       │
+                       ▼
+           ┌───────────────────────┐
+           │     Plugin ICU NG     │ ◄─── Telemetría (Vector de rotación, GPS, elevación)
+           │ (o App Captura Acom.) │ ───► Inyección KLV MISB ST 0601 / ST 0902 (2 Hz)
+           └───────────────────────┘
+                       │
+        ┌──────────────┴──────────────┐
+        ▼ (RTSP / RTSPS / SRT)        ▼ (Anuncio CoT Video)
+    ┌───────────────────────┐   ┌───────────────────────┐
+    │ MediaMTX / Restreamer │   │      TAK Server       │
+    └───────────────────────┘   └───────────────────────┘
+                │                           │
+                └──────────────┬────────────┘
+                               ▼
+                [ Clientes ATAK Remotos / TOC ]
+             (Emisión con proyección sobre mapa)
+```
 
-Versión 1.1.5. Verificado en ATAK-CIV 5.8.0.7 (compilación de desarrollador):
-emulador (Android 14) para todas las funciones, incluida la compilación civRelease;
-probado en campo en una tablet Samsung (Android 16) emitiendo por RTSP hacia un
-retransmisor basado en MediaMTX a través de una VPN. Verificado en hardware real:
-cámaras internas y cámara externa USB (UVC) mediante USB OTG.
+---
 
-Preparado para la entrega a terceros en tak.gov.
+## 🚀 Descargas (Última Versión: v1.1.9)
 
-_________________________________________________________________
-PUNTOS DE CONTACTO
+Los APKs precompilados y los paquetes de verificación están disponibles en [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/tag/v1.1.9):
 
-carlosgt91
-https://github.com/carlosgt91/icu-ng/issues
+| Paquete | Archivo | Descripción |
+| :--- | :--- | :--- |
+| **Plugin ATAK** | [ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.9/ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk) | Paquete de plugin nativo para ATAK-CIV 5.8+ |
+| **App Compañera** | [ICU-NG-Capture-1.1.9-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.9/ICU-NG-Capture-1.1.9-release.apk) | Servicio independiente para emisión con pantalla apagada |
 
-_________________________________________________________________
-PUERTOS REQUERIDOS
+### Sumas de Verificación SHA-256
 
-(Esto es importante para ATO, redes y otras cuestiones de seguridad)
+```text
+540a5438499391b80c161145b147224888935620cce2320d7ffa525dca632ef3  ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk
+214f14cf95a484510dad0727bd7a3c6e602ffb329b4899334cb07e1748a770e8  ICU-NG-Capture-1.1.9-release.apk
+b2172a25a484193233ac8d91c9f09fa1f430a94dfb0e9ff7138a687f97cb4808  IcuNg-1.1.9-5.8.0.zip
+```
 
-  Solo salientes, y únicamente mientras el operador esté emitiendo, hacia el
-  único servidor de vídeo que haya configurado el operador (URL escrita en el
-  panel o leída de un QR):
+---
 
-  - RTSP:  TCP hacia el puerto RTSP del servidor (MediaMTX por defecto 8554).
-  - RTSPS: TCP + TLS hacia el puerto RTSPS del servidor (MediaMTX por defecto 8555).
-  - SRT:   UDP hacia el puerto SRT del servidor (MediaMTX por defecto 8890).
+## 🎯 Capacidades Principales
 
-  Sin puertos entrantes ni sockets a la escucha. Sin tráfico propio hacia o
-  desde el servidor TAK: la emisión se anuncia como una conexión de vídeo a
-  través de las propias API de ATAK, transmitida en el CoT del marcador propio
-  por ATAK. No se envía nada cuando no se está emitiendo; sin red el plugin
-  sencillamente no puede conectarse.
+### 1. Interfaz Táctica sin Fricción
+* **Botón REC sobre el mapa:** Toque para iniciar/detener la emisión con los ajustes guardados. Pulsación larga para desplegar el panel de configuración rápida; arrastrar para moverlo por el borde de la pantalla.
+* **Integración en Menú Radial:** Inicie y supervise emisiones directamente desde el menú radial del marcador propio.
+* **Configuración por Código QR:** Configure al instante URLs de servidor, credenciales y passphrases SRT mediante escaneo QR con la cámara.
 
-  IPC local con la app complementaria ICU NG Capture, cuando está instalada:
-  inicio de actividades (start/stop) y un servicio vinculado AIDL (estado,
-  superficie de vista previa, paquetes KLV). La app solo acepta llamadas
-  procedentes del paquete de ATAK.
+### 2. Cumplimiento OTAN / STANAG 4609 y KLV MISB
+* **MISB ST 0601 y ST 0902:** Genera paquetes de metadatos KLV conformes a **2 Hz** (cumpliendo ST 1402):
+  * Posición de la plataforma y altitud elipsoidal (Tags 13, 14, 15).
+  * Acimut, elevación y balanceo relativo del sensor (Tags 5, 6, 7, 20).
+  * Campo de visión horizontal (Tag 16) y ancho de objetivo (Tag 22).
+  * Centro del encuadre y coordenadas de las esquinas sobre el terreno (Tags 23–26).
+  * Conjunto Local de Seguridad (MISB ST 0102, Tag 48) e ID de Misión por defecto (Tag 3).
+  * Identificador MIIS Core (MISB ST 1204, Tag 94) con UUID v5 persistente para seguimiento de sensor/plataforma.
+* **Marcas de tiempo de precisión MISB ST 0604:** Inyectadas en cabeceras SEI en cada fotograma H.264/H.265.
+* **Proyección de vídeo sobre el terreno:** Los receptores pueden proyectar la perspectiva visual de la cámara directamente sobre la cartografía de ATAK.
 
-_________________________________________________________________
-EQUIPO REQUERIDO
+### 3. Cono de Campo de Visión (FOV) Dinámico
+* A diferencia de plugins antiguos que dibujan conos estáticos según el rumbo GPS, ICU NG calcula el **vector real de orientación de la cámara**.
+* Inyecta la geometría `<sensor>` en tiempo real en Cursor on Target (`REPORT_LOCATION`), mostrando a los compañeros el frustum visual exacto y su intersección en el terreno.
 
-  Dispositivo Android compatible con ATAK-CIV 5.8, con cámara. Permisos de
-  cámara y micrófono (de ATAK, o de ICU NG Capture cuando esté instalada). Sin
-  uso de almacenamiento más allá de las preferencias de ATAK.
+### 4. Emisión en Segundo Plano y Pantalla Apagada
+* En Android, el acceso a la cámara en segundo plano se revoca al apagar la pantalla.
+* ICU NG se enlaza de forma transparente con **ICU NG Capture**, un servicio complementario (`capture/`) con servicio en primer plano de tipo `camera|microphone`.
+* Mantenga la transmisión activa con la pantalla bloqueada, ahorrando batería y manteniendo la disciplina operativa en misiones encubiertas.
 
-_________________________________________________________________
-EQUIPO SOPORTADO
+### 5. Multiprotocolo y Codificación de Alto Rendimiento
+* Protocolos: **RTSP** (RFC 2326), **RTSPS** (cifrado TLS) y **SRT** (Secure Reliable Transport con cifrado AES y passphrase).
+* Códecs: **H.264 (AVC) Main Profile** y **H.265 (HEVC)**.
+* Reloj de tasa de fotogramas constante (CFR) y tasa de bits adaptativa configurable.
+* Compatibilidad total con lentes integradas y cámaras externas **USB UVC / OTG** (ópticas, visores o cámaras corporales).
 
-  Las propias cámaras del dispositivo. Cámaras USB Video Class (UVC) mediante
-  USB OTG. Un servidor de vídeo que admita publicación por RTSP/RTSPS/SRT, p. ej.
-  MediaMTX o raytheonbbn/tak-video-restreamer.
+---
 
-_________________________________________________________________
-COMPILACIÓN
+## 📸 Capturas de Pantalla
 
-  Compilación estándar de plugin de ATAK. Defina sdk.path en local.properties
-  apuntando a un SDK de ATAK CIV descomprimido, y luego:
+<p align="center">
+  <img src="docs/screenshots/4_panel_live.png" width="31%" alt="Vista previa y controles en directo" />
+  <img src="docs/screenshots/1_rec.png" width="31%" alt="Botón REC sobre el mapa" />
+  <img src="docs/screenshots/5_calidad.png" width="31%" alt="Ajustes de calidad y códec" />
+</p>
 
-      ./gradlew assembleCivDebug
-      ./gradlew assembleCivRelease
+---
 
-  ext.ATAK_VERSION en app/build.gradle selecciona la versión de ATAK a la que
-  dirigirse. El proyecto tiene dos módulos: app (el plugin) y rootencoder-rtsp
-  (véase más abajo). En el repositorio de código fuente se incluye un tercero,
-  capture (la app complementaria), cuando está presente, el cual no es necesario
-  para compilar el plugin.
+## 🔒 Seguridad y Normativa ATO (Authority to Operate)
 
-_________________________________________________________________
-NOTAS PARA DESARROLLADORES
+Diseñado desde el inicio para despliegues militares y redes corporativas de alta seguridad:
 
-  - El streaming utiliza RootEncoder 2.8.1 (pedroSG94, Apache-2.0), API StreamBase.
-    rootencoder-rtsp/ es una copia del módulo rtsp de RootEncoder, modificada para
-    anunciar y enviar una pista KLV (RFC 6597, application/smpte336m) junto al
-    vídeo y audio; véase rootencoder-rtsp/NOTICE.md. La app lo sustituye por el
-    artefacto rtsp publicado.
-  - Cámaras USB: UVCAndroid 1.0.13 (herohan). Su código nativo realiza
-    retrollamadas a Java por nombre, de ahí sus reglas keep de proguard.
-  - Decodificación QR: ZXing core.
-  - Los ajustes residen en las preferencias por defecto de ATAK (claves icung.*),
-    por lo que el botón REC puede emitir sin que el panel se haya abierto nunca.
-  - versionCode se calcula a partir de PLUGIN_VERSION y ATAK_VERSION (no de
-    git), de modo que las compilaciones realizadas desde este zip llevan un
-    versionCode coherente.
-  - La interfaz de la app complementaria: app/src/main/aidl y CaptureLink.java en
-    el lado del plugin; los mismos archivos AIDL en la app.
+| Protocolo | Puerto por Defecto | Dirección | Cifrado / Transporte | Propósito |
+| :--- | :--- | :--- | :--- | :--- |
+| **RTSP** | `8554` | Saliente únicamente | TCP en claro | Ingesta clásica de vídeo |
+| **RTSPS** | `8555` | Saliente únicamente | TLS sobre TCP | Emisión cifrada corporativa |
+| **SRT** | `8890` | Saliente únicamente | UDP / AES-128/256 | Transporte resiliente de baja latencia |
+
+* **Cero puertos entrantes:** Sin sockets a la escucha ni vectores de ataque de red abiertos en el terminal EUD móvil.
+* **Cero telemetría / Air-Gapped:** Sin dependencias en la nube, sin rastreo externo ni llamadas de red no autorizadas.
+* **Seguridad IPC Local:** La comunicación entre el plugin y la app complementaria está restringida exclusivamente a la firma y permisos del paquete ATAK vía AIDL.
+
+---
+
+## 🛠️ Compilación y Desarrollo
+
+### Requisitos
+* Java 17 (OpenJDK / Temurin)
+* Android SDK (API 34–36, Build Tools 34.0.0+)
+* SDK de ATAK-CIV (5.8.0.7+)
+
+### Compilación
+1. Configure la ruta del SDK en `local.properties`:
+   ```properties
+   sdk.path=/ruta/a/ATAK-CIV-5.8.0.7-SDK
+   ```
+2. Genere los APKs de depuración o producción:
+   ```bash
+   ./gradlew assembleCivDebug
+   ./gradlew assembleCivRelease
+   ```
+   *(Para compilar la app compañera: `./gradlew :capture:assembleRelease`)*.
+
+---
+
+## 📄 Licencia y Reconocimientos
+
+* Publicado bajo la **[Licencia Apache 2.0](LICENSE)**.
+* Motor de streaming basado en [RootEncoder](https://github.com/pedroSG94/RootEncoder) (Apache-2.0) modificado con inyección de pista KLV RFC 6597 (`rootencoder-rtsp/`).
+* Soporte de cámaras USB mediante [UVCAndroid](https://github.com/herohan/UVCAndroid) (Apache-2.0).
+* Decodificación de códigos QR mediante [ZXing](https://github.com/zxing/zxing) (Apache-2.0).
+
+---
+
+<div align="center">
+  <sub>Mantenido por <b><a href="https://github.com/carlosgt91">carlosgt91</a></b> • Verificado para el ecosistema ATAK-CIV</sub>
+</div>
