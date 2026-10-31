@@ -78,7 +78,7 @@ Status:
 - *Protokoll und URL* des Servers: `rtsp://`, `rtsps://` oder `srt://`.
 - *QR*: Liest die Server-URL aus einem QR-Code.
 - *Streamen / Stoppen*.
-- *KLV*: Sendet die Telemetrie mit dem Video. Darunter: Klassifizierung, Land (drei Buchstaben, z. B. DEU) und optionale Missions-ID, die in jedem Paket stehen.
+- *KLV*: Sendet die Telemetrie mit dem Video. Darunter: Klassifizierung, Land (drei Buchstaben, z. B. DEU) und Missions-ID (falls leer: Ihr Callsign mit dem UTC-Datum, z. B. ALFA-1-20261031), die in jedem Paket stehen.
 
 Alles wird sofort gespeichert: Die REC-Schaltfläche streamt mit den Einstellungen des Bedienfelds.
 ]
@@ -128,16 +128,15 @@ erneut und streamt automatisch weiter, sobald eine Verbindung besteht.
   wie ihr Sichtfeld und so lang wie die Entfernung zum anvisierten Punkt. Andere
   ATAK-Benutzer sehen ihn ebenfalls. Ohne KLV (SRT, USB-Kamera oder KLV aus) folgt er
   Ihrer Bewegungsrichtung; bei der Frontkamera zeigt er nach hinten.
-- *KLV (MISB ST 0601)*, einmal pro Sekunde: Ihre Position und Höhe, Ausrichtung
-  der Kamera (Richtung und Neigung über die Gerätesensoren), Sichtfeld, der
+- *KLV (MISB ST 0601)*, zweimal pro Sekunde: Ihre Position und Höhe, Ausrichtung
+  der Kamera (Kurs und Neigung über die Gerätesensoren), Sichtfeld, der
   anvisierte Geländepunkt und, wenn die Kamera nach unten zeigt, die vier
   Bildecken auf dem Gelände. Kompatible Betrachter (unter anderem ATAK selbst)
   blenden dies über dem Video und auf der Karte ein und können das Video auf die
   Karte projizieren.
 - KLV wird über RTSP/RTSPS übertragen. Über SRT wird kein KLV gesendet.
 - Bei einer *USB-Kamera* wird kein KLV gesendet: Die Ausrichtung der Kamera ist unbekannt.
-- *STANAG 4609*: Das KLV enthält den vollständigen Mindestmetadatensatz nach MISB ST 0902, darunter die Sicherheitskennzeichnung (MISB ST 0102: Einstufung und Land), die Missions-ID und eine feste Kennung von Kamera und Telefon (MISB ST 1204), und jedes Videobild trägt seine UTC-Zeit (MISB ST 0604), damit Empfänger Bild und Telemetrie zuordnen können.
-- *STANAG 4609*: Jedes KLV-Paket trägt die Sicherheitskennzeichnung (MISB ST 0102: Klassifizierung und Land) und die Missions-ID, jedes Videobild seine UTC-Zeit (MISB ST 0604), damit Empfänger Bild und Telemetrie zuordnen können.
+- *STANAG 4609*: Das KLV enthält den vollständigen Mindestmetadatensatz nach MISB ST 0902, darunter die Sicherheitskennzeichnung (MISB ST 0102: Klassifizierung und Land), die Missions-ID und eine stabile Kennung für Kamera und Telefon (MISB ST 1204), und jedes Videobild trägt seine UTC-Zeit (MISB ST 0604), damit Empfänger Bild und Telemetrie zuordnen können.
 ]
 
 #tak-slide[

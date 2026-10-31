@@ -24,7 +24,7 @@ import com.pedro.rtsp.rtsp.klv.KlvMetadata;
 /**
  * Feeds MISB ST 0601 KLV to the RTSP client while streaming: where the
  * phone is (ATAK's self marker) and where its camera points (rotation
- * vector sensor), at 1 Hz.
+ * vector sensor), at 2 Hz.
  *
  * The pointing comes from the device attitude, not the GPS track: a person
  * filming while standing still, or walking one way and filming another, is
@@ -52,13 +52,13 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
 
     private static final String TAG = "IcuNgKlv";
 
-    /** Receives each packet, once per second, on the main thread. */
+    /** Receives each packet, twice per second, on the main thread. */
     public interface PacketSink {
         void onKlvPacket(byte[] packet);
     }
 
     /**
-     * Where the camera points, once per second on the main thread, for the
+     * Where the camera points, twice per second on the main thread, for the
      * map's sensor cone: azimuth in degrees true, horizontal field of view
      * in degrees, and the ground distance to the frame center in meters.
      */
@@ -66,7 +66,8 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         void onPointing(double azimuthTrueDeg, double hfovDeg, double groundRangeM);
     }
 
-    private static final long INTERVAL_MS = 1000;
+    // MISB ST 1402 allows at most 0.7 s between metadata time stamps.
+    private static final long INTERVAL_MS = 500;
     private static final double DEFAULT_HFOV = 60;
     private static final double DEFAULT_VFOV = 45;
     // Camera height above the ground when terrain data can't tell: a phone
@@ -176,11 +177,25 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
                 MapView.getMapView().getSelfMarker().getUID(), sensorName);
     }
 
-    /** STANAG 4609 marking carried in every packet (ST 0102 set and mission). */
+    /**
+     * STANAG 4609 marking carried in every packet (ST 0102 set and mission).
+     * MISB ST 0902 requires a Mission ID; left empty, it is the callsign and
+     * the UTC date the stream starts, e.g. ALFA-1-20261031, and stays so for
+     * the whole stream.
+     */
     public void setMarking(int classification, String country, String missionId) {
         this.classification = classification;
         this.country = country;
-        this.missionId = missionId;
+        this.missionId = missionId != null && !missionId.trim().isEmpty() ? missionId.trim()
+                : defaultMissionId(MapView.getMapView().getDeviceCallsign(),
+                        System.currentTimeMillis());
+    }
+
+    static String defaultMissionId(String callsign, long nowMs) {
+        java.text.SimpleDateFormat day = new java.text.SimpleDateFormat("yyyyMMdd", java.util.Locale.ROOT);
+        day.setTimeZone(java.util.TimeZone.getTimeZone("UTC"));
+        String cs = callsign == null || callsign.trim().isEmpty() ? "ICUNG" : callsign.trim();
+        return cs + "-" + day.format(new java.util.Date(nowMs));
     }
 
     /** Set before start(). */
@@ -243,12 +258,11 @@ public class KlvTelemetry implements SensorEventListener, KlvMetadata.KlvSupplie
         worldAxis = new double[] { east, north, up };
         worldRight = toWorld(imageRight);
         worldUp = toWorld(imageUp);
-        // Twist of the picture about the camera axis: 0 with the image's
-        // right edge level, positive turning clockwise seen from behind
-        // (the right edge dips). Undefined looking straight up or down.
-        double rz = worldRight[2];
-        double uz = worldUp[2];
-        roll = Math.hypot(rz, uz) < 0.1 ? Double.NaN : Math.toDegrees(Math.atan2(-rz, uz));
+        // Twist of the picture about the camera axis (see Footprint.roll).
+        // Within a degree of straight down it is undefined: keep the last
+        // value, the phone has not been turned in a split second.
+        double r = Footprint.roll(worldAxis, worldRight);
+        if (!Double.isNaN(r)) roll = r;
     }
 
     // Row-major rotation matrix: a device axis in the world frame is the

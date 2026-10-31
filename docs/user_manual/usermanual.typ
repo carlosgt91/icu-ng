@@ -78,7 +78,7 @@ States:
 - Server *protocol and URL*: `rtsp://`, `rtsps://`, or `srt://`.
 - *QR*: reads the server URL from a QR code.
 - *Stream / Stop*.
-- *KLV*: sends telemetry with the video. Below it: classification, country (three letters, e.g. ESP) and an optional mission ID, which go in every packet.
+- *KLV*: sends telemetry with the video. Below it: classification, country (three letters, e.g. ESP) and a mission ID (left empty, it is your callsign and the UTC date, e.g. ALFA-1-20261031), which go in every packet.
 
 Everything is saved immediately: the REC button streams with whatever the panel shows.
 ]
@@ -128,7 +128,7 @@ automatically resumes streaming once connected.
   its field of view and as long as the distance to the point it looks at. Other ATAK
   users see it too. Without KLV (SRT, USB camera or KLV off) it follows your direction
   of travel instead; with the front camera, it points backwards.
-- *KLV (MISB ST 0601)*, once per second: your position and altitude, camera
+- *KLV (MISB ST 0601)*, twice per second: your position and altitude, camera
   pointing direction (heading and pitch, from device sensors), field of view,
   the ground target point and, when the camera looks down, the four corners of
   the frame on the ground. Compatible viewers (including ATAK itself) display

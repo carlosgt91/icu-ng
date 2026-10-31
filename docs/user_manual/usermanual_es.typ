@@ -78,7 +78,7 @@ Estados:
 - *Protocolo y URL* del servidor: `rtsp://`, `rtsps://` o `srt://`.
 - *QR*: lee la URL del servidor de un código QR.
 - *Emitir / Detener*.
-- *KLV*: envía la telemetría con el vídeo. Debajo: clasificación, país (tres letras, p. ej. ESP) e ID de misión opcional, que van en cada paquete.
+- *KLV*: envía la telemetría con el vídeo. Debajo: clasificación, país (tres letras, p. ej. ESP) e ID de misión (si lo dejas vacío, es tu callsign con la fecha UTC, p. ej. ALFA-1-20261031), que van en cada paquete.
 
 Todo se guarda al momento: el botón REC emite con lo que muestra el panel.
 ]
@@ -124,11 +124,11 @@ vuelve a emitir sola cuando hay conexión.
 - Mientras emites (RTSP o SRT), el resto de usuarios de ATAK ven tu vídeo en el
   *Reproductor de video*, con tu *callsign* como nombre. RTSPS no se anuncia: ATAK no
   sabe abrir ese tipo de enlace.
-- En tu marcador aparece un *cono* con hacia dónde mira la cámara: tan ancho como su
+- En tu marcador aparece un *cono* que muestra hacia dónde mira la cámara: tan ancho como su
   campo de visión y tan largo como la distancia al punto al que mira. Los demás
   usuarios de ATAK también lo ven. Sin KLV (SRT, cámara USB o KLV desactivado) sigue
   tu dirección de marcha; con la frontal apunta hacia atrás.
-- *KLV (MISB ST 0601)*, una vez por segundo: tu posición y altitud, hacia dónde
+- *KLV (MISB ST 0601)*, dos veces por segundo: tu posición y altitud, hacia dónde
   apunta la cámara (rumbo e inclinación, de los sensores del dispositivo), su campo
   de visión, el punto del terreno al que mira y, si la cámara mira hacia abajo, las
   cuatro esquinas del encuadre sobre el terreno. Los visores compatibles (el propio
@@ -136,8 +136,7 @@ vuelve a emitir sola cuando hay conexión.
   ("planchar") el vídeo sobre el mapa.
 - El KLV va por RTSP/RTSPS. Por SRT no se envía.
 - Con *cámara USB* no se envía KLV: no se sabe hacia dónde apunta.
-- *STANAG 4609*: el KLV lleva el conjunto mínimo de metadatos MISB ST 0902 completo, con el marcado de seguridad (MISB ST 0102: clasificación y país), el ID de misión y un identificador estable de la cámara y del teléfono (MISB ST 1204), y cada fotograma lleva su hora UTC (MISB ST 0604), para que los receptores puedan casar imagen y telemetría.
-- *STANAG 4609*: cada paquete KLV lleva el marcado de seguridad (MISB ST 0102: clasificación y país) y el ID de misión, y cada fotograma su hora UTC (MISB ST 0604), para que el receptor case imagen y telemetría.
+- *STANAG 4609*: el KLV incluye el conjunto mínimo de metadatos MISB ST 0902 completo, con el marcado de seguridad (MISB ST 0102: clasificación y país), el ID de misión y un identificador estable de la cámara y del teléfono (MISB ST 1204), y cada fotograma lleva su hora UTC (MISB ST 0604), para que los receptores puedan sincronizar imagen y telemetría.
 ]
 
 #tak-slide[

@@ -14,7 +14,8 @@ next version exists. A resubmission is always a new version.
 | 1.1.5 | 101055080 | 2026-10-26 | Pending |
 | 1.1.6 | 101065080 | 2026-10-28 | Signed (2026-10-28) |
 | 1.1.7 | 101075080 | — | Not yet submitted |
-| 1.1.8 | 101085080 | — | Not yet submitted |
+| 1.1.8 | 101085080 | 2026-10-31 | Signed (2026-10-31) |
+| 1.1.9 | 101095080 | — | Not yet submitted |
 
 ## 1.1.1 — rejected
 
@@ -140,4 +141,35 @@ actually reaches the server.
 - Not tested on a device before submission: check that another ATAK sees
   the cone and that it goes when streaming stops, and run
   `validate-stream.sh` on a live stream.
+
+## 1.1.9
+
+Fixes from the first live check of the signed 1.1.8: an S21 streaming RTSP
+to tak-video-restreamer, recorded over SRT with `tools/klv-check`.
+
+What 1.1.8 got right on the device: jMISB parsed every packet (0 errors,
+time stamps increasing, all ST 0902 tags present), ST 0604 time stamps on
+1743 of 1743 frames, H.264 Main level 3.0, frame corners and the sensor cone
+on another ATAK as intended. What the ST 0902 / ST 1402 checks found:
+
+- Mission ID (tag 3) missing when the field is left empty; ST 0902 requires
+  it. Now it defaults to the callsign and the UTC date the stream starts
+  (e.g. `ALFA-1-20261031`).
+- Sensor relative roll (tag 20) missing whenever the camera looked steeply
+  down (-85 degrees and below in the test), the very case where the video
+  drapes on the map: the twist was taken from the vertical parts of the
+  image axes, which vanish there. It is now measured against the camera
+  axis's own level frame (`Footprint.roll`), undefined only within about a
+  degree of vertical, where the last value is kept.
+- KLV every second; ST 1402 allows at most 0.7 s between metadata time
+  stamps. Now twice per second.
+- Manual: 1.1.8 left the old STANAG 4609 line next to the new one in the
+  Spanish, German, French and Portuguese manuals; the KLV rate and the
+  mission default are updated in all six.
+
+Found but not in the plugin: the restreamer's MPEG-TS (MediaMTX, and ffmpeg
+alike) carries KLV as stream_type 0x06 with PTS and stream_id 0xFC, which
+ST 1402 allows neither as asynchronous (0xBD, no PTS) nor as synchronous
+(0x15) carriage, and flags its AAC as MPEG-4 ADTS under stream_type 0x0F.
+A NATO-grade 4609 output needs a conformant remuxer on the server.
 

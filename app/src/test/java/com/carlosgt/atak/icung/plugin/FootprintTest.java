@@ -63,6 +63,41 @@ public class FootprintTest {
         assertNull(Footprint.corners(DOWN, EAST, NORTH, 60, 45, 1.5, 0.5));
     }
 
+    @Test
+    public void rollIsZeroWithTheImageLevel() {
+        assertEquals(0, Footprint.roll(new double[] { 0, 1, 0 }, new double[] { 1, 0, 0 }), 1e-9);
+    }
+
+    @Test
+    public void rollIsPositiveClockwiseFromBehind() {
+        double c = Math.cos(Math.toRadians(30));
+        double s = Math.sin(Math.toRadians(30));
+        // right edge dips: clockwise seen from behind the camera
+        assertEquals(30, Footprint.roll(new double[] { 0, 1, 0 }, new double[] { c, 0, -s }), 1e-9);
+        assertEquals(-30, Footprint.roll(new double[] { 0, 1, 0 }, new double[] { c, 0, s }), 1e-9);
+    }
+
+    @Test
+    public void rollHoldsLookingSteeplyDown() {
+        // facing north, 85 degrees below the horizon (the phone over the ground)
+        double ca = Math.cos(Math.toRadians(85));
+        double sa = Math.sin(Math.toRadians(85));
+        double[] axis = { 0, ca, -sa };
+        double[] levelRight = { 1, 0, 0 };
+        double[] levelUp = { 0, sa, ca }; // levelRight x axis
+        assertEquals(0, Footprint.roll(axis, levelRight), 1e-9);
+        double c = Math.cos(Math.toRadians(20));
+        double s = Math.sin(Math.toRadians(20));
+        double[] twisted = { c * levelRight[0] - s * levelUp[0], c * levelRight[1] - s * levelUp[1],
+                c * levelRight[2] - s * levelUp[2] };
+        assertEquals(20, Footprint.roll(axis, twisted), 1e-9);
+    }
+
+    @Test
+    public void rollIsUndefinedStraightDown() {
+        assertEquals(Double.NaN, Footprint.roll(new double[] { 0, 0, -1 }, new double[] { 1, 0, 0 }), 0);
+    }
+
     private static void assertCorner(double[] c, double azimuth, double distance) {
         assertEquals(azimuth, (c[0] + 360) % 360, 1e-6);
         assertEquals(distance, c[1], 1e-6);

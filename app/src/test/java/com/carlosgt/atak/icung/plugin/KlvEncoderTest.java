@@ -225,6 +225,14 @@ public class KlvEncoderTest {
         assertEquals(0x80, id[2 + 8] & 0xC0);
     }
 
+    @Test
+    public void defaultMissionIdIsCallsignAndUtcDate() {
+        long lateOnTheThirtyFirst = java.time.Instant.parse("2026-10-31T23:59:59Z").toEpochMilli();
+        assertEquals("ALFA-1-20261031", KlvTelemetry.defaultMissionId("ALFA-1", lateOnTheThirtyFirst));
+        assertEquals("ALFA-1-20261031", KlvTelemetry.defaultMissionId(" ALFA-1 ", lateOnTheThirtyFirst));
+        assertEquals("ICUNG-20261031", KlvTelemetry.defaultMissionId("", lateOnTheThirtyFirst));
+    }
+
     private static Map<Integer, byte[]> decode(byte[] p) {
         // BER length after the 16-byte key: short form, or 0x81/0x82 + bytes.
         int first = p[16] & 0xFF;
