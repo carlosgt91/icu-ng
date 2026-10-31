@@ -50,7 +50,7 @@ Streams werden mit dem Rufzeichen (*Callsign*) des Bedieners benannt und automat
 
 ## 🚀 Downloads (Aktuelle Version: v1.1.9)
 
-Vorkompilierte APKs und Einreichungspakete stehen unter [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/tag/v1.1.9) bereit:
+Vorkompilierte APKs stehen unter [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/tag/v1.1.9) bereit:
 
 | Paket | Datei | Beschreibung |
 | :--- | :--- | :--- |
@@ -62,7 +62,6 @@ Vorkompilierte APKs und Einreichungspakete stehen unter [GitHub Releases](https:
 ```text
 540a5438499391b80c161145b147224888935620cce2320d7ffa525dca632ef3  ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk
 214f14cf95a484510dad0727bd7a3c6e602ffb329b4899334cb07e1748a770e8  ICU-NG-Capture-1.1.9-release.apk
-b2172a25a484193233ac8d91c9f09fa1f430a94dfb0e9ff7138a687f97cb4808  IcuNg-1.1.9-5.8.0.zip
 ```
 
 ---
