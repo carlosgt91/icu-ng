@@ -100,15 +100,6 @@ b2172a25a484193233ac8d91c9f09fa1f430a94dfb0e9ff7138a687f97cb4808  IcuNg-1.1.9-5.
 * Reloj de tasa de fotogramas constante (CFR) y tasa de bits adaptativa configurable.
 * Compatibilidad total con lentes integradas y cámaras externas **USB UVC / OTG** (ópticas, visores o cámaras corporales).
 
----
-
-## 📸 Capturas de Pantalla
-
-<p align="center">
-  <img src="docs/screenshots/4_panel_live.png" width="31%" alt="Vista previa y controles en directo" />
-  <img src="docs/screenshots/1_rec.png" width="31%" alt="Botón REC sobre el mapa" />
-  <img src="docs/screenshots/5_calidad.png" width="31%" alt="Ajustes de calidad y códec" />
-</p>
 
 ---
 

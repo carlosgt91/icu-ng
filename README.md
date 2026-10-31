@@ -100,15 +100,6 @@ b2172a25a484193233ac8d91c9f09fa1f430a94dfb0e9ff7138a687f97cb4808  IcuNg-1.1.9-5.
 * Constant Frame Rate (CFR) clock generator and configurable adaptive bitrate.
 * Full compatibility with internal lenses and external **USB UVC / OTG** bodycams or scope optics.
 
----
-
-## 📸 Screenshots
-
-<p align="center">
-  <img src="docs/screenshots/4_panel_live.png" width="31%" alt="Live Preview & Controls" />
-  <img src="docs/screenshots/1_rec.png" width="31%" alt="On-Map REC Overlay" />
-  <img src="docs/screenshots/5_calidad.png" width="31%" alt="Quality & Codec Settings" />
-</p>
 
 ---
 
