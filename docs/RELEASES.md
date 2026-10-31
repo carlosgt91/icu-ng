@@ -15,7 +15,7 @@ next version exists. A resubmission is always a new version.
 | 1.1.6 | 101065080 | 2026-10-28 | Signed (2026-10-28) |
 | 1.1.7 | 101075080 | — | Not yet submitted |
 | 1.1.8 | 101085080 | 2026-10-31 | Signed (2026-10-31) |
-| 1.1.9 | 101095080 | — | Not yet submitted |
+| 1.1.9 | 101095080 | 2026-10-31 | Signed (2026-10-31) |
 
 ## 1.1.1 — rejected
 
