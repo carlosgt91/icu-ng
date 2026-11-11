@@ -165,8 +165,8 @@ Un QR de _ver_ (`read:`) vale también: ICU NG siempre publica.
 
 #tak-slide[
 = Grabación, gestor de vídeo y configuración por fichero
-- *Grabar también en el teléfono* (en _Calidad_): cada emisión se guarda además en
-  MP4 en _Movies/ICU NG_, visible en la galería y por USB. La grabación no se corta
+- *Grabar también en el teléfono* (en _Calidad_, solo con ICU NG Capture instalada):
+  cada emisión se guarda además en MP4 en _Movies/ICU NG_, visible en la galería y por USB. La grabación no se corta
   aunque se caiga la red: solo se reconecta el envío. El MP4 no lleva el KLV.
 - *Publicar en el gestor de vídeo del TAK Server* (en _Calidad_, activado por
   defecto): mientras emites, tu vídeo aparece en el gestor de vídeo del servidor,

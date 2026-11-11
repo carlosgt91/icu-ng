@@ -338,8 +338,18 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         if (codecSpinner != null) codecSpinner.setEnabled(enabled);
         resolutionSpinner.setEnabled(enabled);
         fpsSpinner.setEnabled(enabled);
-        recordCheckbox.setEnabled(enabled);
+        updateRecordRow(enabled);
         serverFeedCheckbox.setEnabled(enabled);
+    }
+
+    // Recording is done by ICU NG Capture only (see StreamController): without
+    // it the box is off and says why, whatever the setting holds.
+    private void updateRecordRow(boolean enabled) {
+        if (recordCheckbox == null) return;
+        boolean capture = streamController.usesCaptureApp();
+        recordCheckbox.setEnabled(enabled && capture);
+        recordCheckbox.setText(capture ? R.string.record_checkbox
+                : R.string.record_checkbox_needs_capture);
     }
 
     private void fillInputs(StreamSettings s) {
@@ -364,7 +374,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             bitrateSpinner.setSelection(s.bitrateIndex);
             adaptiveBitrateCheckbox.setChecked(s.adaptiveBitrate);
             microphoneCheckbox.setChecked(s.microphone);
-            recordCheckbox.setChecked(s.record);
+            recordCheckbox.setChecked(s.record && streamController.usesCaptureApp());
             serverFeedCheckbox.setChecked(s.serverFeed);
             updateProtocolRows(s.protocol);
         } finally {
@@ -406,7 +416,9 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         if (codecSpinner != null) settings.codec = codecSpinner.getSelectedItemPosition();
         settings.resolutionIndex = resolutionSpinner.getSelectedItemPosition();
         settings.fpsIndex = fpsSpinner.getSelectedItemPosition();
-        settings.record = recordCheckbox.isChecked();
+        // Without the app the box is forced off: keep the setting for when
+        // it is installed.
+        if (streamController.usesCaptureApp()) settings.record = recordCheckbox.isChecked();
         settings.serverFeed = serverFeedCheckbox.isChecked();
         settings.save(atakContext);
     }

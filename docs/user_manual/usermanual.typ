@@ -164,8 +164,8 @@ A "view" QR code (`read:`) works too: ICU NG always publishes.
 
 #tak-slide[
 = Recording, video feed manager and file configuration
-- *Also record on the phone* (in _Quality_): every stream is also saved as an MP4
-  in _Movies/ICU NG_, visible in the gallery and over USB. The recording keeps
+- *Also record on the phone* (in _Quality_, only with ICU NG Capture installed):
+  every stream is also saved as an MP4 in _Movies/ICU NG_, visible in the gallery and over USB. The recording keeps
   going when the network drops: only the sending side reconnects. The MP4 does
   not carry the KLV.
 - *List in the TAK Server's Video Feed Manager* (in _Quality_, on by default):

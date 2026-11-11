@@ -165,8 +165,8 @@ Un QR de visionnage (`read:`) convient aussi : ICU NG publie toujours.
 
 #tak-slide[
 = Enregistrement, gestionnaire de flux vidéo et configuration par fichier
-- *Enregistrer aussi sur le téléphone* (dans _Qualité_) : chaque diffusion est également
-  enregistrée au format MP4 dans _Movies/ICU NG_, visible dans la galerie et via USB.
+- *Enregistrer aussi sur le téléphone* (dans _Qualité_, uniquement avec ICU NG Capture installée) :
+  chaque diffusion est également enregistrée au format MP4 dans _Movies/ICU NG_, visible dans la galerie et via USB.
   L'enregistrement ne s'interrompt pas en cas de perte de réseau : seule l'émission se
   reconnecte. Le fichier MP4 ne contient pas le KLV.
 - *Publier dans le gestionnaire de flux vidéo du TAK Server* (dans _Qualité_, activé par

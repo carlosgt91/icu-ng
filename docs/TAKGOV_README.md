@@ -11,10 +11,10 @@ Preferences → ICU NG (source: docs/user_manual/).
 _________________________________________________________________
 DOWNLOADS
 
-Pre-built APKs for the latest release (v1.2.0) are available on [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/latest):
+Pre-built APKs for the latest release (v1.2.1) are available on [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/latest):
 
-- 📦 **[ATAK Plugin — ICU NG v1.2.0](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.0/ATAK-Plugin-IcuNg-1.2.0-5.8.0-civ-release.apk)** (civRelease, signed for ATAK-CIV 5.8+)
-- 📱 **[Companion App — ICU NG Capture v1.2.0](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.0/ICU-NG-Capture-1.2.0-release.apk)** (Required for background & screen-off streaming)
+- 📦 **[ATAK Plugin — ICU NG v1.2.1](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ATAK-Plugin-IcuNg-1.2.1-5.8.0-civ-release.apk)** (civRelease, signed for ATAK-CIV 5.8+)
+- 📱 **[Companion App — ICU NG Capture v1.2.1](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ICU-NG-Capture-1.2.1-release.apk)** (Required for background & screen-off streaming)
 
 _________________________________________________________________
 PURPOSE AND CAPABILITIES
@@ -33,8 +33,9 @@ connection manager, so the rest of the team can watch it from ATAK.
   30 s) until the operator stops.
 - Settings can be provisioned with an ATAK .pref file (Import Manager, data
   package or MDM) and apply without restarting ATAK; keys in docs/PREF_FILE.md.
-- Optional local MP4 recording of every stream (shared Movies/ICU NG folder);
-  it keeps running through dropped connections.
+- Optional local MP4 recording of every stream (shared Movies/ICU NG folder),
+  done by the ICU NG Capture companion app; it keeps running through dropped
+  connections.
 - Optional listing of the live stream in the connected TAK Server's Video Feed
   Manager (on by default), marked inactive when the stream stops.
 - MISB ST 0601 KLV over RTSP/RTSPS, twice per second: sensor position and
@@ -57,8 +58,8 @@ the plugin streams by itself, in the foreground only.
 _________________________________________________________________
 STATUS
 
-Version 1.2.0. Versions up to 1.1.9 were signed by tak.gov and used on official
-ATAK-CIV 5.8 against a MediaMTX-based restreamer. 1.2.0 adds automatic
+Version 1.2.1. Versions up to 1.1.9 were signed by tak.gov and used on official
+ATAK-CIV 5.8 against a MediaMTX-based restreamer. 1.2.x adds automatic
 reconnection, .pref provisioning, local recording and the TAK Server video
 feed; built and unit-tested, civRelease included.
 
@@ -102,9 +103,9 @@ EQUIPMENT REQUIRED
 
   Android device supported by ATAK-CIV 5.8, with a camera. Camera and
   microphone permissions (ATAK's, or ICU NG Capture's when installed).
-  Storage: settings in ATAK's preferences. With local recording on, the MP4 is
-  written to the app's private cache while live and then moved to the shared
-  Movies/ICU NG folder (MediaStore); nothing is written otherwise.
+  Storage: the plugin only writes settings in ATAK's preferences. Local
+  recording, when on, is done by the ICU NG Capture app (its private cache
+  while live, then the shared Movies/ICU NG folder).
 
 _________________________________________________________________
 EQUIPMENT SUPPORTED

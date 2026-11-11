@@ -165,8 +165,8 @@ Um QR de visualização (`read:`) também serve: o ICU NG publica sempre.
 
 #tak-slide[
 = Gravação, gestor de vídeo e configuração por ficheiro
-- *Gravar também no telemóvel* (em _Qualidade_): cada transmissão é também guardada
-  em MP4 em _Movies/ICU NG_, visível na galeria e por USB. A gravação não é interrompida
+- *Gravar também no telemóvel* (em _Qualidade_, apenas com o ICU NG Capture instalado):
+  cada transmissão é também guardada em MP4 em _Movies/ICU NG_, visível na galeria e por USB. A gravação não é interrompida
   se a rede falhar: apenas o envio se volta a ligar. O ficheiro MP4 não inclui o KLV.
 - *Publicar no gestor de vídeo do TAK Server* (em _Qualidade_, ativado por
   omissão): enquanto transmite, o seu vídeo surge no gestor de vídeo do servidor,

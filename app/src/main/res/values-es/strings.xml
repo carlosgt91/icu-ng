@@ -62,6 +62,6 @@
 
     <string name="url_hint">rtsp://host:puerto/stream</string>
     <string name="record_checkbox">Grabar también en el teléfono (Movies/ICU NG)</string>
-    <string name="recording_saved">Grabación guardada en Movies/%1$s</string>
+    <string name="record_checkbox_needs_capture">Grabar también en el teléfono (requiere ICU NG Capture)</string>
     <string name="server_feed_checkbox">Publicar en el gestor de vídeo del TAK Server</string>
 </resources>

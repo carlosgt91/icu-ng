@@ -62,6 +62,6 @@
 
     <string name="url_hint">rtsp://servidor:porta/transmissão</string>
     <string name="record_checkbox">Gravar também no telemóvel (Movies/ICU NG)</string>
-    <string name="recording_saved">Gravação guardada em Movies/%1$s</string>
+    <string name="record_checkbox_needs_capture">Gravar também no telemóvel (requer o ICU NG Capture)</string>
     <string name="server_feed_checkbox">Publicar no gestor de vídeo do TAK Server</string>
 </resources>

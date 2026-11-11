@@ -165,8 +165,8 @@ Ein QR-Code zum Anzeigen (`read:`) funktioniert ebenfalls: ICU NG veröffentlich
 
 #tak-slide[
 = Aufnahme, Video-Feed-Manager und Konfiguration per Datei
-- *Auch auf dem Telefon aufnehmen* (in _Qualität_): Jeder Stream wird zusätzlich als MP4
-  in _Movies/ICU NG_ gespeichert, sichtbar in der Galerie und über USB. Die Aufnahme läuft
+- *Auch auf dem Telefon aufnehmen* (in _Qualität_, nur mit installiertem ICU NG Capture):
+  Jeder Stream wird zusätzlich als MP4 in _Movies/ICU NG_ gespeichert, sichtbar in der Galerie und über USB. Die Aufnahme läuft
   weiter, wenn das Netzwerk ausfällt: Nur die Übertragung verbindet sich neu. Das MP4
   enthält kein KLV.
 - *Im Video-Feed-Manager des TAK Servers auflisten* (in _Qualität_, standardmäßig

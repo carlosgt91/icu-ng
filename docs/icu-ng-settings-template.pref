@@ -32,7 +32,7 @@
     <!-- 0 = UNCLASSIFIED, 1 = RESTRICTED, 2 = CONFIDENTIAL, 3 = SECRET, 4 = TOP SECRET -->
     <entry key="icung.klv_classification" class="class java.lang.Integer">0</entry>
     <entry key="icung.klv_country" class="class java.lang.String">ESP</entry>
-    <!-- also keep an MP4 of every stream on the phone, in Movies/ICU NG -->
+    <!-- also keep an MP4 of every stream on the phone, in Movies/ICU NG (needs ICU NG Capture) -->
     <entry key="icung.record" class="class java.lang.Boolean">false</entry>
     <!-- list the stream in the Video Feed Manager of the connected TAK Server -->
     <entry key="icung.server_feed" class="class java.lang.Boolean">true</entry>

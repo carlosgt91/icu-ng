@@ -65,6 +65,6 @@
 
     <string name="url_hint">rtsp://host:port/stream</string>
     <string name="record_checkbox">Also record on the phone (Movies/ICU NG)</string>
-    <string name="recording_saved">Recording saved in Movies/%1$s</string>
+    <string name="record_checkbox_needs_capture">Also record on the phone (needs ICU NG Capture)</string>
     <string name="server_feed_checkbox">List in the TAK Server\'s Video Feed Manager</string>
 </resources>

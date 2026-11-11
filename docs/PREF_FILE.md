@@ -34,7 +34,7 @@ delete the entries you do not want to set. In XML, write `&` in a URL as `&amp;`
 | `icung.bitrate` | Integer | 0 auto, 1 250 kbps, 2 0.5, 3 1, 4 2, 5 4, 6 6 Mbps | 0 |
 | `icung.adaptive_bitrate` | Boolean | lower the bitrate while the link is congested | true |
 | `icung.microphone` | Boolean | false sends silence | true |
-| `icung.record` | Boolean | also keep an MP4 of every stream on the phone (Movies/ICU NG) | false |
+| `icung.record` | Boolean | also keep an MP4 of every stream on the phone (Movies/ICU NG); needs ICU NG Capture, ignored without it | false |
 | `icung.server_feed` | Boolean | list the stream in the Video Feed Manager of every connected TAK Server (TLS connections) | true |
 | `icung.klv` | Boolean | MISB ST 0601 KLV track (RTSP/RTSPS only) | true |
 | `icung.klv_classification` | Integer | 0 UNCLASSIFIED, 1 RESTRICTED, 2 CONFIDENTIAL, 3 SECRET, 4 TOP SECRET | 0 |

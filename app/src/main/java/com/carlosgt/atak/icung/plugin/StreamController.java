@@ -144,8 +144,6 @@ public class StreamController implements ConnectChecker {
     private boolean retrying;
     private int retryAttempt;
     private final Runnable retryConnect = this::reconnectNow;
-    // The MP4 being written while live, null when not recording.
-    private java.io.File recordingFile;
     private final ServerVideoFeed serverFeed = new ServerVideoFeed();
     // Whether the running stream was listed on the TAK Server.
     private boolean feedListed;
@@ -277,7 +275,10 @@ public class StreamController implements ConnectChecker {
                 && settings.protocol != StreamSettings.PROTOCOL_SRT);
         setState(State.CONNECTING, null);
         stream.startStream(settings.url);
-        if (settings.record) startRecording();
+        // No local recording here: RootEncoder's recorder needs a newer
+        // kotlinx-coroutines than the one ATAK ships, which wins inside
+        // ATAK's process - stopping it threw NoSuchMethodError and took ATAK
+        // down (1.2.0). Recording is done by ICU NG Capture only.
 
         // Anunciar por CoT/IVideoConnectionManager:
         // Cuando se emite por RTSPS (TLS hacia puerto 8555), se anuncia como RTSP plano
@@ -718,41 +719,8 @@ public class StreamController implements ConnectChecker {
         return source;
     }
 
-    // The recording runs on the same encoder as the stream, and outlives
-    // its dropped connections: RootEncoder keeps the camera and encoders
-    // going through stopStream() while recording, so a retry only
-    // reconnects the network side.
-    private void startRecording() {
-        if (stream == null || stream.isRecording()) return;
-        java.io.File f = Recordings.tempFile(atakContext,
-                Recordings.fileName(streamAlias(), System.currentTimeMillis()));
-        try {
-            stream.startRecord(f.getAbsolutePath(), status -> Log.i(TAG, "grabacion: " + status));
-            recordingFile = f;
-            Log.i(TAG, "grabando en " + f);
-        } catch (RuntimeException e) {
-            Log.e(TAG, "no se pudo iniciar la grabacion", e);
-        }
-    }
-
-    private void stopRecording() {
-        java.io.File f = recordingFile;
-        recordingFile = null;
-        if (f == null) return;
-        try {
-            if (stream != null && stream.isRecording()) stream.stopRecord();
-        } catch (RuntimeException e) {
-            Log.e(TAG, "error cerrando la grabacion", e);
-        }
-        Recordings.publish(atakContext, f, () -> mainHandler.post(() ->
-                android.widget.Toast.makeText(atakContext,
-                        pluginContext.getString(R.string.recording_saved, Recordings.FOLDER),
-                        android.widget.Toast.LENGTH_LONG).show()));
-    }
-
     private void releaseStream() {
         if (stream == null) return;
-        stopRecording();
         stream.release();
         stream = null;
     }
@@ -763,7 +731,6 @@ public class StreamController implements ConnectChecker {
     private void stopStreamOnly() {
         cancelRetry();
         retryAttempt = 0;
-        stopRecording();
         if (stream != null && stream.isStreaming()) {
             stream.stopStream();
         }

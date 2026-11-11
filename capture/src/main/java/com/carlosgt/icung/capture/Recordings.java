@@ -27,7 +27,8 @@ import java.util.TimeZone;
  * closed it is moved to the phone's shared Movies/ICU NG folder, where the
  * gallery, file managers and USB see it.
  *
- * The ICU NG plugin keeps an identical copy of this class; change both.
+ * The ICU NG plugin keeps a copy of fileName() only (it cannot record
+ * inside ATAK); keep the two identical.
  */
 final class Recordings {
 

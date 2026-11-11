@@ -16,9 +16,20 @@ next version exists. A resubmission is always a new version.
 | 1.1.7 | 101075080 | — | Not yet submitted |
 | 1.1.8 | 101085080 | 2026-10-31 | Signed (2026-10-31) |
 | 1.1.9 | 101095080 | 2026-10-31 | Signed (2026-10-31) |
-| 1.2.0 | 102005080 | — | Not yet submitted |
+| 1.2.0 | 102005080 | 2026-11-11 | Signed (2026-11-11), **not distributed** |
+| 1.2.1 | 102015080 | — | Not yet submitted |
 
-## 1.2.0 — not yet submitted
+## 1.2.1 — not yet submitted
+
+1.2.0 without ICU NG Capture: stopping a stream that was recording closed ATAK.
+RootEncoder 2.8.1's recorder calls `kotlinx.coroutines.BuildersKt.runBlockingK`,
+and inside ATAK's process ATAK's older kotlinx-coroutines is the one loaded
+(`NoSuchMethodError`). The Capture app has its own copy and was fine (S21 test,
+165 s MP4 through a network cut). 1.2.1 records with Capture only: without it
+the box is off and says it needs the app. Found on the signed 1.2.0, S21 with
+official ATAK 5.8.0.5, 2026-11-11.
+
+## 1.2.0 — signed 2026-11-11, not distributed
 
 - The plugin retries a dropped connection by itself while ATAK is in front
   (2, 4, 8, 16 s, then every 30 s) instead of stopping in error. The Capture app

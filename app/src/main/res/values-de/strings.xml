@@ -61,6 +61,6 @@
     <string name="status_error_change_protocol_while_streaming">Fehler: Stream vor dem Wechsel zu/von SRT stoppen</string>
     <string name="url_hint">rtsp://host:port/stream</string>
     <string name="record_checkbox">Auch auf dem Telefon aufnehmen (Movies/ICU NG)</string>
-    <string name="recording_saved">Aufnahme gespeichert in Movies/%1$s</string>
+    <string name="record_checkbox_needs_capture">Auch auf dem Telefon aufnehmen (erfordert ICU NG Capture)</string>
     <string name="server_feed_checkbox">Im Video-Feed-Manager des TAK Servers auflisten</string>
 </resources>

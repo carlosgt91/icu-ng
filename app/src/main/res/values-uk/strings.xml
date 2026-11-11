@@ -61,6 +61,6 @@
     <string name="status_error_change_protocol_while_streaming">Помилка: зупиніть трансляцію перед перемиканням на/з SRT</string>
     <string name="url_hint">rtsp://хост:порт/потік</string>
     <string name="record_checkbox">Також записувати на телефон (Movies/ICU NG)</string>
-    <string name="recording_saved">Запис збережено в Movies/%1$s</string>
+    <string name="record_checkbox_needs_capture">Також записувати на телефон (потрібен ICU NG Capture)</string>
     <string name="server_feed_checkbox">Опублікувати у менеджері відеопотоків TAK Server</string>
 </resources>

@@ -62,6 +62,6 @@
 
     <string name="url_hint">rtsp://hôte:port/flux</string>
     <string name="record_checkbox">Enregistrer aussi sur le téléphone (Movies/ICU NG)</string>
-    <string name="recording_saved">Enregistrement sauvegardé dans Movies/%1$s</string>
+    <string name="record_checkbox_needs_capture">Enregistrer aussi sur le téléphone (nécessite ICU NG Capture)</string>
     <string name="server_feed_checkbox">Publier dans le gestionnaire de flux vidéo du TAK Server</string>
 </resources>
