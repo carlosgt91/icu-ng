@@ -46,7 +46,7 @@ public class StreamSettingsPrefFileTest {
         p.put("icung.bitrate", 3);
         StreamSettings s = StreamSettings.load(p);
         assertEquals(StreamSettings.FPS_VALUES.length - 1, s.fpsIndex);
-        assertEquals(StreamSettings.CAMERA_USB, s.camera); // clamped
+        assertEquals(StreamSettings.CAMERA_BACK, s.camera); // out of range -> default
         assertEquals(3, s.bitrateIndex);
     }
 

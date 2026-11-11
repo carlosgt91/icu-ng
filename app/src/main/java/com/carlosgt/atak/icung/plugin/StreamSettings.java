@@ -106,22 +106,24 @@ public final class StreamSettings {
 
     static StreamSettings load(Map<String, ?> prefs) {
         StreamSettings s = new StreamSettings();
-        s.protocol = clamp(getInt(prefs, KEY_PROTOCOL, PROTOCOL_RTSP), 0, 2);
-        s.codec = clamp(getInt(prefs, KEY_CODEC, CODEC_H264), 0, 1);
+        s.protocol = inRange(getInt(prefs, KEY_PROTOCOL, PROTOCOL_RTSP), 0, 2, PROTOCOL_RTSP);
+        s.codec = inRange(getInt(prefs, KEY_CODEC, CODEC_H264), 0, 1, CODEC_H264);
         s.url = getString(prefs, KEY_URL, DEFAULT_URL).trim();
         s.trustAllCerts = getBoolean(prefs, KEY_TRUST_ALL, false);
         s.srtPassphrase = getString(prefs, KEY_SRT_PASSPHRASE, "");
-        s.srtEncryptionIndex = clamp(getInt(prefs, KEY_SRT_ENCRYPTION, 0),
-                0, SRT_ENCRYPTION_TYPES.length - 1);
-        s.camera = clamp(getInt(prefs, KEY_CAMERA, CAMERA_BACK), 0, 2);
+        s.srtEncryptionIndex = inRange(getInt(prefs, KEY_SRT_ENCRYPTION, 0),
+                0, SRT_ENCRYPTION_TYPES.length - 1, 0);
+        s.camera = inRange(getInt(prefs, KEY_CAMERA, CAMERA_BACK), 0, 2, CAMERA_BACK);
         s.klv = getBoolean(prefs, KEY_KLV, true);
-        s.resolutionIndex = clamp(getInt(prefs, KEY_RESOLUTION, 0), 0, RESOLUTIONS.length - 1);
-        s.fpsIndex = clamp(getInt(prefs, KEY_FPS, FPS_VALUES.length - 1), 0, FPS_VALUES.length - 1);
-        s.bitrateIndex = clamp(getInt(prefs, KEY_BITRATE, 0), 0, BITRATES_KBPS.length - 1);
+        s.resolutionIndex = inRange(getInt(prefs, KEY_RESOLUTION, 0),
+                0, RESOLUTIONS.length - 1, 0);
+        s.fpsIndex = inRange(getInt(prefs, KEY_FPS, FPS_VALUES.length - 1),
+                0, FPS_VALUES.length - 1, FPS_VALUES.length - 1);
+        s.bitrateIndex = inRange(getInt(prefs, KEY_BITRATE, 0), 0, BITRATES_KBPS.length - 1, 0);
         s.adaptiveBitrate = getBoolean(prefs, KEY_ADAPTIVE, true);
         s.microphone = getBoolean(prefs, KEY_MICROPHONE, true);
-        s.classificationIndex = clamp(getInt(prefs, KEY_CLASSIFICATION, 0), 0,
-                KlvEncoder.TOP_SECRET - KlvEncoder.UNCLASSIFIED);
+        s.classificationIndex = inRange(getInt(prefs, KEY_CLASSIFICATION, 0),
+                0, KlvEncoder.TOP_SECRET - KlvEncoder.UNCLASSIFIED, 0);
         s.country = getString(prefs, KEY_COUNTRY, defaultCountry()).trim().toUpperCase(Locale.ROOT);
         s.missionId = getString(prefs, KEY_MISSION, "");
         s.record = getBoolean(prefs, KEY_RECORD, false);
@@ -302,7 +304,9 @@ public final class StreamSettings {
         return PreferenceManager.getDefaultSharedPreferences(atakContext);
     }
 
-    private static int clamp(int v, int min, int max) {
-        return Math.max(min, Math.min(max, v));
+    // Out of range (a hand-written .pref): the default, not the nearest
+    // valid value - camera 9 must not turn into the USB camera.
+    private static int inRange(int v, int min, int max, int def) {
+        return v < min || v > max ? def : v;
     }
 }

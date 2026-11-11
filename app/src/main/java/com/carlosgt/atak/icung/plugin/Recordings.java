@@ -3,6 +3,7 @@ package com.carlosgt.atak.icung.plugin;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -62,7 +63,7 @@ final class Recordings {
                     if (Build.VERSION.SDK_INT >= 29) {
                         publishMediaStore(context.getContentResolver(), temp);
                     } else {
-                        publishFile(temp);
+                        publishFile(context, temp);
                     }
                     Log.i(TAG, "grabacion guardada: " + temp.getName());
                     if (onDone != null) onDone.run();
@@ -75,21 +76,35 @@ final class Recordings {
         }, "icung-rec-publish").start();
     }
 
-    private static void publishFile(File temp) throws IOException {
+    // Android 8-9: the shared Movies folder needs the storage permission,
+    // which ATAK has and ICU NG Capture does not ask for; without it the
+    // file goes to the app's own Movies folder (Android/data/<app>/files).
+    private static void publishFile(Context context, File temp) throws IOException {
         File dir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_MOVIES), FOLDER);
-        if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("mkdirs " + dir);
-        try (InputStream in = new FileInputStream(temp);
-             OutputStream out = new FileOutputStream(new File(dir, temp.getName()))) {
-            copy(in, out);
+        if (!(dir.isDirectory() || dir.mkdirs()) || !dir.canWrite()) {
+            File own = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
+            if (own == null) throw new IOException("sin almacenamiento externo");
+            dir = new File(own, FOLDER);
+            if (!dir.isDirectory() && !dir.mkdirs()) throw new IOException("mkdirs " + dir);
         }
+        File dest = new File(dir, temp.getName());
+        try (InputStream in = new FileInputStream(temp);
+             OutputStream out = new FileOutputStream(dest)) {
+            copy(in, out);
+        } catch (IOException | RuntimeException e) {
+            if (!dest.delete()) Log.w(TAG, "no se pudo borrar " + dest);
+            throw e;
+        }
+        MediaScannerConnection.scanFile(context, new String[] { dest.getAbsolutePath() },
+                new String[] { "video/mp4" }, null);
     }
 
     private static void publishMediaStore(ContentResolver resolver, File temp) throws IOException {
         ContentValues v = new ContentValues();
         v.put(MediaStore.Video.Media.DISPLAY_NAME, temp.getName());
         v.put(MediaStore.Video.Media.MIME_TYPE, "video/mp4");
-        v.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/" + FOLDER);
+        v.put(MediaStore.Video.Media.RELATIVE_PATH, Environment.DIRECTORY_MOVIES + "/" + FOLDER + "/");
         v.put(MediaStore.Video.Media.IS_PENDING, 1);
         Uri uri = resolver.insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, v);
         if (uri == null) throw new IOException("MediaStore insert");
@@ -103,7 +118,11 @@ final class Recordings {
         }
         v.clear();
         v.put(MediaStore.Video.Media.IS_PENDING, 0);
-        resolver.update(uri, v, null, null);
+        if (resolver.update(uri, v, null, null) != 1) {
+            // Left pending it would stay invisible: drop it, the temp file remains.
+            resolver.delete(uri, null, null);
+            throw new IOException("MediaStore publish");
+        }
     }
 
     private static void copy(InputStream in, OutputStream out) throws IOException {

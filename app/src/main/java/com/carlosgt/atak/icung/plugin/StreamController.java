@@ -993,7 +993,9 @@ public class StreamController implements ConnectChecker {
         public void onActivityStopped(Activity activity) {
             if (!isMapActivity(activity)) return;
             atakStopped = true;
-            if (stream != null && stream.isStreaming()) cameraLostInBackground = true;
+            if (stream != null && (stream.isStreaming() || retrying)) {
+                cameraLostInBackground = true;
+            }
         }
 
         @Override

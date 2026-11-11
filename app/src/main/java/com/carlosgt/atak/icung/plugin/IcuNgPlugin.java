@@ -91,6 +91,9 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     CheckBox serverFeedCheckbox;
     TextView statusText;
     boolean suppressProtocolListener;
+    // While fillInputs() sets the widgets one by one: their listeners would
+    // otherwise save a mix of new and old values.
+    private boolean fillingInputs;
     int lastValidProtocolPosition;
     StreamSettings settings;
 
@@ -340,28 +343,33 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     }
 
     private void fillInputs(StreamSettings s) {
-        suppressProtocolListener = true;
-        protocolSpinner.setSelection(s.protocol);
-        suppressProtocolListener = false;
-        lastValidProtocolPosition = s.protocol;
-        urlInput.setText(s.url);
-        trustAllCertsCheckbox.setChecked(s.trustAllCerts);
-        klvCheckbox.setChecked(s.klv);
-        klvClassificationSpinner.setSelection(s.classificationIndex);
-        klvCountryInput.setText(s.country);
-        klvMissionInput.setText(s.missionId);
-        srtPassphraseInput.setText(s.srtPassphrase);
-        srtEncryptionSpinner.setSelection(s.srtEncryptionIndex);
-        cameraSpinner.setSelection(s.camera);
-        if (codecSpinner != null) codecSpinner.setSelection(s.codec);
-        resolutionSpinner.setSelection(s.resolutionIndex);
-        fpsSpinner.setSelection(s.fpsIndex);
-        bitrateSpinner.setSelection(s.bitrateIndex);
-        adaptiveBitrateCheckbox.setChecked(s.adaptiveBitrate);
-        microphoneCheckbox.setChecked(s.microphone);
-        recordCheckbox.setChecked(s.record);
-        serverFeedCheckbox.setChecked(s.serverFeed);
-        updateProtocolRows(s.protocol);
+        fillingInputs = true;
+        try {
+            suppressProtocolListener = true;
+            protocolSpinner.setSelection(s.protocol);
+            suppressProtocolListener = false;
+            lastValidProtocolPosition = s.protocol;
+            urlInput.setText(s.url);
+            trustAllCertsCheckbox.setChecked(s.trustAllCerts);
+            klvCheckbox.setChecked(s.klv);
+            klvClassificationSpinner.setSelection(s.classificationIndex);
+            klvCountryInput.setText(s.country);
+            klvMissionInput.setText(s.missionId);
+            srtPassphraseInput.setText(s.srtPassphrase);
+            srtEncryptionSpinner.setSelection(s.srtEncryptionIndex);
+            cameraSpinner.setSelection(s.camera);
+            if (codecSpinner != null) codecSpinner.setSelection(s.codec);
+            resolutionSpinner.setSelection(s.resolutionIndex);
+            fpsSpinner.setSelection(s.fpsIndex);
+            bitrateSpinner.setSelection(s.bitrateIndex);
+            adaptiveBitrateCheckbox.setChecked(s.adaptiveBitrate);
+            microphoneCheckbox.setChecked(s.microphone);
+            recordCheckbox.setChecked(s.record);
+            serverFeedCheckbox.setChecked(s.serverFeed);
+            updateProtocolRows(s.protocol);
+        } finally {
+            fillingInputs = false;
+        }
     }
 
     private void updateProtocolRows(int protocol) {
@@ -383,6 +391,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     // Every edit in the pane is written straight to the persisted settings,
     // so the REC map button always streams with what the pane shows.
     private void saveInputs() {
+        if (fillingInputs) return;
         if (settings == null || urlInput == null || streamController.isStreaming()) return;
         settings.protocol = protocolSpinner.getSelectedItemPosition();
         settings.url = urlInput.getText().toString().trim();
@@ -405,6 +414,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     // Bitrate, adaptive bitrate and microphone: saved and applied at once,
     // also mid-stream.
     private void onLiveOptionChanged() {
+        if (fillingInputs) return;
         if (settings == null || bitrateSpinner == null) return;
         int bitrate = bitrateSpinner.getSelectedItemPosition();
         boolean adaptive = adaptiveBitrateCheckbox.isChecked();

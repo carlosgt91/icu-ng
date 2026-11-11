@@ -125,6 +125,9 @@ public class CaptureService extends Service implements ConnectChecker {
 
     private final Runnable retry = this::connect;
     private final Runnable retryStream = this::reconnectStream;
+    // A network-only retry is pending (recording): the disconnect that
+    // stopStream() reports must not reschedule it.
+    private boolean awaitingStreamRetry;
     private File recordingFile;
 
     // Hands the plugin's latest packet to the RTSP sender once. Called on
@@ -242,6 +245,7 @@ public class CaptureService extends Service implements ConnectChecker {
     private void connect() {
         mainHandler.removeCallbacks(retry);
         mainHandler.removeCallbacks(retryStream);
+        awaitingStreamRetry = false;
         releaseStream();
         int protocol = config.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0);
         try {
@@ -382,14 +386,21 @@ public class CaptureService extends Service implements ConnectChecker {
             connect();
             return;
         }
+        awaitingStreamRetry = false;
         Log.i(TAG, "reintentando la conexion (la grabacion sigue)");
         setState(State.CONNECTING, null);
-        stream.startStream(config.getStringExtra(CaptureContract.EXTRA_URL));
+        try {
+            stream.startStream(config.getStringExtra(CaptureContract.EXTRA_URL));
+        } catch (RuntimeException e) {
+            Log.e(TAG, "reintento fallido", e);
+            finish(State.ERROR, getString(R.string.error_camera));
+        }
     }
 
     private void finish(State finalState, String message) {
         mainHandler.removeCallbacks(retry);
         mainHandler.removeCallbacks(retryStream);
+        awaitingStreamRetry = false;
         releaseStream();
         config = null;
         if (wakeLock != null) {
@@ -417,12 +428,15 @@ public class CaptureService extends Service implements ConnectChecker {
     }
 
     private void retryLater(String message) {
+        if (awaitingStreamRetry && stream != null && !stream.isStreaming()) return;
         mainHandler.removeCallbacks(retry);
         mainHandler.removeCallbacks(retryStream);
+        awaitingStreamRetry = false;
         if (stream != null && stream.isRecording()) {
             try {
                 if (stream.isStreaming()) stream.stopStream();
                 setState(State.CONNECTING, message);
+                awaitingStreamRetry = true;
                 mainHandler.postDelayed(retryStream, RETRY_MS);
                 return;
             } catch (RuntimeException e) {

@@ -2,7 +2,8 @@
 <!--
   ICU NG settings template. Import it in ATAK (Import Manager, a data package
   or MDM); the settings apply at once, without restarting ATAK.
-  Delete the entries you do not want to set. Key reference: PREF_FILE.md.
+  The values are an example, not the defaults; delete the entries you do
+  not want to set. Key reference and defaults: PREF_FILE.md.
   In URLs write & as &amp; (XML).
 -->
 <preferences>
