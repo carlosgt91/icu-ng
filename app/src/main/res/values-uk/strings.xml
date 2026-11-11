@@ -45,6 +45,7 @@
     <string name="qr_error_streaming">Зупиніть трансляцію перед скануванням QR-коду</string>
     <string name="status_idle">Зупинено</string>
     <string name="status_connecting">Підключення…</string>
+    <string name="status_retrying">Немає підключення, повторна спроба…</string>
     <string name="status_streaming">Трансляція</string>
     <string name="status_disconnected">Відключено</string>
     <string name="status_error_connection">Помилка підключення</string>
@@ -59,4 +60,7 @@
     <string name="status_error_klv_country">Помилка: країна KLV має бути трилітерним кодом (GENC/ISO 3166, напр. UKR)</string>
     <string name="status_error_change_protocol_while_streaming">Помилка: зупиніть трансляцію перед перемиканням на/з SRT</string>
     <string name="url_hint">rtsp://хост:порт/потік</string>
+    <string name="record_checkbox">Також записувати на телефон (Movies/ICU NG)</string>
+    <string name="recording_saved">Запис збережено в Movies/%1$s</string>
+    <string name="server_feed_checkbox">Опублікувати у менеджері відеопотоків TAK Server</string>
 </resources>

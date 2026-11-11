@@ -11,4 +11,5 @@
     <string name="error_auth">Authentication error</string>
     <string name="error_auth_missing">The server asks for a user and password, but the URL has none</string>
     <string name="error_permission">Error: ICU NG Capture does not have camera permission</string>
+    <string name="recording_saved">Recording saved in Movies/%1$s</string>
 </resources>

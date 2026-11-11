@@ -1,0 +1,41 @@
+<?xml version='1.0' standalone='yes'?>
+<!--
+  ICU NG settings template. Import it in ATAK (Import Manager, a data package
+  or MDM); the settings apply at once, without restarting ATAK.
+  Delete the entries you do not want to set. Key reference: PREF_FILE.md.
+  In URLs write & as &amp; (XML).
+-->
+<preferences>
+  <preference version="1" name="com.atakmap.app_preferences">
+    <!-- 0 = RTSP, 1 = RTSPS, 2 = SRT; the URL scheme must match -->
+    <entry key="icung.protocol" class="class java.lang.Integer">0</entry>
+    <entry key="icung.url" class="class java.lang.String">rtsp://video.example.org:8554/live/unit1</entry>
+    <entry key="icung.trust_all_certs" class="class java.lang.Boolean">false</entry>
+    <!-- SRT only: 10-79 characters, empty = no encryption; 0 = AES-128, 1 = AES-192, 2 = AES-256 -->
+    <entry key="icung.srt_passphrase" class="class java.lang.String"></entry>
+    <entry key="icung.srt_encryption" class="class java.lang.Integer">0</entry>
+    <!-- 0 = back, 1 = front, 2 = USB -->
+    <entry key="icung.camera" class="class java.lang.Integer">0</entry>
+    <!-- 0 = H.264, 1 = H.265 -->
+    <entry key="icung.codec" class="class java.lang.Integer">0</entry>
+    <!-- 0 = 480p, 1 = 720p, 2 = 1080p -->
+    <entry key="icung.resolution" class="class java.lang.Integer">1</entry>
+    <!-- 0 = 15 fps, 1 = 24 fps, 2 = 30 fps -->
+    <entry key="icung.fps" class="class java.lang.Integer">2</entry>
+    <!-- 0 = auto, 1 = 250 kbps, 2 = 0.5, 3 = 1, 4 = 2, 5 = 4, 6 = 6 Mbps -->
+    <entry key="icung.bitrate" class="class java.lang.Integer">0</entry>
+    <entry key="icung.adaptive_bitrate" class="class java.lang.Boolean">true</entry>
+    <entry key="icung.microphone" class="class java.lang.Boolean">true</entry>
+    <!-- MISB ST 0601 KLV (RTSP/RTSPS only) and its STANAG 4609 marking -->
+    <entry key="icung.klv" class="class java.lang.Boolean">true</entry>
+    <!-- 0 = UNCLASSIFIED, 1 = RESTRICTED, 2 = CONFIDENTIAL, 3 = SECRET, 4 = TOP SECRET -->
+    <entry key="icung.klv_classification" class="class java.lang.Integer">0</entry>
+    <entry key="icung.klv_country" class="class java.lang.String">ESP</entry>
+    <!-- also keep an MP4 of every stream on the phone, in Movies/ICU NG -->
+    <entry key="icung.record" class="class java.lang.Boolean">false</entry>
+    <!-- list the stream in the Video Feed Manager of the connected TAK Server -->
+    <entry key="icung.server_feed" class="class java.lang.Boolean">true</entry>
+    <!-- empty = callsign-UTC date -->
+    <entry key="icung.klv_mission" class="class java.lang.String"></entry>
+  </preference>
+</preferences>

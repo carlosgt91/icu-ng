@@ -45,6 +45,7 @@
     <string name="qr_error_streaming">Arrêtez la diffusion avant de scanner un code QR</string>
     <string name="status_idle">Arrêté</string>
     <string name="status_connecting">Connexion…</string>
+    <string name="status_retrying">Aucune connexion, nouvelle tentative…</string>
     <string name="status_streaming">En diffusion</string>
     <string name="status_disconnected">Déconnecté</string>
     <string name="status_error_connection">Erreur de connexion</string>
@@ -60,4 +61,7 @@
     <string name="status_error_change_protocol_while_streaming">Erreur : arrêtez la diffusion avant de basculer vers/depuis SRT</string>
 
     <string name="url_hint">rtsp://hôte:port/flux</string>
+    <string name="record_checkbox">Enregistrer aussi sur le téléphone (Movies/ICU NG)</string>
+    <string name="recording_saved">Enregistrement sauvegardé dans Movies/%1$s</string>
+    <string name="server_feed_checkbox">Publier dans le gestionnaire de flux vidéo du TAK Server</string>
 </resources>

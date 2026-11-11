@@ -5,6 +5,7 @@ import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
 
 import java.util.Locale;
+import java.util.Map;
 
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType;
 
@@ -57,6 +58,8 @@ public final class StreamSettings {
     private static final String KEY_CLASSIFICATION = "icung.klv_classification";
     private static final String KEY_COUNTRY = "icung.klv_country";
     private static final String KEY_MISSION = "icung.klv_mission";
+    private static final String KEY_RECORD = "icung.record";
+    private static final String KEY_SERVER_FEED = "icung.server_feed";
 
     // Empty until the operator types one or reads a QR: there is no server
     // address that could be right by default.
@@ -83,29 +86,103 @@ public final class StreamSettings {
     /** GENC three-letter code of the classifying country */
     public String country = "";
     public String missionId = "";
+    /** also keep an MP4 of every stream on the phone (Movies/ICU NG) */
+    public boolean record;
+    /** list the stream in the TAK Server's Video Feed Manager */
+    public boolean serverFeed = true;
 
     public static StreamSettings load(Context atakContext) {
-        SharedPreferences prefs = prefs(atakContext);
+        return load(prefs(atakContext));
+    }
+
+    /**
+     * Reads the settings; also what a .pref file (Import Manager, data
+     * package, MDM) writes. A value of the wrong type or out of range there
+     * only falls back to that one setting's default, never stops the plugin.
+     */
+    static StreamSettings load(SharedPreferences sharedPrefs) {
+        return load(sharedPrefs.getAll());
+    }
+
+    static StreamSettings load(Map<String, ?> prefs) {
         StreamSettings s = new StreamSettings();
-        s.protocol = clamp(prefs.getInt(KEY_PROTOCOL, PROTOCOL_RTSP), 0, 2);
-        s.codec = clamp(prefs.getInt(KEY_CODEC, CODEC_H264), 0, 1);
-        s.url = prefs.getString(KEY_URL, DEFAULT_URL);
-        s.trustAllCerts = prefs.getBoolean(KEY_TRUST_ALL, false);
-        s.srtPassphrase = prefs.getString(KEY_SRT_PASSPHRASE, "");
-        s.srtEncryptionIndex = clamp(prefs.getInt(KEY_SRT_ENCRYPTION, 0),
+        s.protocol = clamp(getInt(prefs, KEY_PROTOCOL, PROTOCOL_RTSP), 0, 2);
+        s.codec = clamp(getInt(prefs, KEY_CODEC, CODEC_H264), 0, 1);
+        s.url = getString(prefs, KEY_URL, DEFAULT_URL).trim();
+        s.trustAllCerts = getBoolean(prefs, KEY_TRUST_ALL, false);
+        s.srtPassphrase = getString(prefs, KEY_SRT_PASSPHRASE, "");
+        s.srtEncryptionIndex = clamp(getInt(prefs, KEY_SRT_ENCRYPTION, 0),
                 0, SRT_ENCRYPTION_TYPES.length - 1);
-        s.camera = clamp(prefs.getInt(KEY_CAMERA, CAMERA_BACK), 0, 2);
-        s.klv = prefs.getBoolean(KEY_KLV, true);
-        s.resolutionIndex = clamp(prefs.getInt(KEY_RESOLUTION, 0), 0, RESOLUTIONS.length - 1);
-        s.fpsIndex = clamp(prefs.getInt(KEY_FPS, FPS_VALUES.length - 1), 0, FPS_VALUES.length - 1);
-        s.bitrateIndex = clamp(prefs.getInt(KEY_BITRATE, 0), 0, BITRATES_KBPS.length - 1);
-        s.adaptiveBitrate = prefs.getBoolean(KEY_ADAPTIVE, true);
-        s.microphone = prefs.getBoolean(KEY_MICROPHONE, true);
-        s.classificationIndex = clamp(prefs.getInt(KEY_CLASSIFICATION, 0), 0,
+        s.camera = clamp(getInt(prefs, KEY_CAMERA, CAMERA_BACK), 0, 2);
+        s.klv = getBoolean(prefs, KEY_KLV, true);
+        s.resolutionIndex = clamp(getInt(prefs, KEY_RESOLUTION, 0), 0, RESOLUTIONS.length - 1);
+        s.fpsIndex = clamp(getInt(prefs, KEY_FPS, FPS_VALUES.length - 1), 0, FPS_VALUES.length - 1);
+        s.bitrateIndex = clamp(getInt(prefs, KEY_BITRATE, 0), 0, BITRATES_KBPS.length - 1);
+        s.adaptiveBitrate = getBoolean(prefs, KEY_ADAPTIVE, true);
+        s.microphone = getBoolean(prefs, KEY_MICROPHONE, true);
+        s.classificationIndex = clamp(getInt(prefs, KEY_CLASSIFICATION, 0), 0,
                 KlvEncoder.TOP_SECRET - KlvEncoder.UNCLASSIFIED);
-        s.country = prefs.getString(KEY_COUNTRY, defaultCountry());
-        s.missionId = prefs.getString(KEY_MISSION, "");
+        s.country = getString(prefs, KEY_COUNTRY, defaultCountry()).trim().toUpperCase(Locale.ROOT);
+        s.missionId = getString(prefs, KEY_MISSION, "");
+        s.record = getBoolean(prefs, KEY_RECORD, false);
+        s.serverFeed = getBoolean(prefs, KEY_SERVER_FEED, true);
         return s;
+    }
+
+    /** Whether a preference key belongs to ICU NG (all of them start with "icung."). */
+    static boolean isOwnKey(String key) {
+        return key != null && key.startsWith("icung.");
+    }
+
+    /** Same values everywhere, i.e. nothing for the pane or the stream to pick up. */
+    boolean sameAs(StreamSettings o) {
+        return o != null && sameLiveOptions(o) && protocol == o.protocol && codec == o.codec
+                && url.equals(o.url) && trustAllCerts == o.trustAllCerts
+                && srtPassphrase.equals(o.srtPassphrase)
+                && srtEncryptionIndex == o.srtEncryptionIndex && camera == o.camera
+                && klv == o.klv && resolutionIndex == o.resolutionIndex && fpsIndex == o.fpsIndex
+                && classificationIndex == o.classificationIndex && country.equals(o.country)
+                && missionId.equals(o.missionId) && record == o.record
+                && serverFeed == o.serverFeed;
+    }
+
+    /** The options a running stream takes on the fly. */
+    boolean sameLiveOptions(StreamSettings o) {
+        return o != null && bitrateIndex == o.bitrateIndex
+                && adaptiveBitrate == o.adaptiveBitrate && microphone == o.microphone;
+    }
+
+    // A .pref entry may carry the value with another class than the one
+    // saved here (Integer as String, "1" for a boolean...): read it anyway.
+    private static int getInt(Map<String, ?> prefs, String key, int def) {
+        Object v = prefs.get(key);
+        if (v instanceof Integer) return (Integer) v;
+        if (v instanceof Number) return ((Number) v).intValue();
+        if (v instanceof String) {
+            try {
+                return Integer.parseInt(((String) v).trim());
+            } catch (NumberFormatException e) {
+                return def;
+            }
+        }
+        return def;
+    }
+
+    private static boolean getBoolean(Map<String, ?> prefs, String key, boolean def) {
+        Object v = prefs.get(key);
+        if (v instanceof Boolean) return (Boolean) v;
+        if (v instanceof Number) return ((Number) v).intValue() != 0;
+        if (v instanceof String) {
+            String t = ((String) v).trim();
+            if (t.equalsIgnoreCase("true") || t.equals("1")) return true;
+            if (t.equalsIgnoreCase("false") || t.equals("0")) return false;
+        }
+        return def;
+    }
+
+    private static String getString(Map<String, ?> prefs, String key, String def) {
+        Object v = prefs.get(key);
+        return v == null ? def : String.valueOf(v);
     }
 
     public void save(Context atakContext) {
@@ -126,6 +203,8 @@ public final class StreamSettings {
                 .putInt(KEY_CLASSIFICATION, classificationIndex)
                 .putString(KEY_COUNTRY, country)
                 .putString(KEY_MISSION, missionId)
+                .putBoolean(KEY_RECORD, record)
+                .putBoolean(KEY_SERVER_FEED, serverFeed)
                 .apply();
     }
 

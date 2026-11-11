@@ -10,4 +10,5 @@
     <string name="error_auth">Помилка автентифікації</string>
     <string name="error_auth_missing">Сервер вимагає ім’я користувача та пароль, але в URL їх немає</string>
     <string name="error_permission">Помилка: ICU NG Capture не має дозволу на доступ до камери</string>
+    <string name="recording_saved">Запис збережено в Movies/%1$s</string>
 </resources>

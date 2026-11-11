@@ -164,12 +164,29 @@ Ein QR-Code zum Anzeigen (`read:`) funktioniert ebenfalls: ICU NG veröffentlich
 ]
 
 #tak-slide[
+= Aufnahme, Video-Feed-Manager und Konfiguration per Datei
+- *Auch auf dem Telefon aufnehmen* (in _Qualität_): Jeder Stream wird zusätzlich als MP4
+  in _Movies/ICU NG_ gespeichert, sichtbar in der Galerie und über USB. Die Aufnahme läuft
+  weiter, wenn das Netzwerk ausfällt: Nur die Übertragung verbindet sich neu. Das MP4
+  enthält kein KLV.
+- *Im Video-Feed-Manager des TAK Servers auflisten* (in _Qualität_, standardmäßig
+  aktiviert): Während des Streamens erscheint Ihr Video im Video-Feed-Manager des
+  Servers, sodass der Gefechtsstand alle Live-Feeds an einem Ort sieht. Beim Beenden
+  wird es als inaktiv markiert. Nur bei TLS-Serververbindungen.
+- *Bricht die Verbindung ab*, versucht es das Plugin selbstständig erneut (nach 2, 4, 8, 16 s,
+  dann alle 30 s), bis Sie auf _Stoppen_ tippen.
+- *Konfiguration per `.pref`-Datei*: Alle Einstellungen des Bedienfelds können über eine
+  `.pref`-Datei verteilt werden (Import-Manager, Datenpaket oder MDM). Sie werden sofort
+  ohne Neustart von ATAK angewendet. Vorlage und Schlüssel im Repository: `docs/PREF_FILE.md`.
+]
+
+#tak-slide[
 = Häufige Probleme
 - *Das Bedienfeld zeigt "Stream über Plugin"*: ATAK erkennt ICU NG Capture nicht. Installieren (oder
   reinstallieren) Sie die App und starten Sie ATAK neu.
 - *"ICU NG Capture konnte nicht geöffnet werden"*: Die App wurde deinstalliert oder antwortet nicht.
   Öffnen Sie sie einmalig aus der App-Übersicht.
-- *Bleibt bernsteinfarben*: Der Server antwortet nicht. Prüfen Sie URL, Netzwerk oder VPN.
+- *Bleibt bernsteinfarben*: Der Server antwortet nicht und das Plugin versucht es weiter. Prüfen Sie URL, Netzwerk oder VPN.
 - *"Authentifizierungsfehler"*: Benutzername oder Passwort in der URL falsch.
 - *"ICU NG Capture hat keine Kameraberechtigung"*: Android-Einstellungen → Apps → ICU NG Capture →
   Berechtigungen.

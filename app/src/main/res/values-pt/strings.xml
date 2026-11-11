@@ -45,6 +45,7 @@
     <string name="qr_error_streaming">Pare a transmissão antes de ler um código QR</string>
     <string name="status_idle">Parado</string>
     <string name="status_connecting">A ligar…</string>
+    <string name="status_retrying">Sem ligação, a tentar novamente…</string>
     <string name="status_streaming">A transmitir</string>
     <string name="status_disconnected">Desligado</string>
     <string name="status_error_connection">Erro de ligação</string>
@@ -60,4 +61,7 @@
     <string name="status_error_change_protocol_while_streaming">Erro: pare a transmissão antes de mudar para/de SRT</string>
 
     <string name="url_hint">rtsp://servidor:porta/transmissão</string>
+    <string name="record_checkbox">Gravar também no telemóvel (Movies/ICU NG)</string>
+    <string name="recording_saved">Gravação guardada em Movies/%1$s</string>
+    <string name="server_feed_checkbox">Publicar no gestor de vídeo do TAK Server</string>
 </resources>

@@ -164,12 +164,30 @@ Un QR de visionnage (`read:`) convient aussi : ICU NG publie toujours.
 ]
 
 #tak-slide[
+= Enregistrement, gestionnaire de flux vidéo et configuration par fichier
+- *Enregistrer aussi sur le téléphone* (dans _Qualité_) : chaque diffusion est également
+  enregistrée au format MP4 dans _Movies/ICU NG_, visible dans la galerie et via USB.
+  L'enregistrement ne s'interrompt pas en cas de perte de réseau : seule l'émission se
+  reconnecte. Le fichier MP4 ne contient pas le KLV.
+- *Publier dans le gestionnaire de flux vidéo du TAK Server* (dans _Qualité_, activé par
+  défaut) : pendant la diffusion, votre vidéo apparaît dans le gestionnaire de flux
+  vidéo du serveur, permettant au poste de commandement de centraliser tous les flux
+  en direct. À l'arrêt, elle passe en statut inactif. Connexions serveur TLS uniquement.
+- *Si la connexion est perdue*, le plugin réessaie automatiquement (après 2, 4, 8, 16 s,
+  puis toutes les 30 s) jusqu'à ce que vous appuyiez sur _Arrêter_.
+- *Configuration par fichier `.pref`* : tous les paramètres du panneau peuvent être
+  déployés via un fichier `.pref` (Gestionnaire d'importation, paquet de données ou MDM).
+  Ils s'appliquent immédiatement, sans redémarrer ATAK. Modèle et clés dans le dépôt :
+  `docs/PREF_FILE.md`.
+]
+
+#tak-slide[
 = Problèmes fréquents
 - *Le panneau indique "Diffusion via le plugin"*: ATAK ne détecte pas ICU NG Capture. Installez-la (ou
   réinstallez-la) et redémarrez ATAK.
 - *"Impossible d'ouvrir ICU NG Capture"*: l'application a été désinstallée ou ne répond pas.
   Ouvrez-la une fois depuis le tiroir d'applications.
-- *Reste ambre*: le serveur ne répond pas. Vérifiez l'URL, le réseau ou le VPN.
+- *Reste ambre*: le serveur ne répond pas et le plugin continue de réessayer. Vérifiez l'URL, le réseau ou le VPN.
 - *"Erreur d'authentification"*: nom d'utilisateur ou mot de passe incorrect dans l'URL.
 - *"ICU NG Capture ne dispose pas de l'autorisation caméra"*: Paramètres Android → Applications → ICU NG Capture →
   Autorisations.

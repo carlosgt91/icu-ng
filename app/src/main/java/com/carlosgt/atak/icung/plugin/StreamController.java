@@ -136,6 +136,20 @@ public class StreamController implements ConnectChecker {
     // then can the idle pane preview open it here again.
     private boolean awaitingRemoteRelease;
 
+    // A connection dropped with ATAK in front is retried until the user
+    // stops: 2, 4, 8, 16 s, then every 30 s. The announcement, KLV and
+    // preview stay up meanwhile, so viewers get the stream back by itself.
+    private static final long RETRY_FIRST_MS = 2000;
+    private static final long RETRY_MAX_MS = 30000;
+    private boolean retrying;
+    private int retryAttempt;
+    private final Runnable retryConnect = this::reconnectNow;
+    // The MP4 being written while live, null when not recording.
+    private java.io.File recordingFile;
+    private final ServerVideoFeed serverFeed = new ServerVideoFeed();
+    // Whether the running stream was listed on the TAK Server.
+    private boolean feedListed;
+
     private static final long REMOTE_START_TIMEOUT_MS = 15000;
     private static final long REMOTE_RELEASE_TIMEOUT_MS = 3000;
 
@@ -198,7 +212,7 @@ public class StreamController implements ConnectChecker {
     }
 
     public boolean isStreaming() {
-        return remoteLive || (stream != null && stream.isStreaming());
+        return remoteLive || retrying || (stream != null && stream.isStreaming());
     }
 
     public ConnectionEntry getConnectionEntry() {
@@ -263,6 +277,7 @@ public class StreamController implements ConnectChecker {
                 && settings.protocol != StreamSettings.PROTOCOL_SRT);
         setState(State.CONNECTING, null);
         stream.startStream(settings.url);
+        if (settings.record) startRecording();
 
         // Anunciar por CoT/IVideoConnectionManager:
         // Cuando se emite por RTSPS (TLS hacia puerto 8555), se anuncia como RTSP plano
@@ -272,6 +287,7 @@ public class StreamController implements ConnectChecker {
         if (connectionEntry != null) {
             videoConnectionManager.addConnectionEntry(connectionEntry);
             publishCotDetail(connectionEntry);
+            listOnServer(settings, connectionEntry);
         }
         sensorFovController.refresh(true, settings.camera);
     }
@@ -287,7 +303,8 @@ public class StreamController implements ConnectChecker {
         boolean klvTrack = settings.klv && settings.protocol != StreamSettings.PROTOCOL_SRT;
         int rotation = CameraHelper.getCameraOrientation(atakContext);
         streamRotation = rotation;
-        if (!captureLink.start(settings, klvTrack, rotation)) {
+        if (!captureLink.start(settings, klvTrack, rotation,
+                Recordings.fileName(streamAlias(), System.currentTimeMillis()))) {
             setState(State.ERROR, pluginContext.getString(R.string.status_error_capture_app));
             return;
         }
@@ -304,6 +321,7 @@ public class StreamController implements ConnectChecker {
         if (connectionEntry != null) {
             videoConnectionManager.addConnectionEntry(connectionEntry);
             publishCotDetail(connectionEntry);
+            listOnServer(settings, connectionEntry);
         }
         sensorFovController.refresh(true, settings.camera);
         startKlv(settings.camera);
@@ -316,6 +334,7 @@ public class StreamController implements ConnectChecker {
         stopKlv();
         if (connectionEntry != null) {
             videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
+            unlistFromServer(connectionEntry);
             connectionEntry = null;
         }
         clearCotDetail();
@@ -396,6 +415,45 @@ public class StreamController implements ConnectChecker {
         reconnectOnForeground = false;
         stopStreamOnly();
         setState(State.IDLE, null);
+    }
+
+    static long retryDelayMs(int attempt) {
+        long d = RETRY_FIRST_MS << Math.min(Math.max(attempt, 0), 4);
+        return Math.min(d, RETRY_MAX_MS);
+    }
+
+    private void scheduleRetry() {
+        if (stream != null && stream.isStreaming()) stream.stopStream();
+        retrying = true;
+        long delay = retryDelayMs(retryAttempt++);
+        Log.i(TAG, "conexion perdida, reintento en " + delay / 1000 + " s");
+        mainHandler.removeCallbacks(retryConnect);
+        mainHandler.postDelayed(retryConnect, delay);
+        setState(State.CONNECTING, pluginContext.getString(R.string.status_retrying));
+    }
+
+    private void cancelRetry() {
+        mainHandler.removeCallbacks(retryConnect);
+        retrying = false;
+    }
+
+    private void reconnectNow() {
+        if (!retrying || stream == null || activeSettings == null) return;
+        if (inBackground()) {
+            // The camera is gone; picked up again when ATAK is back in front.
+            cancelRetry();
+            stopStreamOnly();
+            reconnectOnForeground = true;
+            return;
+        }
+        retrying = false;
+        Log.i(TAG, "reintentando la conexion");
+        try {
+            stream.startStream(activeSettings.url);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "reintento fallido", e);
+            failCamera();
+        }
     }
 
     public void toggle() {
@@ -520,6 +578,7 @@ public class StreamController implements ConnectChecker {
         reconnectOnForeground = false;
         stopStreamOnly();
         releaseStream();
+        serverFeed.dispose();
         listeners.clear();
     }
 
@@ -659,8 +718,41 @@ public class StreamController implements ConnectChecker {
         return source;
     }
 
+    // The recording runs on the same encoder as the stream, and outlives
+    // its dropped connections: RootEncoder keeps the camera and encoders
+    // going through stopStream() while recording, so a retry only
+    // reconnects the network side.
+    private void startRecording() {
+        if (stream == null || stream.isRecording()) return;
+        java.io.File f = Recordings.tempFile(atakContext,
+                Recordings.fileName(streamAlias(), System.currentTimeMillis()));
+        try {
+            stream.startRecord(f.getAbsolutePath(), status -> Log.i(TAG, "grabacion: " + status));
+            recordingFile = f;
+            Log.i(TAG, "grabando en " + f);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "no se pudo iniciar la grabacion", e);
+        }
+    }
+
+    private void stopRecording() {
+        java.io.File f = recordingFile;
+        recordingFile = null;
+        if (f == null) return;
+        try {
+            if (stream != null && stream.isRecording()) stream.stopRecord();
+        } catch (RuntimeException e) {
+            Log.e(TAG, "error cerrando la grabacion", e);
+        }
+        Recordings.publish(atakContext, f, () -> mainHandler.post(() ->
+                android.widget.Toast.makeText(atakContext,
+                        pluginContext.getString(R.string.recording_saved, Recordings.FOLDER),
+                        android.widget.Toast.LENGTH_LONG).show()));
+    }
+
     private void releaseStream() {
         if (stream == null) return;
+        stopRecording();
         stream.release();
         stream = null;
     }
@@ -669,11 +761,15 @@ public class StreamController implements ConnectChecker {
     // connection failure, so CoT/video bookkeeping never falls out of sync
     // with the actual stream state.
     private void stopStreamOnly() {
+        cancelRetry();
+        retryAttempt = 0;
+        stopRecording();
         if (stream != null && stream.isStreaming()) {
             stream.stopStream();
         }
         if (connectionEntry != null) {
             videoConnectionManager.removeConnectionEntry(connectionEntry.getUID());
+            unlistFromServer(connectionEntry);
             connectionEntry = null;
         }
         clearCotDetail();
@@ -682,6 +778,22 @@ public class StreamController implements ConnectChecker {
         sensorFovController.refresh(false);
         // Nothing left to show the camera for.
         if (stream != null && previewSurface == null) releaseStream();
+    }
+
+    private String feedUid() {
+        MapView mv = MapView.getMapView();
+        return ServerVideoFeed.feedUid(mv == null ? "unknown" : mv.getSelfMarker().getUID());
+    }
+
+    private void listOnServer(StreamSettings settings, ConnectionEntry entry) {
+        feedListed = settings.serverFeed;
+        if (feedListed) serverFeed.publish(entry, feedUid(), true);
+    }
+
+    private void unlistFromServer(ConnectionEntry entry) {
+        if (!feedListed) return;
+        feedListed = false;
+        serverFeed.publish(entry, feedUid(), false);
     }
 
     private ConnectionEntry buildConnectionEntry(StreamSettings settings) {
@@ -854,6 +966,12 @@ public class StreamController implements ConnectChecker {
     // an error: the camera is gone anyway, so it is re-established as soon
     // as ATAK is back in front ("Conectando..." meanwhile).
     private void onLostConnection(State reportedState, String message) {
+        // The disconnect RootEncoder reports for the stop before a retry.
+        if (retrying) return;
+        if (!inBackground() && activeSettings != null && stream != null) {
+            scheduleRetry();
+            return;
+        }
         stopStreamOnly();
         if (inBackground()) {
             Log.i(TAG, "conexion perdida en segundo plano, se reconecta al volver");
@@ -946,6 +1064,7 @@ public class StreamController implements ConnectChecker {
     @Override
     public void onConnectionSuccess() {
         onMain(() -> {
+            retryAttempt = 0;
             if (isStreaming()) setState(State.STREAMING, null);
         });
     }

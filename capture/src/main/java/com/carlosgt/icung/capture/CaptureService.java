@@ -17,6 +17,7 @@ import android.os.PowerManager;
 import android.os.RemoteCallbackList;
 import android.os.RemoteException;
 import android.util.Log;
+import android.widget.Toast;
 import android.view.Surface;
 
 import com.pedro.common.ConnectChecker;
@@ -34,6 +35,7 @@ import com.pedro.rtsp.rtsp.klv.FrameTiming;
 import com.pedro.rtsp.rtsp.klv.KlvMetadata;
 import com.pedro.srt.srt.packets.control.handshake.EncryptionType;
 
+import java.io.File;
 import java.security.cert.X509Certificate;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -53,7 +55,9 @@ import javax.net.ssl.X509TrustManager;
  *
  * A dropped connection is retried every {@link #RETRY_MS} until stopped -
  * nobody may be looking at the phone to press Emitir again. Only an
- * authentication error ends the stream by itself.
+ * authentication error ends the stream by itself. While recording, a retry
+ * only reconnects the network side: camera, encoders and the MP4 keep
+ * running, so the recording has no gap.
  *
  * Everything runs on the main thread: binder calls and RootEncoder's
  * ConnectChecker callbacks are posted there.
@@ -120,6 +124,8 @@ public class CaptureService extends Service implements ConnectChecker {
     private volatile long klvPacketAt;
 
     private final Runnable retry = this::connect;
+    private final Runnable retryStream = this::reconnectStream;
+    private File recordingFile;
 
     // Hands the plugin's latest packet to the RTSP sender once. Called on
     // the sender thread.
@@ -235,6 +241,7 @@ public class CaptureService extends Service implements ConnectChecker {
     // system took away.
     private void connect() {
         mainHandler.removeCallbacks(retry);
+        mainHandler.removeCallbacks(retryStream);
         releaseStream();
         int protocol = config.getIntExtra(CaptureContract.EXTRA_PROTOCOL, 0);
         try {
@@ -289,6 +296,7 @@ public class CaptureService extends Service implements ConnectChecker {
                     config.getBooleanExtra(CaptureContract.EXTRA_MUTED, false));
             setState(State.CONNECTING, null);
             stream.startStream(config.getStringExtra(CaptureContract.EXTRA_URL));
+            startRecording();
         } catch (RuntimeException e) {
             // Camera/GL/encoder failures must end as an error, not a crash.
             Log.e(TAG, "no se pudo iniciar la emision", e);
@@ -334,8 +342,54 @@ public class CaptureService extends Service implements ConnectChecker {
         adapter.adaptBitrate(bitrate, st.getStreamClient().hasCongestion());
     }
 
+    private void startRecording() {
+        if (stream == null || stream.isRecording()
+                || !config.getBooleanExtra(CaptureContract.EXTRA_RECORD, false)) return;
+        String name = config.getStringExtra(CaptureContract.EXTRA_RECORD_NAME);
+        if (name == null || name.isEmpty()) {
+            name = Recordings.fileName(null, System.currentTimeMillis());
+        }
+        File f = Recordings.tempFile(this, name);
+        try {
+            stream.startRecord(f.getAbsolutePath(), status -> Log.i(TAG, "grabacion: " + status));
+            recordingFile = f;
+            // A rebuild after a camera failure starts a new file.
+            config.putExtra(CaptureContract.EXTRA_RECORD_NAME, "");
+            Log.i(TAG, "grabando en " + f);
+        } catch (RuntimeException e) {
+            Log.e(TAG, "no se pudo iniciar la grabacion", e);
+        }
+    }
+
+    private void stopRecording() {
+        File f = recordingFile;
+        recordingFile = null;
+        if (f == null) return;
+        try {
+            if (stream != null && stream.isRecording()) stream.stopRecord();
+        } catch (RuntimeException e) {
+            Log.e(TAG, "error cerrando la grabacion", e);
+        }
+        Recordings.publish(getApplicationContext(), f, () -> mainHandler.post(() ->
+                Toast.makeText(getApplicationContext(),
+                        getString(R.string.recording_saved, Recordings.FOLDER),
+                        Toast.LENGTH_LONG).show()));
+    }
+
+    // Recording: only the connection is redone, see the class comment.
+    private void reconnectStream() {
+        if (stream == null || config == null || !stream.isRecording()) {
+            connect();
+            return;
+        }
+        Log.i(TAG, "reintentando la conexion (la grabacion sigue)");
+        setState(State.CONNECTING, null);
+        stream.startStream(config.getStringExtra(CaptureContract.EXTRA_URL));
+    }
+
     private void finish(State finalState, String message) {
         mainHandler.removeCallbacks(retry);
+        mainHandler.removeCallbacks(retryStream);
         releaseStream();
         config = null;
         if (wakeLock != null) {
@@ -351,6 +405,7 @@ public class CaptureService extends Service implements ConnectChecker {
     private void releaseStream() {
         if (KlvMetadata.getSupplier() == klvSupplier) KlvMetadata.setSupplier(null);
         if (stream == null) return;
+        stopRecording();
         try {
             if (stream.isOnPreview()) stream.stopPreview();
             if (stream.isStreaming()) stream.stopStream();
@@ -362,9 +417,20 @@ public class CaptureService extends Service implements ConnectChecker {
     }
 
     private void retryLater(String message) {
+        mainHandler.removeCallbacks(retry);
+        mainHandler.removeCallbacks(retryStream);
+        if (stream != null && stream.isRecording()) {
+            try {
+                if (stream.isStreaming()) stream.stopStream();
+                setState(State.CONNECTING, message);
+                mainHandler.postDelayed(retryStream, RETRY_MS);
+                return;
+            } catch (RuntimeException e) {
+                Log.w(TAG, "no se pudo parar solo la conexion", e);
+            }
+        }
         releaseStream();
         setState(State.CONNECTING, message);
-        mainHandler.removeCallbacks(retry);
         mainHandler.postDelayed(retry, RETRY_MS);
     }
 

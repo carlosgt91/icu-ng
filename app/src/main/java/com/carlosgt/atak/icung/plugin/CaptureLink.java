@@ -56,6 +56,8 @@ public class CaptureLink {
     private static final String EXTRA_BITRATE = "bitrate";
     private static final String EXTRA_ADAPTIVE_BITRATE = "adaptive_bitrate";
     private static final String EXTRA_MUTED = "muted";
+    private static final String EXTRA_RECORD = "record";
+    private static final String EXTRA_RECORD_NAME = "record_name";
 
     private static final int REQUEST_CODE = 0x1C0;
 
@@ -161,7 +163,7 @@ public class CaptureLink {
     }
 
     /** @return false if the app could not be reached */
-    public boolean start(StreamSettings s, boolean klv, int rotation) {
+    public boolean start(StreamSettings s, boolean klv, int rotation, String recordName) {
         bind();
         Intent intent = command(ACTION_START)
                 .putExtra(EXTRA_URL, s.url)
@@ -178,7 +180,9 @@ public class CaptureLink {
                 .putExtra(EXTRA_FPS, s.fps())
                 .putExtra(EXTRA_BITRATE, s.videoBitrate())
                 .putExtra(EXTRA_ADAPTIVE_BITRATE, s.adaptiveBitrate)
-                .putExtra(EXTRA_MUTED, !s.microphone);
+                .putExtra(EXTRA_MUTED, !s.microphone)
+                .putExtra(EXTRA_RECORD, s.record)
+                .putExtra(EXTRA_RECORD_NAME, recordName);
         return send(intent);
     }
 

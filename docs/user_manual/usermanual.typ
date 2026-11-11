@@ -163,12 +163,29 @@ A "view" QR code (`read:`) works too: ICU NG always publishes.
 ]
 
 #tak-slide[
+= Recording, video feed manager and file configuration
+- *Also record on the phone* (in _Quality_): every stream is also saved as an MP4
+  in _Movies/ICU NG_, visible in the gallery and over USB. The recording keeps
+  going when the network drops: only the sending side reconnects. The MP4 does
+  not carry the KLV.
+- *List in the TAK Server's Video Feed Manager* (in _Quality_, on by default):
+  while you stream, your video appears in the server's video feed manager, so
+  the command post sees every live feed in one place. When you stop it is marked
+  inactive. TLS server connections only.
+- *If the connection drops*, the plugin retries by itself (after 2, 4, 8, 16 s,
+  then every 30 s) until you press _Stop_.
+- *Configuration by `.pref` file*: every setting in the pane can be distributed
+  with a `.pref` file (Import Manager, data package or MDM). It applies at once,
+  with no ATAK restart. Template and keys in the repository: `docs/PREF_FILE.md`.
+]
+
+#tak-slide[
 = Common issues
 - *Panel shows "Streaming via plugin"*: ATAK cannot find ICU NG Capture. Install (or
   reinstall) it and restart ATAK.
 - *"Could not open ICU NG Capture"*: the app has been uninstalled or is not responding.
   Open it once from the app drawer.
-- *Stays amber*: server is not responding. Check the URL, network, or VPN.
+- *Stays amber*: the server is not responding and the plugin keeps retrying. Check the URL, network, or VPN.
 - *"Authentication error"*: incorrect username or password in the URL.
 - *"ICU NG Capture does not have camera permission"*: Android Settings → Apps → ICU NG Capture →
   Permissions.

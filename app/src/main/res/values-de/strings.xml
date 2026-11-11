@@ -45,6 +45,7 @@
     <string name="qr_error_streaming">Stream vor dem Scannen eines QR-Codes stoppen</string>
     <string name="status_idle">Gestoppt</string>
     <string name="status_connecting">Wird verbunden…</string>
+    <string name="status_retrying">Keine Verbindung, erneuter Versuch…</string>
     <string name="status_streaming">Streaming</string>
     <string name="status_disconnected">Getrennt</string>
     <string name="status_error_connection">Verbindungsfehler</string>
@@ -59,4 +60,7 @@
     <string name="status_error_klv_country">Fehler: Das KLV-Land muss ein Code aus drei Buchstaben sein (GENC/ISO 3166, z. B. DEU)</string>
     <string name="status_error_change_protocol_while_streaming">Fehler: Stream vor dem Wechsel zu/von SRT stoppen</string>
     <string name="url_hint">rtsp://host:port/stream</string>
+    <string name="record_checkbox">Auch auf dem Telefon aufnehmen (Movies/ICU NG)</string>
+    <string name="recording_saved">Aufnahme gespeichert in Movies/%1$s</string>
+    <string name="server_feed_checkbox">Im Video-Feed-Manager des TAK Servers auflisten</string>
 </resources>

@@ -45,6 +45,7 @@
     <string name="qr_error_streaming">Detén la emisión antes de escanear un QR</string>
     <string name="status_idle">Detenido</string>
     <string name="status_connecting">Conectando…</string>
+    <string name="status_retrying">Sin conexión, reintentando…</string>
     <string name="status_streaming">Emitiendo</string>
     <string name="status_disconnected">Desconectado</string>
     <string name="status_error_connection">Error de conexión</string>
@@ -60,4 +61,7 @@
     <string name="status_error_change_protocol_while_streaming">Error: detén la emisión antes de cambiar a/desde SRT</string>
 
     <string name="url_hint">rtsp://host:puerto/stream</string>
+    <string name="record_checkbox">Grabar también en el teléfono (Movies/ICU NG)</string>
+    <string name="recording_saved">Grabación guardada en Movies/%1$s</string>
+    <string name="server_feed_checkbox">Publicar en el gestor de vídeo del TAK Server</string>
 </resources>

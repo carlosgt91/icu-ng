@@ -1,6 +1,10 @@
 package com.carlosgt.atak.icung.plugin;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.os.Handler;
+import android.os.Looper;
+import android.preference.PreferenceManager;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.SurfaceHolder;
@@ -36,6 +40,23 @@ import java.util.Locale;
 
 public class IcuNgPlugin implements IPlugin, StreamController.Listener {
 
+    // Settings written from outside the pane: a .pref file through the
+    // Import Manager, a data package or MDM. Applied at once, no restart:
+    // the pane shows them, a running stream takes bitrate/microphone on the
+    // fly and the rest goes into the next stream. A whole import arrives as
+    // one burst of keys, hence the short delay.
+    private static final long PREF_SETTLE_MS = 300;
+    private final Handler prefHandler = new Handler(Looper.getMainLooper());
+    private SharedPreferences atakPrefs;
+    private StreamSettings lastSeenSettings;
+    private final Runnable applyExternalSettings = this::onSettingsChangedOutside;
+    private final SharedPreferences.OnSharedPreferenceChangeListener prefListener =
+            (prefs, key) -> {
+                if (!StreamSettings.isOwnKey(key)) return;
+                prefHandler.removeCallbacks(applyExternalSettings);
+                prefHandler.postDelayed(applyExternalSettings, PREF_SETTLE_MS);
+            };
+
     IServiceController serviceController;
     Context pluginContext;
     Context atakContext;
@@ -66,6 +87,8 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     Spinner bitrateSpinner;
     CheckBox adaptiveBitrateCheckbox;
     CheckBox microphoneCheckbox;
+    CheckBox recordCheckbox;
+    CheckBox serverFeedCheckbox;
     TextView statusText;
     boolean suppressProtocolListener;
     int lastValidProtocolPosition;
@@ -140,6 +163,37 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         radialMenu.register();
 
         registerPreferences();
+
+        atakPrefs = PreferenceManager.getDefaultSharedPreferences(atakContext);
+        lastSeenSettings = StreamSettings.load(atakPrefs);
+        atakPrefs.registerOnSharedPreferenceChangeListener(prefListener);
+    }
+
+    private void onSettingsChangedOutside() {
+        if (streamController == null || atakPrefs == null) return;
+        StreamSettings fresh = StreamSettings.load(atakPrefs);
+        // The pane's own saves land here too; they change nothing.
+        if (fresh.sameAs(lastSeenSettings)) return;
+        boolean liveChanged = !fresh.sameLiveOptions(lastSeenSettings);
+        lastSeenSettings = fresh;
+        if (settings != null && urlInput != null && !fresh.sameAs(settings)
+                && !streamController.isStreaming()) {
+            settings = fresh;
+            fillInputs(fresh);
+        }
+        if (liveChanged && streamController.isStreaming()) {
+            if (settings != null) {
+                settings.bitrateIndex = fresh.bitrateIndex;
+                settings.adaptiveBitrate = fresh.adaptiveBitrate;
+                settings.microphone = fresh.microphone;
+                if (bitrateSpinner != null) {
+                    bitrateSpinner.setSelection(fresh.bitrateIndex);
+                    adaptiveBitrateCheckbox.setChecked(fresh.adaptiveBitrate);
+                    microphoneCheckbox.setChecked(fresh.microphone);
+                }
+            }
+            streamController.applyLiveOptions(fresh);
+        }
     }
 
     private static final String PREFS_KEY = "icung_preferences";
@@ -182,6 +236,11 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
 
         uiService.removeToolbarItem(toolbarItem);
         unregisterPreferences();
+        prefHandler.removeCallbacks(applyExternalSettings);
+        if (atakPrefs != null) {
+            atakPrefs.unregisterOnSharedPreferenceChangeListener(prefListener);
+            atakPrefs = null;
+        }
 
         if (templatePane != null && uiService.isPaneVisible(templatePane)) {
             uiService.closePane(templatePane);
@@ -219,7 +278,8 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     public void onStreamStateChanged(StreamController.State state, String message) {
         switch (state) {
             case CONNECTING:
-                setStatus(pluginContext.getString(R.string.status_connecting),
+                setStatus(message != null ? message
+                        : pluginContext.getString(R.string.status_connecting),
                         R.color.status_connecting);
                 break;
             case STREAMING:
@@ -236,6 +296,15 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         }
         boolean live = state == StreamController.State.STREAMING
                 || state == StreamController.State.CONNECTING;
+        // Settings imported while live: the pane shows them once stopped,
+        // before any edit there could write the old ones back.
+        if (!live && settings != null && urlInput != null && atakPrefs != null) {
+            StreamSettings fresh = StreamSettings.load(atakPrefs);
+            if (!fresh.sameAs(settings)) {
+                settings = fresh;
+                fillInputs(fresh);
+            }
+        }
         if (streamToggleButton != null) {
             streamToggleButton.setText(live ? R.string.stop_stream : R.string.start_stream);
             streamToggleButton.setBackground(pluginContext.getDrawable(
@@ -266,6 +335,8 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         if (codecSpinner != null) codecSpinner.setEnabled(enabled);
         resolutionSpinner.setEnabled(enabled);
         fpsSpinner.setEnabled(enabled);
+        recordCheckbox.setEnabled(enabled);
+        serverFeedCheckbox.setEnabled(enabled);
     }
 
     private void fillInputs(StreamSettings s) {
@@ -288,6 +359,8 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         bitrateSpinner.setSelection(s.bitrateIndex);
         adaptiveBitrateCheckbox.setChecked(s.adaptiveBitrate);
         microphoneCheckbox.setChecked(s.microphone);
+        recordCheckbox.setChecked(s.record);
+        serverFeedCheckbox.setChecked(s.serverFeed);
         updateProtocolRows(s.protocol);
     }
 
@@ -324,6 +397,8 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         if (codecSpinner != null) settings.codec = codecSpinner.getSelectedItemPosition();
         settings.resolutionIndex = resolutionSpinner.getSelectedItemPosition();
         settings.fpsIndex = fpsSpinner.getSelectedItemPosition();
+        settings.record = recordCheckbox.isChecked();
+        settings.serverFeed = serverFeedCheckbox.isChecked();
         settings.save(atakContext);
     }
 
@@ -494,6 +569,8 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             bitrateSpinner = paneView.findViewById(R.id.bitrate_spinner);
             adaptiveBitrateCheckbox = paneView.findViewById(R.id.adaptive_bitrate_checkbox);
             microphoneCheckbox = paneView.findViewById(R.id.microphone_checkbox);
+            recordCheckbox = paneView.findViewById(R.id.record_checkbox);
+            serverFeedCheckbox = paneView.findViewById(R.id.server_feed_checkbox);
             statusText = paneView.findViewById(R.id.status_text);
             ((TextView) paneView.findViewById(R.id.mode_text)).setText(
                     streamController.usesCaptureApp()
@@ -572,6 +649,8 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             });
             adaptiveBitrateCheckbox.setOnCheckedChangeListener((b, checked) -> onLiveOptionChanged());
             microphoneCheckbox.setOnCheckedChangeListener((b, checked) -> onLiveOptionChanged());
+            recordCheckbox.setOnCheckedChangeListener((b, checked) -> saveInputs());
+            serverFeedCheckbox.setOnCheckedChangeListener((b, checked) -> saveInputs());
             TextWatcher saveOnEdit = new TextWatcher() {
                 @Override
                 public void beforeTextChanged(CharSequence s, int start, int count, int after) {

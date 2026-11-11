@@ -16,6 +16,21 @@ next version exists. A resubmission is always a new version.
 | 1.1.7 | 101075080 | — | Not yet submitted |
 | 1.1.8 | 101085080 | 2026-10-31 | Signed (2026-10-31) |
 | 1.1.9 | 101095080 | 2026-10-31 | Signed (2026-10-31) |
+| 1.2.0 | 102005080 | — | Not yet submitted |
+
+## 1.2.0 — not yet submitted
+
+- The plugin retries a dropped connection by itself while ATAK is in front
+  (2, 4, 8, 16 s, then every 30 s) instead of stopping in error. The Capture app
+  already did.
+- Settings can come from a `.pref` file (Import Manager, data package, MDM) and
+  apply without restarting ATAK; a bad value only resets that setting. See
+  `docs/PREF_FILE.md` and `docs/icu-ng-settings-template.pref`.
+- Optional local MP4 recording of every stream (Movies/ICU NG), in the plugin and
+  in the Capture app. It survives dropped connections: only the network side
+  reconnects. No KLV in the MP4.
+- The stream is listed in the TAK Server's Video Feed Manager (POST /Marti/vcm with
+  the connection's client certificate), marked inactive on stop. On by default.
 
 ## 1.1.1 — rejected
 

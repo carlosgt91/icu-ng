@@ -344,6 +344,22 @@
                 android:text="@string/microphone_checkbox"
                 style="@style/IcuNgCheckBox" />
 
+            <CheckBox
+                android:id="@+id/record_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/record_checkbox"
+                style="@style/IcuNgCheckBox" />
+
+            <CheckBox
+                android:id="@+id/server_feed_checkbox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="@string/server_feed_checkbox"
+                style="@style/IcuNgCheckBox" />
+
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

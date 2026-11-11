@@ -48,6 +48,10 @@ public final class CaptureContract {
     public static final String EXTRA_ADAPTIVE_BITRATE = "adaptive_bitrate";
     /** send silence instead of the microphone */
     public static final String EXTRA_MUTED = "muted";
+    /** also record the stream to an MP4 on the phone (Movies/ICU NG) */
+    public static final String EXTRA_RECORD = "record";
+    /** file name for that recording */
+    public static final String EXTRA_RECORD_NAME = "record_name";
 
     public static final int CAMERA_BACK = 0;
     public static final int CAMERA_FRONT = 1;

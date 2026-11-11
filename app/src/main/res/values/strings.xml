@@ -48,6 +48,7 @@
     <string name="qr_error_streaming">Stop streaming before scanning a QR code</string>
     <string name="status_idle">Stopped</string>
     <string name="status_connecting">Connecting…</string>
+    <string name="status_retrying">No connection, retrying…</string>
     <string name="status_streaming">Streaming</string>
     <string name="status_disconnected">Disconnected</string>
     <string name="status_error_connection">Connection error</string>
@@ -63,4 +64,7 @@
     <string name="status_error_change_protocol_while_streaming">Error: stop streaming before switching to/from SRT</string>
 
     <string name="url_hint">rtsp://host:port/stream</string>
+    <string name="record_checkbox">Also record on the phone (Movies/ICU NG)</string>
+    <string name="recording_saved">Recording saved in Movies/%1$s</string>
+    <string name="server_feed_checkbox">List in the TAK Server\'s Video Feed Manager</string>
 </resources>

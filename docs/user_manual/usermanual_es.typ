@@ -164,12 +164,29 @@ Un QR de _ver_ (`read:`) vale también: ICU NG siempre publica.
 ]
 
 #tak-slide[
+= Grabación, gestor de vídeo y configuración por fichero
+- *Grabar también en el teléfono* (en _Calidad_): cada emisión se guarda además en
+  MP4 en _Movies/ICU NG_, visible en la galería y por USB. La grabación no se corta
+  aunque se caiga la red: solo se reconecta el envío. El MP4 no lleva el KLV.
+- *Publicar en el gestor de vídeo del TAK Server* (en _Calidad_, activado por
+  defecto): mientras emites, tu vídeo aparece en el gestor de vídeo del servidor,
+  para que el puesto de mando vea todos los vídeos activos en un solo sitio. Al
+  parar queda como inactivo. Solo con conexión TLS al servidor.
+- *Si se cae la conexión*, el plugin reintenta solo (a los 2, 4, 8, 16 s y luego
+  cada 30 s) hasta que pulses _Detener_.
+- *Configuración por fichero `.pref`*: todos los ajustes del panel se pueden
+  repartir con un `.pref` (Gestor de importación, paquete de datos o MDM). Se
+  aplican al momento, sin reiniciar ATAK. Plantilla y claves en el repositorio:
+  `docs/PREF_FILE.md`.
+]
+
+#tak-slide[
 = Problemas frecuentes
 - *El panel dice "Emite el plugin"*: ATAK no ve ICU NG Capture. Instálala (o
   reinstálala) y reinicia ATAK.
 - *"No se pudo abrir ICU NG Capture"*: la app se ha desinstalado o no responde.
   Ábrela una vez desde el cajón de apps.
-- *Se queda en ámbar*: el servidor no contesta. Revisa la URL, la red o la VPN.
+- *Se queda en ámbar*: el servidor no contesta y el plugin sigue reintentando. Revisa la URL, la red o la VPN.
 - *"Error de autenticación"*: usuario o clave de la URL incorrectos.
 - *"ICU NG Capture no tiene permiso de cámara"*: Ajustes de Android → Apps → ICU NG Capture →
   Permisos.
