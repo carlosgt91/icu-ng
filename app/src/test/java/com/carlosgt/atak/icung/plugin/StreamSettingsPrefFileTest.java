@@ -16,12 +16,12 @@ public class StreamSettingsPrefFileTest {
     public void readsValuesWrittenWithTheRightClass() {
         Map<String, Object> p = new HashMap<>();
         p.put("icung.protocol", 2);
-        p.put("icung.url", " srt://10.0.0.1:8890?streamid=publish:alpha ");
+        p.put("icung.url", " srt://video.example.org:8890?streamid=publish:alpha ");
         p.put("icung.klv", false);
         p.put("icung.klv_country", "esp");
         StreamSettings s = StreamSettings.load(p);
         assertEquals(StreamSettings.PROTOCOL_SRT, s.protocol);
-        assertEquals("srt://10.0.0.1:8890?streamid=publish:alpha", s.url);
+        assertEquals("srt://video.example.org:8890?streamid=publish:alpha", s.url);
         assertFalse(s.klv);
         assertEquals("ESP", s.country);
     }
