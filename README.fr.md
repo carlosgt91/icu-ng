@@ -5,7 +5,7 @@
 [![ATAK-CIV](https://img.shields.io/badge/ATAK--CIV-5.8%2B-blue.svg)](https://tak.gov)
 [![Standards](https://img.shields.io/badge/Standards-MISB%20ST%200601%20%7C%20ST%200902%20%7C%20STANAG%204609-success.svg)](https://gwg.nga.mil/)
 [![Protocoles](https://img.shields.io/badge/Protocoles-RTSP%20%7C%20RTSPS%20%7C%20SRT-orange.svg)](#securite-et-conformite-ato)
-[![Version](https://img.shields.io/badge/Version-v1.1.9-brightgreen.svg)](https://github.com/carlosgt91/icu-ng/releases/tag/v1.1.9)
+[![Version](https://img.shields.io/badge/Version-v1.2.1-brightgreen.svg)](https://github.com/carlosgt91/icu-ng/releases/tag/v1.2.1)
 [![Licence](https://img.shields.io/badge/Licence-Apache%202.0-lightgrey.svg)](LICENSE)
 
 **Plugin de streaming vidéo tactique professionnel à faible latence pour ATAK-CIV.**  
@@ -48,20 +48,20 @@ Les flux sont identifiés par l'indicatif d'appel (*callsign*) de l'opérateur e
 
 ---
 
-## 🚀 Téléchargements (Dernière Version : v1.1.9)
+## 🚀 Téléchargements (Dernière Version : v1.2.1)
 
-Les fichiers APK précompilés sont disponibles sur [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/tag/v1.1.9) :
+Les fichiers APK précompilés sont disponibles sur [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/tag/v1.2.1) :
 
 | Paquet | Fichier | Description |
 | :--- | :--- | :--- |
-| **Plugin ATAK** | [ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.9/ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk) | Paquet de plugin natif pour ATAK-CIV 5.8+ |
-| **App Compagne** | [ICU-NG-Capture-1.1.9-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.9/ICU-NG-Capture-1.1.9-release.apk) | Service indépendant pour diffusion avec écran éteint |
+| **Plugin ATAK** | [ATAK-Plugin-IcuNg-1.2.1--5.8.0-civ-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ATAK-Plugin-IcuNg-1.2.1--5.8.0-civ-release.apk) | Paquet de plugin natif pour ATAK-CIV 5.8+ |
+| **App Compagne** | [ICU-NG-Capture-1.2.1-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ICU-NG-Capture-1.2.1-release.apk) | Service indépendant pour diffusion avec écran éteint |
 
 ### Sommes de Contrôle SHA-256
 
 ```text
-540a5438499391b80c161145b147224888935620cce2320d7ffa525dca632ef3  ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk
-214f14cf95a484510dad0727bd7a3c6e602ffb329b4899334cb07e1748a770e8  ICU-NG-Capture-1.1.9-release.apk
+623b66ebedbd7a2279a8442f525fc28c1948e2ca3fba329ffe305dff346ab2d5  ATAK-Plugin-IcuNg-1.2.1--5.8.0-civ-release.apk
+57a4ebf16592103d059d1191ce956f2914ffe1ab5523bedeb1882914602933e5  ICU-NG-Capture-1.2.1-release.apk
 ```
 
 ---

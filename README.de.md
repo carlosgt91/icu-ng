@@ -5,7 +5,7 @@
 [![ATAK-CIV](https://img.shields.io/badge/ATAK--CIV-5.8%2B-blue.svg)](https://tak.gov)
 [![Standards](https://img.shields.io/badge/Standards-MISB%20ST%200601%20%7C%20ST%200902%20%7C%20STANAG%204609-success.svg)](https://gwg.nga.mil/)
 [![Protokolle](https://img.shields.io/badge/Protokolle-RTSP%20%7C%20RTSPS%20%7C%20SRT-orange.svg)](#sicherheit-und-ato-vorgaben)
-[![Release](https://img.shields.io/badge/Release-v1.1.9-brightgreen.svg)](https://github.com/carlosgt91/icu-ng/releases/tag/v1.1.9)
+[![Release](https://img.shields.io/badge/Release-v1.2.1-brightgreen.svg)](https://github.com/carlosgt91/icu-ng/releases/tag/v1.2.1)
 [![Lizenz](https://img.shields.io/badge/Lizenz-Apache%202.0-lightgrey.svg)](LICENSE)
 
 **Professionelles, latenzarmes taktisches Video-Streaming-Plugin für ATAK-CIV.**  
@@ -48,20 +48,20 @@ Streams werden mit dem Rufzeichen (*Callsign*) des Bedieners benannt und automat
 
 ---
 
-## 🚀 Downloads (Aktuelle Version: v1.1.9)
+## 🚀 Downloads (Aktuelle Version: v1.2.1)
 
-Vorkompilierte APKs stehen unter [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/tag/v1.1.9) bereit:
+Vorkompilierte APKs stehen unter [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/tag/v1.2.1) bereit:
 
 | Paket | Datei | Beschreibung |
 | :--- | :--- | :--- |
-| **ATAK-Plugin** | [ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.9/ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk) | Natives Plugin-Paket für ATAK-CIV 5.8+ |
-| **Begleit-App** | [ICU-NG-Capture-1.1.9-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.1.9/ICU-NG-Capture-1.1.9-release.apk) | Eigenständiger Hintergrunddienst für Streaming bei ausgeschaltetem Bildschirm |
+| **ATAK-Plugin** | [ATAK-Plugin-IcuNg-1.2.1--5.8.0-civ-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ATAK-Plugin-IcuNg-1.2.1--5.8.0-civ-release.apk) | Natives Plugin-Paket für ATAK-CIV 5.8+ |
+| **Begleit-App** | [ICU-NG-Capture-1.2.1-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ICU-NG-Capture-1.2.1-release.apk) | Eigenständiger Hintergrunddienst für Streaming bei ausgeschaltetem Bildschirm |
 
 ### SHA-256 Prüfsummen
 
 ```text
-540a5438499391b80c161145b147224888935620cce2320d7ffa525dca632ef3  ATAK-Plugin-IcuNg-1.1.9-813b18c6-5.8.0-civ-release.apk
-214f14cf95a484510dad0727bd7a3c6e602ffb329b4899334cb07e1748a770e8  ICU-NG-Capture-1.1.9-release.apk
+623b66ebedbd7a2279a8442f525fc28c1948e2ca3fba329ffe305dff346ab2d5  ATAK-Plugin-IcuNg-1.2.1--5.8.0-civ-release.apk
+57a4ebf16592103d059d1191ce956f2914ffe1ab5523bedeb1882914602933e5  ICU-NG-Capture-1.2.1-release.apk
 ```
 
 ---
