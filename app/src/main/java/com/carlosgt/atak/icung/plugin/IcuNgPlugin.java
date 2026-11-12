@@ -80,6 +80,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
     Spinner srtEncryptionSpinner;
     View mainPage;
     View qualityPage;
+    View settingsPage;
     Button qualityBackButton;
     Spinner codecSpinner;
     Spinner resolutionSpinner;
@@ -342,6 +343,13 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         serverFeedCheckbox.setEnabled(enabled);
     }
 
+    private void showPage(View page) {
+        if (mainPage == null) return;
+        mainPage.setVisibility(page == mainPage ? View.VISIBLE : View.GONE);
+        qualityPage.setVisibility(page == qualityPage ? View.VISIBLE : View.GONE);
+        settingsPage.setVisibility(page == settingsPage ? View.VISIBLE : View.GONE);
+    }
+
     // Recording is done by ICU NG Capture only (see StreamController): without
     // it the box is off and says why, whatever the setting holds.
     private void updateRecordRow(boolean enabled) {
@@ -546,6 +554,7 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
         streamToggleButton = null;
         mainPage = null;
         qualityPage = null;
+        settingsPage = null;
         qualityBackButton = null;
         codecSpinner = null;
     }
@@ -576,14 +585,14 @@ public class IcuNgPlugin implements IPlugin, StreamController.Listener {
             qualityPage = paneView.findViewById(R.id.quality_page);
             qualityBackButton = paneView.findViewById(R.id.quality_back_button);
 
-            paneView.findViewById(R.id.quality_button).setOnClickListener(v -> {
-                mainPage.setVisibility(View.GONE);
-                qualityPage.setVisibility(View.VISIBLE);
-            });
-            qualityBackButton.setOnClickListener(v -> {
-                qualityPage.setVisibility(View.GONE);
-                mainPage.setVisibility(View.VISIBLE);
-            });
+            settingsPage = paneView.findViewById(R.id.settings_page);
+
+            // Connection and KLV live on their own page so the main page
+            // stays one row and the preview shows.
+            paneView.findViewById(R.id.quality_button).setOnClickListener(v -> showPage(qualityPage));
+            paneView.findViewById(R.id.settings_button).setOnClickListener(v -> showPage(settingsPage));
+            qualityBackButton.setOnClickListener(v -> showPage(mainPage));
+            paneView.findViewById(R.id.settings_back_button).setOnClickListener(v -> showPage(mainPage));
 
             codecSpinner = paneView.findViewById(R.id.codec_spinner);
             resolutionSpinner = paneView.findViewById(R.id.resolution_spinner);

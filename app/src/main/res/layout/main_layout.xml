@@ -40,39 +40,81 @@
             android:layout_height="wrap_content"
             android:paddingBottom="4dp" />
 
-        <!-- PAGE 1: MAIN CONTROLS -->
+        <!-- PAGE 1: MAIN CONTROLS (kept short so the preview shows) -->
         <LinearLayout
             android:id="@+id/main_page"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical">
+            android:orientation="horizontal"
+            android:gravity="center_vertical">
+
+            <Spinner
+                android:id="@+id/camera_spinner"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                style="@style/IcuNgSpinner" />
+
+            <Button
+                android:id="@+id/quality_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/quality_button"
+                style="@style/IcuNgButton.Secondary" />
+
+            <Button
+                android:id="@+id/settings_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/settings_button"
+                style="@style/IcuNgButton.Secondary" />
+
+            <!-- Pushes Start/Stop to the right edge. -->
+            <View
+                android:layout_width="0dp"
+                android:layout_height="1dp"
+                android:layout_weight="1" />
+
+            <Button
+                android:id="@+id/stream_toggle_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="@string/start_stream"
+                style="@style/IcuNgButton.Primary" />
+
+        </LinearLayout>
+
+        <!-- PAGE 2: CONNECTION AND KLV (opened via "Settings", hides main controls) -->
+        <LinearLayout
+            android:id="@+id/settings_page"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:visibility="gone">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
+
+                <Button
+                    android:id="@+id/settings_back_button"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/back_button"
+                    style="@style/IcuNgButton.Secondary" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_gravity="center_vertical"
-                    android:text="@string/camera_caption"
-                    style="@style/IcuNgCaption" />
-
-                <Spinner
-                    android:id="@+id/camera_spinner"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    style="@style/IcuNgSpinner" />
-
-                <Button
-                    android:id="@+id/quality_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/quality_button"
-                    style="@style/IcuNgButton.Secondary" />
+                    android:layout_marginStart="12dp"
+                    android:text="@string/settings_title"
+                    android:textColor="#FFFFFF"
+                    android:textSize="15sp"
+                    android:textStyle="bold" />
 
             </LinearLayout>
 
@@ -80,7 +122,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="@dimen/auto_margin"
-                android:orientation="horizontal">
+                android:orientation="horizontal"
+                android:gravity="center_vertical">
 
                 <Spinner
                     android:id="@+id/protocol_spinner"
@@ -106,13 +149,6 @@
                     android:text="@string/qr_button"
                     style="@style/IcuNgButton.Secondary" />
 
-                <Button
-                    android:id="@+id/stream_toggle_button"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/start_stream"
-                    style="@style/IcuNgButton.Primary" />
 
             </LinearLayout>
 
@@ -219,9 +255,10 @@
 
             </LinearLayout>
 
+
         </LinearLayout>
 
-        <!-- PAGE 2: QUALITY SETTINGS (Opened via "Calidad", hides main controls) -->
+        <!-- PAGE 3: QUALITY SETTINGS (Opened via "Calidad", hides main controls) -->
         <LinearLayout
             android:id="@+id/quality_page"
             android:layout_width="match_parent"

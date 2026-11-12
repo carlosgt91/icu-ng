@@ -75,12 +75,25 @@ States:
 - *Camera preview* (also while streaming).
 - *Status* and active streamer (ICU NG Capture or the plugin).
 - *Camera*: back, front, or USB. Can be changed while streaming, without interruption.
+- *Quality*: resolution, fps, bitrate, microphone, recording.
+- *Settings*: server connection and KLV.
+- *Stream / Stop*.
+
+Everything is saved immediately: the REC button streams with whatever the panel holds.
+]
+]
+
+#tak-slide[
+= Connection and KLV
+#toolbox.side-by-side(columns: (5fr, 4fr))[
+  #image("3b.png", width: 100%)
+][
+The *Settings* button opens:
 - Server *protocol and URL*: `rtsp://`, `rtsps://`, or `srt://`.
 - *QR*: reads the server URL from a QR code.
-- *Stream / Stop*.
 - *KLV*: sends telemetry with the video. Below it: classification, country (three letters, e.g. ESP) and a mission ID (left empty, it is your callsign and the UTC date, e.g. ALFA-1-20261031), which go in every packet.
 
-Everything is saved immediately: the REC button streams with whatever the panel shows.
+_Back_ returns to the preview.
 ]
 ]
 
@@ -149,7 +162,7 @@ the image appears automatically upon plugging it in.
 ][
 *Server QR code*
 
-The *QR* button reads the server URL from a QR code (for example, generated
+The *QR* button (in _Settings_) reads the server URL from a QR code (for example, generated
 by the video server) and fills in protocol, URL, and, for SRT, the passphrase:
 
 `rtsp://[user:password@]host:port/path`

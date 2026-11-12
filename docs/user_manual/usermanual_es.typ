@@ -75,12 +75,25 @@ Estados:
 - *Vista previa* de la cámara (también mientras emite).
 - *Estado* y quién emite (ICU NG Capture o el plugin).
 - *Cámara*: trasera, frontal o USB. Se puede cambiar emitiendo, sin cortar.
+- *Calidad*: resolución, fps, bitrate, micrófono, grabación.
+- *Configuración*: conexión con el servidor y KLV.
+- *Emitir / Detener*.
+
+Todo se guarda al momento: el botón REC emite con lo que tenga el panel.
+]
+]
+
+#tak-slide[
+= Conexión y KLV
+#toolbox.side-by-side(columns: (5fr, 4fr))[
+  #image("3b.png", width: 100%)
+][
+El botón *Configuración* abre:
 - *Protocolo y URL* del servidor: `rtsp://`, `rtsps://` o `srt://`.
 - *QR*: lee la URL del servidor de un código QR.
-- *Emitir / Detener*.
 - *KLV*: envía la telemetría con el vídeo. Debajo: clasificación, país (tres letras, p. ej. ESP) e ID de misión (si lo dejas vacío, es tu callsign con la fecha UTC, p. ej. ALFA-1-20261031), que van en cada paquete.
 
-Todo se guarda al momento: el botón REC emite con lo que muestra el panel.
+_Atrás_ vuelve a la vista previa.
 ]
 ]
 
@@ -150,7 +163,7 @@ la imagen aparece sola al enchufarla.
 ][
 *QR del servidor*
 
-El botón *QR* lee la URL del servidor de un código QR (por ejemplo, el que genera
+El botón *QR* (en _Configuración_) lee la URL del servidor de un código QR (por ejemplo, el que genera
 el servidor de vídeo) y rellena protocolo, URL y, en SRT, el passphrase:
 
 `rtsp://[usuario:clave@]host:puerto/ruta`

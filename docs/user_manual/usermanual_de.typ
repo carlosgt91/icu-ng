@@ -75,12 +75,25 @@ Status:
 - *Kameravorschau* (auch während des Streamings).
 - *Status* und wer streamt (ICU NG Capture oder das Plugin).
 - *Kamera*: Rückkamera, Frontkamera oder USB. Kann während des Streamings ohne Unterbrechung gewechselt werden.
+- *Qualität*: Auflösung, fps, Bitrate, Mikrofon, Aufnahme.
+- *Einstellungen*: Serververbindung und KLV.
+- *Streamen / Stoppen*.
+
+Alles wird sofort gespeichert: Die REC-Schaltfläche streamt mit dem, was das Bedienfeld enthält.
+]
+]
+
+#tak-slide[
+= Verbindung und KLV
+#toolbox.side-by-side(columns: (5fr, 4fr))[
+  #image("3b.png", width: 100%)
+][
+Die Schaltfläche *Einstellungen* öffnet:
 - *Protokoll und URL* des Servers: `rtsp://`, `rtsps://` oder `srt://`.
 - *QR*: Liest die Server-URL aus einem QR-Code.
-- *Streamen / Stoppen*.
 - *KLV*: Sendet die Telemetrie mit dem Video. Darunter: Klassifizierung, Land (drei Buchstaben, z. B. DEU) und Missions-ID (falls leer: Ihr Callsign mit dem UTC-Datum, z. B. ALFA-1-20261031), die in jedem Paket stehen.
 
-Alles wird sofort gespeichert: Die REC-Schaltfläche streamt mit den Einstellungen des Bedienfelds.
+_Zurück_ kehrt zur Vorschau zurück.
 ]
 ]
 
@@ -150,7 +163,7 @@ erscheint das Bild automatisch beim Einstecken.
 ][
 *Server-QR-Code*
 
-Die Schaltfläche *QR* liest die Server-URL aus einem QR-Code (z. B. vom
+Die Schaltfläche *QR* (in _Einstellungen_) liest die Server-URL aus einem QR-Code (z. B. vom
 Videoserver generiert) und füllt Protokoll, URL sowie bei SRT die Passphrase aus:
 
 `rtsp://[benutzer:passwort@]host:port/pfad`
