@@ -118,6 +118,21 @@ Diseñado desde el inicio para despliegues militares y redes corporativas de alt
 
 ---
 
+## 🗺️ Hoja de ruta
+
+Próximos cambios previstos (el orden puede cambiar según el feedback):
+
+- **Pantalla principal más limpia:** protocolo, URL, QR y marcado KLV pasan a un botón de *Configuración*, para dejar sitio a la vista previa.
+- **KLV en la grabación local:** los MP4 conservan la telemetría MISB ST 0601, para analizarlos con herramientas STANAG 4609 tras la misión.
+- **Foto georreferenciada:** un toque captura un fotograma y lo deja en el mapa como marcador con la imagen, para compartirlo con el equipo.
+- **Perfil de bajo ancho de banda:** ajuste de un toque (baja resolución y fps, sin audio) para enlaces de radio o satélite débiles.
+
+### 💬 Se agradecen comentarios y sugerencias
+
+Los informes de fallos, la experiencia en campo y las sugerencias son muy bienvenidos. Abre un [issue](https://github.com/carlosgt91/icu-ng/issues) indicando modelo de dispositivo, versión de ATAK y versión de ICU NG.
+
+---
+
 ## 🛠️ Compilación y Desarrollo
 
 ### Requisitos

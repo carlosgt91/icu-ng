@@ -118,6 +118,21 @@ Designed from the ground up for strict military and enterprise IT environments:
 
 ---
 
+## 🗺️ Roadmap
+
+Next planned items (order may change with feedback):
+
+- **Cleaner main screen:** protocol, URL, QR and KLV marking move behind a *Settings* button, so the live preview has room.
+- **KLV in the local recording:** MP4 files keep the MISB ST 0601 telemetry, for STANAG 4609 analysis after the mission.
+- **Geotagged snapshot:** one tap grabs a frame and drops it on the map as a marker with the image, shareable with the team.
+- **Low-bandwidth profile:** one-tap preset (low resolution and frame rate, no audio) for weak radio or satellite links.
+
+### 💬 Feedback welcome
+
+Bug reports, field experience and suggestions are very welcome. Please open an [issue](https://github.com/carlosgt91/icu-ng/issues): include the device model, ATAK version and ICU NG version.
+
+---
+
 ## 🛠️ Building & Development
 
 ### Prerequisites

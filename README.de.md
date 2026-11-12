@@ -117,6 +117,21 @@ Entwickelt für den Einsatz in anspruchsvollen militärischen und behördlichen 
 
 ---
 
+## 🗺️ Roadmap
+
+Nächste geplante Punkte (Reihenfolge kann sich durch Feedback ändern):
+
+- **Aufgeräumterer Hauptbildschirm:** Protokoll, URL, QR und KLV-Markierung wandern hinter eine *Einstellungen*-Schaltfläche, damit die Live-Vorschau mehr Platz hat.
+- **KLV in der lokalen Aufnahme:** MP4-Dateien behalten die MISB ST 0601-Telemetrie für die STANAG 4609-Analyse nach dem Einsatz.
+- **Georeferenzierter Schnappschuss:** Ein Antippen erfasst ein Einzelbild und platziert es als Marker mit dem Bild auf der Karte, teilbar mit dem Team.
+- **Profil für geringe Bandbreite:** Voreinstellung per Antippen (niedrige Auflösung und Bildrate, ohne Audio) für schwache Funk- oder Satellitenverbindungen.
+
+### 💬 Feedback willkommen
+
+Fehlerberichte, Praxiserfahrungen und Vorschläge sind sehr willkommen. Bitte ein [Issue](https://github.com/carlosgt91/icu-ng/issues) öffnen und Gerätemodell, ATAK-Version und ICU NG-Version angeben.
+
+---
+
 ## 🛠️ Build & Entwicklung
 
 ### Voraussetzungen
