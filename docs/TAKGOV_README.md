@@ -13,7 +13,7 @@ DOWNLOADS
 
 Pre-built APKs for the latest release (v1.2.1) are available on [GitHub Releases](https://github.com/carlosgt91/icu-ng/releases/latest):
 
-- 📦 **[ATAK Plugin — ICU NG v1.2.1](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ATAK-Plugin-IcuNg-1.2.1-5.8.0-civ-release.apk)** (civRelease, signed for ATAK-CIV 5.8+)
+- 📦 **[ATAK Plugin — ICU NG v1.2.2](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.2/ATAK-Plugin-IcuNg-1.2.2--5.8.0-civ-release.apk)** (civRelease, signed for ATAK-CIV 5.8+)
 - 📱 **[Companion App — ICU NG Capture v1.2.1](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ICU-NG-Capture-1.2.1-release.apk)** (Required for background & screen-off streaming)
 
 _________________________________________________________________

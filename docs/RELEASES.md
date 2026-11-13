@@ -18,9 +18,9 @@ next version exists. A resubmission is always a new version.
 | 1.1.9 | 101095080 | 2026-10-31 | Signed (2026-10-31) |
 | 1.2.0 | 102005080 | 2026-11-11 | Signed (2026-11-11), **not distributed** |
 | 1.2.1 | 102015080 | 2026-11-11 | Signed (2026-11-11) |
-| 1.2.2 | 102025080 | — | Not yet submitted |
+| 1.2.2 | 102025080 | 2026-11-12 | Signed (2026-11-12) |
 
-## 1.2.2 — not yet submitted
+## 1.2.2 — signed 2026-11-12, released 2026-11-13
 
 - The main page is one row (camera, Quality, Settings, Stream/Stop), so the
   preview shows. Protocol, URL, QR and the KLV marking move to a *Settings*
