@@ -14,10 +14,11 @@
     <string name="srt_passphrase_hint">Passphrase SRT</string>
     <string name="srt_passphrase_caption">10-79 caracteres · vacío = sin cifrar</string>
     <string name="srt_encryption_caption">Cifrado</string>
-    <string name="camera_caption">Cámara</string>
     <string name="quality_button">Calidad</string>
     <string name="back_button">← Atrás</string>
     <string name="quality_title">Ajustes de calidad</string>
+    <string name="settings_button">Configuración</string>
+    <string name="settings_title">Conexión y KLV</string>
     <string name="codec_caption">Códec</string>
     <string name="resolution_caption">Resolución</string>
     <string name="fps_caption">FPS</string>

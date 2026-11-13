@@ -18,6 +18,20 @@ next version exists. A resubmission is always a new version.
 | 1.1.9 | 101095080 | 2026-10-31 | Signed (2026-10-31) |
 | 1.2.0 | 102005080 | 2026-11-11 | Signed (2026-11-11), **not distributed** |
 | 1.2.1 | 102015080 | 2026-11-11 | Signed (2026-11-11) |
+| 1.2.2 | 102025080 | 2026-11-12 | Signed (2026-11-12) |
+
+## 1.2.2 — signed 2026-11-12, released 2026-11-13
+
+- The main page is one row (camera, Quality, Settings, Stream/Stop), so the
+  preview shows. Protocol, URL, QR and the KLV marking move to a *Settings*
+  page ("Connection and KLV"), like *Quality*. The "Camera" caption is gone:
+  the spinner already says Back/Front/USB.
+- Manual (6 languages): new panel screenshot and a "Connection and KLV" slide.
+- Lint clean: `SelfVideoDetailHandler` no longer uses `java.util.function.Supplier`
+  (API 24, the plugin's minSdk is 21); camera and microphone declared optional.
+- Fortify: two comments reworded (Password in Comment). The other three findings
+  are required by the standards: SHA-1 for the RFC 4122 v5 UUIDs of MISB ST 1204,
+  and HMAC-SHA1 / AES-ECB building AES-CM in RootEncoder's SRTP (RFC 3711).
 
 ## 1.2.1 — signed 2026-11-11, released 2026-11-12
 

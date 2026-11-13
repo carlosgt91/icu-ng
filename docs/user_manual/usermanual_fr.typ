@@ -75,12 +75,25 @@ s'éteint.
 - *Aperçu* de la caméra (également pendant la diffusion).
 - *État* et qui diffuse (ICU NG Capture ou le plugin).
 - *Caméra* : arrière, avant ou USB. Peut être changée en cours de diffusion, sans coupure.
+- *Qualité* : résolution, fps, débit, microphone, enregistrement.
+- *Paramètres* : connexion au serveur et KLV.
+- *Diffuser / Arrêter*.
+
+Tout est enregistré instantanément : le bouton REC diffuse avec ce que contient le panneau.
+]
+]
+
+#tak-slide[
+= Connexion et KLV
+#toolbox.side-by-side(columns: (5fr, 4fr))[
+  #image("3b.png", width: 100%)
+][
+Le bouton *Paramètres* ouvre :
 - *Protocole et URL* du serveur : `rtsp://`, `rtsps://` ou `srt://`.
 - *QR* : lit l'URL du serveur à partir d'un code QR.
-- *Diffuser / Arrêter*.
 - *KLV* : envoie la télémétrie avec la vidéo. En dessous : classification, pays (trois lettres, p. ex. FRA) et ID de mission (laissé vide, c'est votre callsign suivi de la date UTC, p. ex. ALFA-1-20261031), inclus dans chaque paquet.
 
-Tout est enregistré instantanément : le bouton REC diffuse avec les paramètres affichés sur le panneau.
+_Retour_ revient à l'aperçu.
 ]
 ]
 
@@ -150,7 +163,7 @@ l'image apparaît d'elle-même dès le branchement.
 ][
 *QR du serveur*
 
-Le bouton *QR* lit l'URL du serveur à partir d'un code QR (par exemple, généré
+Le bouton *QR* (dans _Paramètres_) lit l'URL du serveur à partir d'un code QR (par exemple, généré
 par le serveur vidéo) et renseigne le protocole, l'URL et, pour SRT, la passphrase :
 
 `rtsp://[utilisateur:motdepasse@]host:port/chemin`

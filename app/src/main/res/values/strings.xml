@@ -16,10 +16,11 @@
     <string name="srt_passphrase_hint">SRT passphrase</string>
     <string name="srt_passphrase_caption">10-79 characters · empty = unencrypted</string>
     <string name="srt_encryption_caption">Encryption</string>
-    <string name="camera_caption">Camera</string>
     <string name="quality_button">Quality</string>
     <string name="back_button">← Back</string>
     <string name="quality_title">Quality Settings</string>
+    <string name="settings_button">Settings</string>
+    <string name="settings_title">Connection and KLV</string>
     <string name="codec_caption">Codec</string>
     <string name="resolution_caption">Resolution</string>
     <string name="fps_caption">FPS</string>

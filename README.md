@@ -54,13 +54,13 @@ Pre-built APKs are available under [GitHub Releases](https://github.com/carlosgt
 
 | Package | File | Description |
 | :--- | :--- | :--- |
-| **ATAK Plugin** | [ATAK-Plugin-IcuNg-1.2.1--5.8.0-civ-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ATAK-Plugin-IcuNg-1.2.1--5.8.0-civ-release.apk) | Native ATAK-CIV 5.8+ plugin package |
+| **ATAK Plugin** | [ATAK-Plugin-IcuNg-1.2.2--5.8.0-civ-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.2/ATAK-Plugin-IcuNg-1.2.2--5.8.0-civ-release.apk) | Native ATAK-CIV 5.8+ plugin package |
 | **Companion App** | [ICU-NG-Capture-1.2.1-release.apk](https://github.com/carlosgt91/icu-ng/releases/download/v1.2.1/ICU-NG-Capture-1.2.1-release.apk) | Standalone background service for screen-off streaming |
 
 ### SHA-256 Checksums
 
 ```text
-623b66ebedbd7a2279a8442f525fc28c1948e2ca3fba329ffe305dff346ab2d5  ATAK-Plugin-IcuNg-1.2.1--5.8.0-civ-release.apk
+fe45a88370637aff1553ff80a8f2bb91d2969c48e9504885748a3f939dff4f99  ATAK-Plugin-IcuNg-1.2.2--5.8.0-civ-release.apk
 57a4ebf16592103d059d1191ce956f2914ffe1ab5523bedeb1882914602933e5  ICU-NG-Capture-1.2.1-release.apk
 ```
 

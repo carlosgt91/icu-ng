@@ -14,10 +14,11 @@
     <string name="srt_passphrase_hint">Парольна фраза SRT</string>
     <string name="srt_passphrase_caption">10-79 символів · порожньо = без шифрування</string>
     <string name="srt_encryption_caption">Шифрування</string>
-    <string name="camera_caption">Камера</string>
     <string name="quality_button">Якість</string>
     <string name="back_button">← Назад</string>
     <string name="quality_title">Налаштування якості</string>
+    <string name="settings_button">Налаштування</string>
+    <string name="settings_title">Підключення та KLV</string>
     <string name="codec_caption">Кодек</string>
     <string name="resolution_caption">Роздільна здатність</string>
     <string name="fps_caption">FPS</string>

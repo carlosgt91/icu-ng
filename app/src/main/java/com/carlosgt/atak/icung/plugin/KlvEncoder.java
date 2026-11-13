@@ -57,7 +57,7 @@ public final class KlvEncoder {
     private static final int SECURITY_VERSION = 12;
     // ST 0102 country coding method: GENC three letter (ESP, FRA...)
     private static final int GENC_THREE_LETTER = 14;
-    /** ST 0102 tag 1 values, UNCLASSIFIED (1) to TOP SECRET (5) */
+    /** ST 0102 tag 1 values: classification levels 1 (lowest) to 5 (highest) */
     public static final int UNCLASSIFIED = 1;
     public static final int TOP_SECRET = 5;
 

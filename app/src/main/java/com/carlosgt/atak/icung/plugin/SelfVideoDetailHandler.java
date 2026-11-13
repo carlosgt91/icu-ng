@@ -2,7 +2,6 @@ package com.carlosgt.atak.icung.plugin;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.Supplier;
 
 import gov.tak.api.cot.detail.ICotDetailHandler;
 import gov.tak.api.cot.detail.ICotDetailHandler2;
@@ -23,11 +22,16 @@ public class SelfVideoDetailHandler implements ICotDetailHandler2 {
     private static final Set<String> DETAIL_NAMES = Collections.singleton("__video");
 
     private final String selfUid;
-    private final Supplier<Boolean> isStreamingAndFixed;
-    private final Supplier<ConnectionEntry> connectionEntrySupplier;
+    /** java.util.function.Supplier needs API 24; the plugin's minSdk is 21. */
+    public interface Source<T> {
+        T get();
+    }
 
-    public SelfVideoDetailHandler(String selfUid, Supplier<Boolean> isStreamingAndFixed,
-            Supplier<ConnectionEntry> connectionEntrySupplier) {
+    private final Source<Boolean> isStreamingAndFixed;
+    private final Source<ConnectionEntry> connectionEntrySupplier;
+
+    public SelfVideoDetailHandler(String selfUid, Source<Boolean> isStreamingAndFixed,
+            Source<ConnectionEntry> connectionEntrySupplier) {
         this.selfUid = selfUid;
         this.isStreamingAndFixed = isStreamingAndFixed;
         this.connectionEntrySupplier = connectionEntrySupplier;
